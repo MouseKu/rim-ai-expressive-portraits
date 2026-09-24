@@ -1,0 +1,7 @@
+# Build outputs
+/dist/
+/Source/**/bin/
+/Source/**/obj/
+
+# IDE files
+/.vs/

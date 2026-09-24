@@ -1,0 +1,1 @@
+An angry expression with sharply furrowed brows, a fierce gaze, and a tightly clenched jaw. Preserve the original character’s appearance, clothing, pose, and composition. Change only the facial expression.
