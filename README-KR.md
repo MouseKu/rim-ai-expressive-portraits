@@ -6,11 +6,11 @@
 
 - **RIM AI Expressive Portraits**는 정착민의 **게임 내 모습(스프라이트), 건강 상태, 나이, 성별 등의 정보**를 바탕으로 AI 초상화를 생성해주는 모드입니다.
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\generation.webp)
+![](.img/generation.webp)
 
 - 정착민의 **게임 내 모습, 건강 상태, 나이, 성별 등의 정보**를 조합해 Gemini, OpenAI 또는 ComfyUI로 초상화를 생성합니다.
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\shfit.webp)
+![](.img/shfit.webp)
 
 -  또한 정착민의 상태에 따라 **다른 모습을 표시 가능합니다.**
 
@@ -34,7 +34,7 @@
 
 ### 3-1. 기본 초상화 생성
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\make-base.png)
+![](.img/make-base.png)
 
 - 정착민의 행동 목록에 AI 초상화 메뉴를 여는 버튼이 있습니다.
 
@@ -55,11 +55,11 @@
 
 ### 3-2. 감정 초상화 생성
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\make-expression1.png)
+![](.img/make-expression1.png)
 
 - 생성된 감정으로 부터 여러 파생된 감정 상태 초상화를 생성 가능합니다.
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\expression-multi.png)
+![](.img/expression-multi.png)
 
 - 여러 감정 표현이 있지만, 옵션에서 체크해야 보입니다. 기본으로 Low(무드 낮음)과 High(무드 높음)만 켜져있습니다.
 
@@ -71,11 +71,11 @@
   
   - 생성할 감정만 체크하고 생성합니다.
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\make-expression2.png)
+![](.img/make-expression2.png)
 
 ### 3-3. 배경 제거
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\background-remove.png)
+![](.img/background-remove.png)
 
 - OpenAI의 경우 배경을 자동으로 투명으로 지정해서 보낼 수 있지만, 어떤 Provider는 그게 안되기도 합니다. 배경 제거 옵션에서 스포이드로 배경색을 고르고 날려버릴 수 있습니다. 
 
@@ -83,7 +83,7 @@
 
 ### 3-4. OpenAI
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\open-ai-examples1.png)
+![](.img/open-ai-examples1.png)
 
 - openai의 sunburst의 low quality가 가장 많이 테스트한 모델입니다. 투명 배경을 지원하며 여러 모델을 테스트 했을 때 퀄리티 대비 저렴한 편입니다. medium/high는 가격이 꽤 됩니다.
 
@@ -93,7 +93,7 @@
 
 ### 3-5. Google Gemini
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\gemini-examples.png)
+![](.img/gemini-examples.png)
 
 - 투명 배경을 지원하지 않습니다. 투명 배경을 일관성 있게 뽑기가 어려웠기에 OpenAI과 경쟁하다가 테스트 단계에서 기본 옵션에서 밀려났습니다.
 
@@ -101,7 +101,7 @@
 
 ### 3-6. Comfy(Local Model)
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\comfy-example.png)
+![](.img/comfy-example.png)
 
 - 로컬 모델 셋업은 정말 많은 시간과 노력을 투자해야합니다. 특히 일관성을 유지하려면요. 물론 저는 원하는 결과를 뽑아내는 것에 실패했습니다. 
 
@@ -113,7 +113,7 @@
 
 ### 4-1. 기본 옵션
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\base-settings1.png)
+![](.img/base-settings1.png)
 
 - Provider는 OpenAI/Gemini/Comfy(Local Model) 중에 고를 수 있습니다.
 
@@ -121,23 +121,23 @@
 
 - **WIP**: Style Reference는 참조할 여러 이미지를 추가하는 기능인데 활용이 어려워서 구상중입니다. 아마 프롬프트도 이미지 여러 장 들어가는거에 맞춰서 바꿔야 할 거에요.
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\base-settings2.png)
+![](.img/base-settings2.png)
 
 - 어떤 정보가 프롬프트에 자동으로 반영될지 고를 수 있습니다. 기본적으로 캐릭터의 인게임 이미지와 텍스트 정보(성별, 나이) 등을 동시에 반영해서 이미지를 생성합니다.
 
 ### 4-2. 감정 옵션
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\expression-settings1.png)
+![](.img/expression-settings1.png)
 
 - 정착민의 상태에 따라 초상화를 교체하게 할 수 있습니다. 총 9가지가 있는데, 다켜면 꽤 돈이 많이 나갈거에요. 이 기능은 끄고 사용해도 무방합니다.
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\expression-settings2.png)
+![](.img/expression-settings2.png)
 
 - 감정 표현 생성도 마찬가지로 Provider를 따로 공급 가능합니다. 둘 다 같은 Provider를 쓸 수도 있고, 서로 섞어 쓸 수도 있습니다.
 
 ### 4-3. 그 외 옵션
 
-![](C:\Users\Mint\Documents\GitHub\rim-ai-portrait\.img\position-settings.png)
+![](.img/position-settings.png)
 
 - 초상화 크기와 위치를 조절 가능합니다.
 
