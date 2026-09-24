@@ -60,6 +60,9 @@
   <RimAIPortrait.BackgroundRemoval.Title>배경 제거</RimAIPortrait.BackgroundRemoval.Title>
   <RimAIPortrait.BackgroundRemoval.OriginalPreview>원본 이미지입니다. 옵션을 조절한 뒤 미리보기를 누르세요.</RimAIPortrait.BackgroundRemoval.OriginalPreview>
   <RimAIPortrait.BackgroundRemoval.Preview>미리보기</RimAIPortrait.BackgroundRemoval.Preview>
+  <RimAIPortrait.BackgroundRemoval.Align>아래 맞춤</RimAIPortrait.BackgroundRemoval.Align>
+  <RimAIPortrait.BackgroundRemoval.AlignTip>보이는 초상화를 캔버스 아래쪽 끝에 맞춥니다.</RimAIPortrait.BackgroundRemoval.AlignTip>
+  <RimAIPortrait.BackgroundRemoval.Aligned>초상화를 아래쪽에 맞췄습니다. 확정하면 선택한 이미지를 덮어씁니다.</RimAIPortrait.BackgroundRemoval.Aligned>
   <RimAIPortrait.BackgroundRemoval.Eyedropper>스포이드</RimAIPortrait.BackgroundRemoval.Eyedropper>
   <RimAIPortrait.BackgroundRemoval.EyedropperActive>이미지에서 배경색을 클릭하세요.</RimAIPortrait.BackgroundRemoval.EyedropperActive>
   <RimAIPortrait.BackgroundRemoval.EyedropperCancelled>색상 선택을 취소했습니다.</RimAIPortrait.BackgroundRemoval.EyedropperCancelled>

@@ -78,7 +78,7 @@ namespace RimAIPortrait
             if (previousColor != colorHex || !Mathf.Approximately(previousSensitivity, sensitivity) || previousErosion != erosionPixels)
                 previewCurrent = false;
 
-            if (Widgets.ButtonText(new Rect(430f, 112f, 150f, 34f), Localization.T("RimAIPortrait.BackgroundRemoval.Preview")))
+            if (Widgets.ButtonText(new Rect(430f, 112f, 140f, 34f), Localization.T("RimAIPortrait.BackgroundRemoval.Preview")))
             {
                 if (!validColor)
                     status = Localization.T("RimAIPortrait.Settings.BackgroundColorInvalid");
@@ -90,13 +90,21 @@ namespace RimAIPortrait
                     status = Localization.T("RimAIPortrait.BackgroundRemoval.PreviewReady");
                 }
             }
-            if (Widgets.ButtonText(new Rect(590f, 112f, 150f, 34f), Localization.T("RimAIPortrait.BackgroundRemoval.Eyedropper")))
+            if (Widgets.ButtonText(new Rect(580f, 112f, 140f, 34f), Localization.T("RimAIPortrait.BackgroundRemoval.Eyedropper")))
             {
                 pickingColor = !pickingColor;
                 status = Localization.T(pickingColor
                     ? "RimAIPortrait.BackgroundRemoval.EyedropperActive"
                     : "RimAIPortrait.BackgroundRemoval.EyedropperCancelled");
             }
+            Rect alignRect = new Rect(730f, 112f, rect.width - 730f, 34f);
+            if (Widgets.ButtonText(alignRect, Localization.T("RimAIPortrait.BackgroundRemoval.Align"), true, true, previewCurrent))
+            {
+                previewData = BackgroundRemoval.AlignBottom(previewData);
+                LoadPreviewTexture(previewData);
+                status = Localization.T("RimAIPortrait.BackgroundRemoval.Aligned");
+            }
+            TooltipHandler.TipRegion(alignRect, Localization.T("RimAIPortrait.BackgroundRemoval.AlignTip"));
 
             Widgets.Label(new Rect(0f, 154f, rect.width, 28f), status ?? "");
             Rect imageArea = new Rect(0f, 184f, rect.width, rect.height - 234f);

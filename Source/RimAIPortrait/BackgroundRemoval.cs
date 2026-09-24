@@ -73,6 +73,51 @@ namespace RimAIPortrait
             }
         }
 
+        /// <summary>Moves all visible pixels down until the lowest one touches the canvas edge.</summary>
+        public static byte[] AlignBottom(byte[] imageData)
+        {
+            if (imageData == null) return imageData;
+
+            var texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
+            try
+            {
+                if (!texture.LoadImage(imageData)) return imageData;
+                int width = texture.width;
+                int height = texture.height;
+                Color32[] pixels = texture.GetPixels32();
+                int lowestVisibleRow = height;
+
+                for (int y = 0; y < height && lowestVisibleRow == height; y++)
+                {
+                    int rowStart = y * width;
+                    for (int x = 0; x < width; x++)
+                    {
+                        if (pixels[rowStart + x].a == 0) continue;
+                        lowestVisibleRow = y;
+                        break;
+                    }
+                }
+
+                if (lowestVisibleRow <= 0 || lowestVisibleRow == height) return imageData;
+
+                var aligned = new Color32[pixels.Length];
+                int rowsToCopy = height - lowestVisibleRow;
+                Array.Copy(pixels, lowestVisibleRow * width, aligned, 0, rowsToCopy * width);
+                texture.SetPixels32(aligned);
+                texture.Apply(false, false);
+                return texture.EncodeToPNG();
+            }
+            catch (Exception exception)
+            {
+                Log.Warning("[Rim AI Expressive Portraits] Portrait alignment failed: " + exception.Message);
+                return imageData;
+            }
+            finally
+            {
+                UnityEngine.Object.Destroy(texture);
+            }
+        }
+
         public static bool TryParseHex(string value, out Color32 color)
         {
             string hex = (value ?? "").Trim().TrimStart('#');

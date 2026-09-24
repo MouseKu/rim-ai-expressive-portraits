@@ -98,6 +98,9 @@
   <RimAIPortrait.BackgroundRemoval.Title>Remove Background</RimAIPortrait.BackgroundRemoval.Title>
   <RimAIPortrait.BackgroundRemoval.OriginalPreview>Showing the original image. Adjust the options and select Preview.</RimAIPortrait.BackgroundRemoval.OriginalPreview>
   <RimAIPortrait.BackgroundRemoval.Preview>Preview</RimAIPortrait.BackgroundRemoval.Preview>
+  <RimAIPortrait.BackgroundRemoval.Align>Align</RimAIPortrait.BackgroundRemoval.Align>
+  <RimAIPortrait.BackgroundRemoval.AlignTip>Move the visible portrait down until it touches the bottom edge.</RimAIPortrait.BackgroundRemoval.AlignTip>
+  <RimAIPortrait.BackgroundRemoval.Aligned>Aligned the portrait to the bottom. Confirm to overwrite the selected image.</RimAIPortrait.BackgroundRemoval.Aligned>
   <RimAIPortrait.BackgroundRemoval.Eyedropper>Eyedropper</RimAIPortrait.BackgroundRemoval.Eyedropper>
   <RimAIPortrait.BackgroundRemoval.EyedropperActive>Click a background color in the image.</RimAIPortrait.BackgroundRemoval.EyedropperActive>
   <RimAIPortrait.BackgroundRemoval.EyedropperCancelled>Color picking cancelled.</RimAIPortrait.BackgroundRemoval.EyedropperCancelled>
