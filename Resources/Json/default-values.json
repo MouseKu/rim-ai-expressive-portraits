@@ -3,6 +3,8 @@
   "ExpressionProvider": 0,
   "ApiKey": "",
   "ExpressionApiKey": "",
+  "GoogleApiKey": "",
+  "GoogleExpressionApiKey": "",
   "OpenAiModel": "gpt-image-2.5-sunburst",
   "OpenAiExpressionModel": "gpt-image-2.5-sunburst",
   "GoogleModel": "gemini-3.1-flash-lite-image",

@@ -41,7 +41,7 @@ namespace RimAIPortrait
         {
             return new GoogleProviderConfiguration {
                 Model = expression ? settings.GoogleExpressionModel : settings.GoogleModel,
-                ApiKey = expression ? settings.ExpressionApiKey : settings.ApiKey,
+                ApiKey = expression ? settings.GoogleExpressionApiKey : settings.GoogleApiKey,
                 OptionsJson = expression ? settings.GoogleExpressionOptions : settings.GoogleOptions
             };
         }

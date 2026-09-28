@@ -18,6 +18,8 @@ namespace RimAIPortrait
 
         public IReadOnlyList<string> StyleReferences(PortraitGenerationRequest request)
         {
+            if (PortraitProviderUtilities.UsesDefaultStyle(request.StyleFolder))
+                return new string[0];
             return PortraitProviderUtilities.StyleFiles(request.StyleFolder)
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
         }
@@ -81,7 +83,9 @@ namespace RimAIPortrait
                 }
                 catch (Exception) { }
             }
-            foreach (string file in request.StylePaths.Take(MaximumStyleReferences))
+            IEnumerable<string> stylePaths = PortraitProviderUtilities.UsesDefaultStyle(request.StyleFolder)
+                ? Enumerable.Empty<string>() : request.StylePaths;
+            foreach (string file in stylePaths.Take(MaximumStyleReferences))
             {
                 try
                 {

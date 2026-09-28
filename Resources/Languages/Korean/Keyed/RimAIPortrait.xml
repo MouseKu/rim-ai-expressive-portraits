@@ -156,6 +156,8 @@
   <RimAIPortrait.Gallery.BaseResetFailed>기본 Base Prompt를 불러오지 못했습니다: {0}</RimAIPortrait.Gallery.BaseResetFailed>
   <RimAIPortrait.Settings.StyleDefaultInUse>모드에 포함된 Style 폴더의 이미지를 참조 중입니다.</RimAIPortrait.Settings.StyleDefaultInUse>
   <RimAIPortrait.Settings.StyleFolderHint>기본 Style 폴더를 쓰려면 Using Default Style을 입력하세요. 빈칸이면 스타일을 적용하지 않습니다.</RimAIPortrait.Settings.StyleFolderHint>
+  <RimAIPortrait.Settings.OpenAiStyleFolderHint>OpenAI는 사용자 지정 폴더의 이미지만 스타일로 보냅니다. Using Default Style이나 빈칸이면 보내지 않습니다.</RimAIPortrait.Settings.OpenAiStyleFolderHint>
+  <RimAIPortrait.Settings.OpenAiStyleNotUsed>OpenAI에 스타일 참조 이미지를 보내지 않습니다.</RimAIPortrait.Settings.OpenAiStyleNotUsed>
   <RimAIPortrait.Settings.StyleDefault>기본값</RimAIPortrait.Settings.StyleDefault>
   <RimAIPortrait.Settings.StyleReferenceIgnored>스타일 참조 파일은 최대 {0}개인데 폴더에 {1}개가 있습니다. 초과한 파일은 무시됩니다.</RimAIPortrait.Settings.StyleReferenceIgnored>
   <RimAIPortrait.Settings.StyleInvalidNoStyle>유효하지 않은 경로: 아무 스타일도 사용하고 있지 않습니다.</RimAIPortrait.Settings.StyleInvalidNoStyle>

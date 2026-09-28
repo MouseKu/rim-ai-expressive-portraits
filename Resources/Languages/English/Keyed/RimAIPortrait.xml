@@ -200,6 +200,8 @@
   <RimAIPortrait.Gallery.BaseResetFailed>Could not load the default Base Prompt: {0}</RimAIPortrait.Gallery.BaseResetFailed>
   <RimAIPortrait.Settings.StyleDefaultInUse>Using images in the bundled Style folder.</RimAIPortrait.Settings.StyleDefaultInUse>
   <RimAIPortrait.Settings.StyleFolderHint>Enter Using Default Style for the bundled Style folder. Leave blank to use no style reference.</RimAIPortrait.Settings.StyleFolderHint>
+  <RimAIPortrait.Settings.OpenAiStyleFolderHint>OpenAI sends style references only from a custom folder. Using Default Style or a blank field sends none.</RimAIPortrait.Settings.OpenAiStyleFolderHint>
+  <RimAIPortrait.Settings.OpenAiStyleNotUsed>No style reference will be sent to OpenAI.</RimAIPortrait.Settings.OpenAiStyleNotUsed>
   <RimAIPortrait.Settings.StyleDefault>Default</RimAIPortrait.Settings.StyleDefault>
   <RimAIPortrait.Settings.StyleReferenceIgnored>Style reference limit: {0} image(s); folder contains {1}. Excess images will be ignored.</RimAIPortrait.Settings.StyleReferenceIgnored>
   <RimAIPortrait.Settings.StyleInvalidNoStyle>Invalid path: no style reference is being used.</RimAIPortrait.Settings.StyleInvalidNoStyle>

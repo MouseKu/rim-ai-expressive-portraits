@@ -61,13 +61,13 @@ namespace RimAIPortrait
         {
             if (expression)
             {
-                Text(listing, Localization.T("RimAIPortrait.Settings.ApiKey"), ref settings.ExpressionApiKey);
+                Text(listing, Localization.T("RimAIPortrait.Settings.ApiKey"), ref settings.GoogleExpressionApiKey);
                 Text(listing, Localization.T("RimAIPortrait.Settings.Model"), ref settings.GoogleExpressionModel);
                 Text(listing, Localization.T("RimAIPortrait.Settings.OptionsJson"), ref settings.GoogleExpressionOptions);
             }
             else
             {
-                Text(listing, Localization.T("RimAIPortrait.Settings.ApiKey"), ref settings.ApiKey);
+                Text(listing, Localization.T("RimAIPortrait.Settings.ApiKey"), ref settings.GoogleApiKey);
                 Text(listing, Localization.T("RimAIPortrait.Settings.Model"), ref settings.GoogleModel);
                 TextArea(listing, Localization.T("RimAIPortrait.Settings.BasePrompt"), ref settings.GeminiBaseInstructions, 130f);
                 Text(listing, Localization.T("RimAIPortrait.Settings.OptionsJson"), ref settings.GoogleOptions);
@@ -121,9 +121,16 @@ namespace RimAIPortrait
             bool expression, PortraitSettings settings, Action<string> report)
         {
             Text(listing, Localization.T("RimAIPortrait.Settings.StyleFolder"), ref folder);
-            listing.Label(Localization.T("RimAIPortrait.Settings.StyleFolderHint"));
+            listing.Label(Localization.T(provider == AiProvider.OpenAI
+                ? "RimAIPortrait.Settings.OpenAiStyleFolderHint"
+                : "RimAIPortrait.Settings.StyleFolderHint"));
             bool hasDefault = provider == AiProvider.Google || (provider == AiProvider.NovelAI && !expression);
             bool useDefault = PortraitProviderUtilities.UsesDefaultStyle(folder);
+            if (provider == AiProvider.OpenAI && (useDefault || string.IsNullOrWhiteSpace(folder)))
+            {
+                listing.Label(Localization.T("RimAIPortrait.Settings.OpenAiStyleNotUsed"));
+                return;
+            }
             string actualFolder = useDefault ? Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Style") : folder;
             bool folderExists = Directory.Exists(actualFolder);
             int configuredCount = 0;

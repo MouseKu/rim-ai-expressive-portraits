@@ -179,7 +179,7 @@ You can generate multiple portraits for different emotional states from a genera
 
   - Use small image files. The bundled style images are 256 × 256 pixels.
 
-  - The default style setting is currently in use.
+  - With `Using Default Style`, OpenAI sends no style reference images; Google uses the bundled Style folder. To use a style reference with OpenAI, specify a custom folder.
 
 ### 4-4. Other Options
 

@@ -20,6 +20,8 @@ namespace RimAIPortrait
         public AiProvider ExpressionProvider;
         public string ApiKey;
         public string ExpressionApiKey;
+        public string GoogleApiKey;
+        public string GoogleExpressionApiKey;
         public string OpenAiModel;
         public string OpenAiExpressionModel;
         public string OpenAiOptions = ProviderOptionDefaults.OpenAiBase;
@@ -102,6 +104,7 @@ namespace RimAIPortrait
         public string DistressedPrompt = PromptLibrary.State[PortraitState.Distressed];
         private bool ModelsSplitMigrated;
         private bool ProviderSettingsSplitMigrated;
+        private bool ProviderApiKeysSplitMigrated;
         private bool PositionDefaultsMigrated;
 
         public PortraitSettings()
@@ -131,6 +134,8 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref ExpressionProvider, "expressionProvider", defaults.ExpressionProvider);
             Scribe_Values.Look(ref ApiKey, "apiKey", defaults.ApiKey);
             Scribe_Values.Look(ref ExpressionApiKey, "expressionApiKey", defaults.ExpressionApiKey);
+            Scribe_Values.Look(ref GoogleApiKey, "googleApiKey", defaults.GoogleApiKey);
+            Scribe_Values.Look(ref GoogleExpressionApiKey, "googleExpressionApiKey", defaults.GoogleExpressionApiKey);
             Scribe_Values.Look(ref OpenAiModel, "openAiModel", defaults.OpenAiModel);
             Scribe_Values.Look(ref OpenAiExpressionModel, "openAiExpressionModel", defaults.OpenAiExpressionModel);
             Scribe_Values.Look(ref OpenAiOptions, "openAiOptions", ProviderOptionDefaults.OpenAiBase);
@@ -220,11 +225,13 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref DistressedPrompt, "distressedPrompt", PromptLibrary.State[PortraitState.Distressed]);
             Scribe_Values.Look(ref ModelsSplitMigrated, "modelsSplitMigrated", false);
             Scribe_Values.Look(ref ProviderSettingsSplitMigrated, "providerSettingsSplitMigrated", false);
+            Scribe_Values.Look(ref ProviderApiKeysSplitMigrated, "providerApiKeysSplitMigrated", false);
             Scribe_Values.Look(ref PositionDefaultsMigrated, "positionDefaultsMigrated", false);
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
                 MigrateSplitModels();
                 MigrateProviderSettings();
+                MigrateProviderApiKeys();
                 MigratePositionDefaults();
                 MigrateOpenAiOptionDefaults();
                 MigrateGoogleOptionDefaults();
@@ -321,6 +328,24 @@ namespace RimAIPortrait
             ComfyExpressionNegativePrompt = ComfyNegativePrompt;
             ExpressionStyleFolder = StyleFolder;
             ProviderSettingsSplitMigrated = true;
+        }
+
+        private void MigrateProviderApiKeys()
+        {
+            if (ProviderApiKeysSplitMigrated) return;
+            MigrateProviderApiKey(ref ApiKey, ref GoogleApiKey, Provider);
+            MigrateProviderApiKey(ref ExpressionApiKey, ref GoogleExpressionApiKey, ExpressionProvider);
+            ProviderApiKeysSplitMigrated = true;
+        }
+
+        private static void MigrateProviderApiKey(ref string sharedKey, ref string googleKey, AiProvider provider)
+        {
+            if (string.IsNullOrWhiteSpace(sharedKey)) return;
+            bool googleKeyFormat = sharedKey.StartsWith("AIza", StringComparison.Ordinal);
+            bool openAiKeyFormat = sharedKey.StartsWith("sk-", StringComparison.Ordinal);
+            if (!googleKeyFormat && (openAiKeyFormat || provider != AiProvider.Google)) return;
+            if (string.IsNullOrWhiteSpace(googleKey)) googleKey = sharedKey;
+            sharedKey = null;
         }
 
         /// <summary>Describes the behavior of this type or member.</summary>
