@@ -4,12 +4,21 @@ using System.Collections.Generic;
 
 namespace RimAIPortrait
 {
+    internal enum PortraitImageUse { Auto, CharacterReference, Edit }
+
     internal sealed class PortraitGenerationRequest
     {
+        public PortraitState State { get; set; }
         public string Prompt { get; set; }
         public byte[] PrimaryImage { get; set; }
+        public byte[] InpaintMask { get; set; }
+        public byte[] InpaintRequestMask { get; set; }
+        public string InpaintTag { get; set; }
+        public ExtractedTags ExtractedTags { get; set; }
+        public PortraitImageUse ImageUse { get; set; }
         public IReadOnlyList<string> ReferencePaths { get; set; }
         public string StyleFolder { get; set; }
+        public IReadOnlyList<string> StylePaths { get; set; }
         public PortraitProviderConfiguration Configuration { get; set; }
     }
 
@@ -56,12 +65,21 @@ namespace RimAIPortrait
         public float TimeoutSeconds { get; set; }
     }
 
+    internal sealed class NovelAiProviderConfiguration : PortraitProviderConfiguration
+    {
+        public string Model { get; set; }
+        public string ApiKey { get; set; }
+        public string OptionsJson { get; set; }
+    }
+
     internal interface IPortraitGenerationProvider
     {
         AiProvider Id { get; }
         PortraitProviderConfiguration CreateConfiguration(PortraitSettings settings, bool expression);
         string Describe(PortraitProviderConfiguration configuration);
         string Validate(PortraitProviderConfiguration configuration, string kind);
+        IReadOnlyList<string> StyleReferences(PortraitGenerationRequest request);
+        int StyleReferenceCapacity(PortraitGenerationRequest request);
         IEnumerator Generate(PortraitGenerationRequest request, Action<PortraitGenerationResult> done);
     }
 
@@ -75,6 +93,7 @@ namespace RimAIPortrait
             Register(new OpenAiPortraitProvider());
             Register(new GooglePortraitProvider());
             Register(new ComfyUiPortraitProvider());
+            Register(new NovelAiPortraitProvider());
         }
 
         public static void Register(IPortraitGenerationProvider provider)

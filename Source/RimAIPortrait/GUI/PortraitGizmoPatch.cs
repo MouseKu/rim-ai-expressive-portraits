@@ -26,7 +26,7 @@ namespace RimAIPortrait
 
             if (__instance == null || __instance.Dead ||
                 (!__instance.RaceProps.Humanlike && !__instance.RaceProps.Animal) ||
-                __instance.Faction != Faction.OfPlayer)
+                __instance.Faction != Faction.OfPlayer && !__instance.IsPrisonerOfColony)
                 yield break;
 
             yield return new Command_Action

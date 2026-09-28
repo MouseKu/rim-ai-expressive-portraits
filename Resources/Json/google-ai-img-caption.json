@@ -1,0 +1,7 @@
+{
+  "characterSprite": "The next image is the character sprite and the primary source of the character's identity and design, including hair, species features, clothing, colors, trim, and accessories.",
+  "basePortrait": "The next image is the existing portrait of this character and the primary reference for the character's identity and established visual details.",
+  "selectedReference": "The next image is a user-selected character reference. Use its character details when relevant to the written request. If a primary character image is also supplied, keep that image authoritative for identity and design.",
+  "styleReference": "The next image is a style reference. Use its line quality, shading, texture, and level of detail only. Do not copy its character, face, hair, clothing, accessories, pose, or composition.",
+  "priority": "Use character references for what the character looks like and style references only for how the portrait is drawn. When a primary character image is supplied, it takes priority for identity and design."
+}

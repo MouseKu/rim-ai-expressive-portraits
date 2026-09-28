@@ -1,0 +1,337 @@
+// Contains the implementation for Settings.
+
+using System;
+using System.Globalization;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using Verse;
+
+namespace RimAIPortrait
+{
+    /// <summary>Describes the behavior of this type or member.</summary>
+    public enum AiProvider { OpenAI, Google, LocalComfyUI, NovelAI }
+    public enum TagExtractorModel { OpenAI, Google, LocalModel }
+
+    /// <summary>Describes the behavior of this type or member.</summary>
+    [Serializable]
+    public sealed class PortraitSettings : ModSettings
+    {
+        public AiProvider Provider;
+        public AiProvider ExpressionProvider;
+        public string ApiKey;
+        public string ExpressionApiKey;
+        public string OpenAiModel;
+        public string OpenAiExpressionModel;
+        public string OpenAiOptions = ProviderOptionDefaults.OpenAiBase;
+        public string OpenAiExpressionOptions = ProviderOptionDefaults.OpenAiExpression;
+        public string GoogleModel;
+        public string GoogleExpressionModel;
+        public string GoogleOptions = ProviderOptionDefaults.GoogleBase;
+        public string GoogleExpressionOptions = ProviderOptionDefaults.GoogleExpression;
+        public string NovelAiApiKey;
+        public string NovelAiExpressionApiKey;
+        public string NovelAiModel;
+        public string NovelAiExpressionModel;
+        public string NovelAiOptions = ProviderOptionDefaults.NovelAiBase;
+        public string NovelAiExpressionOptions = ProviderOptionDefaults.NovelAiExpression;
+        public float NovelAiInpaintStrength;
+        public float NovelAiSleepInpaintStrength;
+        public string ComfyUrl;
+        public string ComfyExpressionUrl;
+        public string ComfyWorkflowPath;
+        public string ComfyExpressionWorkflowPath;
+        public string ComfyNegativePrompt;
+        public string ComfyExpressionNegativePrompt;
+        public float ComfyTimeoutSeconds;
+        public bool EnableTagExtractor;
+        public TagExtractorModel TagExtractorBackend;
+        public string TagExtractorOpenAiKey;
+        public string TagExtractorOpenAiModel;
+        public string TagExtractorGoogleKey;
+        public string TagExtractorGoogleModel;
+        public string TagExtractorLocalUrl;
+        public string TagExtractorLocalModel;
+        public string TagExtractorLocalKey;
+        public string Prompt;
+        public string PortraitRootFolder;
+        public string StyleFolder;
+        public string ExpressionStyleFolder;
+        public string BaseInstructions = PromptLibrary.DefaultBase;
+        public string ComfyBaseInstructions;
+        public string ExpressionInstructions = PromptLibrary.DefaultExpression;
+        public string GeminiBaseInstructions;
+        public string NovelAiBaseInstructions;
+        public float Width;
+        public float Height;
+        public float Scale;
+        public float OffsetX;
+        public float OffsetY;
+        public float SwapSeconds;
+        public float LowMoodThreshold;
+        public float HighMoodThreshold;
+        public bool GenerateStates;
+        public bool EnableEmotionChanges;
+        public bool PortraitHelpShown;
+        public bool EnableHigh, EnableLow, EnableSleep,
+            EnablePain, EnableDown, EnableHot,
+            EnableCold, EnableAngry, EnableDistressed;
+        public bool DebugMode;
+        public bool EnableFrame;
+        public float FrameScale;
+        public string FrameImagePath;
+        public float BackgroundRemovalSensitivity;
+        public string BackgroundColorHex;
+        public int BackgroundErosionPixels;
+        public bool RemoveEnclosedBackground;
+        public float EnclosedCleanup;
+        public bool BackgroundAlignBottom;
+        public bool IncludeSprite, IncludeGender, IncludeRace,
+            IncludeXenotype, IncludeAge, IncludeBody,
+            IncludeSkin, IncludeHair, IncludeEyes,
+            IncludeApparel, IncludeApparelQuality,
+            IncludeHealth, IncludeTraits, IncludeBackstory;
+        public string NormalPrompt = PromptLibrary.State[PortraitState.Normal];
+        public string HighPrompt = PromptLibrary.State[PortraitState.High];
+        public string LowPrompt = PromptLibrary.State[PortraitState.Low];
+        public string SleepPrompt = PromptLibrary.State[PortraitState.Sleep];
+        public string PainPrompt = PromptLibrary.State[PortraitState.Pain];
+        public string DownPrompt = PromptLibrary.State[PortraitState.Down];
+        public string HotPrompt = PromptLibrary.State[PortraitState.Hot];
+        public string ColdPrompt = PromptLibrary.State[PortraitState.Cold];
+        public string AngryPrompt = PromptLibrary.State[PortraitState.Angry];
+        public string DistressedPrompt = PromptLibrary.State[PortraitState.Distressed];
+        private bool ModelsSplitMigrated;
+        private bool ProviderSettingsSplitMigrated;
+        private bool PositionDefaultsMigrated;
+
+        public PortraitSettings()
+        {
+            SettingsDefaults.Apply(this);
+        }
+
+        /// <summary>Restores every persisted option to its packaged default value.</summary>
+        public void ResetToDefaults()
+        {
+            bool portraitHelpShown = PortraitHelpShown;
+            var defaults = new PortraitSettings();
+            foreach (FieldInfo field in typeof(PortraitSettings).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                if (!field.IsInitOnly) field.SetValue(this, field.GetValue(defaults));
+            }
+            PortraitHelpShown = portraitHelpShown;
+        }
+
+        /// <summary>Describes the behavior of this type or member.</summary>
+        public override void ExposeData()
+        {
+            PortraitSettings defaults = SettingsDefaults.Values;
+            float legacyCharacterStrength = .55f;
+            float legacyCharacterFidelity = .7f;
+            Scribe_Values.Look(ref Provider, "provider", defaults.Provider);
+            Scribe_Values.Look(ref ExpressionProvider, "expressionProvider", defaults.ExpressionProvider);
+            Scribe_Values.Look(ref ApiKey, "apiKey", defaults.ApiKey);
+            Scribe_Values.Look(ref ExpressionApiKey, "expressionApiKey", defaults.ExpressionApiKey);
+            Scribe_Values.Look(ref OpenAiModel, "openAiModel", defaults.OpenAiModel);
+            Scribe_Values.Look(ref OpenAiExpressionModel, "openAiExpressionModel", defaults.OpenAiExpressionModel);
+            Scribe_Values.Look(ref OpenAiOptions, "openAiOptions", ProviderOptionDefaults.OpenAiBase);
+            Scribe_Values.Look(ref OpenAiExpressionOptions, "openAiExpressionOptions", ProviderOptionDefaults.OpenAiExpression);
+            Scribe_Values.Look(ref GoogleModel, "googleModel", defaults.GoogleModel);
+            Scribe_Values.Look(ref GoogleExpressionModel, "googleExpressionModel", defaults.GoogleExpressionModel);
+            Scribe_Values.Look(ref GoogleOptions, "googleOptions", ProviderOptionDefaults.GoogleBase);
+            Scribe_Values.Look(ref GoogleExpressionOptions, "googleExpressionOptions", ProviderOptionDefaults.GoogleExpression);
+            Scribe_Values.Look(ref NovelAiApiKey, "novelAiApiKey", defaults.NovelAiApiKey);
+            Scribe_Values.Look(ref NovelAiExpressionApiKey, "novelAiExpressionApiKey", defaults.NovelAiExpressionApiKey);
+            Scribe_Values.Look(ref NovelAiModel, "novelAiModel", defaults.NovelAiModel);
+            Scribe_Values.Look(ref NovelAiExpressionModel, "novelAiExpressionModel", defaults.NovelAiExpressionModel);
+            Scribe_Values.Look(ref NovelAiOptions, "novelAiOptions", ProviderOptionDefaults.NovelAiBase);
+            Scribe_Values.Look(ref NovelAiExpressionOptions, "novelAiExpressionOptions", ProviderOptionDefaults.NovelAiExpression);
+            Scribe_Values.Look(ref NovelAiInpaintStrength, "novelAiInpaintStrength", defaults.NovelAiInpaintStrength);
+            Scribe_Values.Look(ref NovelAiSleepInpaintStrength, "novelAiSleepInpaintStrength", defaults.NovelAiSleepInpaintStrength);
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
+            {
+                Scribe_Values.Look(ref legacyCharacterStrength, "novelAiCharacterReferenceStrength", .55f);
+                Scribe_Values.Look(ref legacyCharacterFidelity, "novelAiCharacterReferenceFidelity", .7f);
+            }
+            Scribe_Values.Look(ref ComfyUrl, "comfyUrl", defaults.ComfyUrl);
+            Scribe_Values.Look(ref ComfyExpressionUrl, "comfyExpressionUrl", defaults.ComfyExpressionUrl);
+            Scribe_Values.Look(ref ComfyWorkflowPath, "comfyWorkflowPath", defaults.ComfyWorkflowPath);
+            Scribe_Values.Look(ref ComfyExpressionWorkflowPath, "comfyExpressionWorkflowPath", defaults.ComfyExpressionWorkflowPath);
+            Scribe_Values.Look(ref ComfyNegativePrompt, "comfyNegativePrompt", defaults.ComfyNegativePrompt);
+            Scribe_Values.Look(ref ComfyExpressionNegativePrompt, "comfyExpressionNegativePrompt", defaults.ComfyExpressionNegativePrompt);
+            Scribe_Values.Look(ref ComfyTimeoutSeconds, "comfyTimeoutSeconds", defaults.ComfyTimeoutSeconds);
+            Scribe_Values.Look(ref EnableTagExtractor, "enableTagExtractor", defaults.EnableTagExtractor);
+            Scribe_Values.Look(ref TagExtractorBackend, "tagExtractorModel", defaults.TagExtractorBackend);
+            Scribe_Values.Look(ref TagExtractorOpenAiKey, "tagExtractorOpenAiKey", defaults.TagExtractorOpenAiKey);
+            Scribe_Values.Look(ref TagExtractorOpenAiModel, "tagExtractorOpenAiModel", defaults.TagExtractorOpenAiModel);
+            Scribe_Values.Look(ref TagExtractorGoogleKey, "tagExtractorGoogleKey", defaults.TagExtractorGoogleKey);
+            Scribe_Values.Look(ref TagExtractorGoogleModel, "tagExtractorGoogleModel", defaults.TagExtractorGoogleModel);
+            Scribe_Values.Look(ref TagExtractorLocalUrl, "tagExtractorLocalUrl", defaults.TagExtractorLocalUrl);
+            Scribe_Values.Look(ref TagExtractorLocalModel, "tagExtractorLocalModel", defaults.TagExtractorLocalModel);
+            Scribe_Values.Look(ref TagExtractorLocalKey, "tagExtractorLocalKey", defaults.TagExtractorLocalKey);
+            Scribe_Values.Look(ref Prompt, "prompt", defaults.Prompt);
+            Scribe_Values.Look(ref PortraitRootFolder, "portraitRootFolder", "");
+            Scribe_Values.Look(ref StyleFolder, "styleFolder", "");
+            Scribe_Values.Look(ref ExpressionStyleFolder, "expressionStyleFolder", "");
+            Scribe_Values.Look(ref BaseInstructions, "baseInstructions", PromptLibrary.DefaultBase);
+            Scribe_Values.Look(ref ComfyBaseInstructions, "comfyBaseInstructions", defaults.ComfyBaseInstructions);
+            Scribe_Values.Look(ref ExpressionInstructions, "expressionInstructions", PromptLibrary.DefaultExpression);
+            Scribe_Values.Look(ref GeminiBaseInstructions, "geminiBaseInstructions", defaults.GeminiBaseInstructions);
+            Scribe_Values.Look(ref NovelAiBaseInstructions, "novelAiBaseInstructions", defaults.NovelAiBaseInstructions);
+            Scribe_Values.Look(ref Width, "width", defaults.Width); Scribe_Values.Look(ref Height, "height", defaults.Height);
+            Scribe_Values.Look(ref Scale, "scale", defaults.Scale); Scribe_Values.Look(ref OffsetX, "offsetX", defaults.OffsetX);
+            Scribe_Values.Look(ref OffsetY, "offsetY", defaults.OffsetY); Scribe_Values.Look(ref SwapSeconds, "swapSeconds", defaults.SwapSeconds);
+            Scribe_Values.Look(ref LowMoodThreshold, "lowMoodThreshold", defaults.LowMoodThreshold);
+            Scribe_Values.Look(ref HighMoodThreshold, "highMoodThreshold", defaults.HighMoodThreshold);
+            Scribe_Values.Look(ref GenerateStates, "generateStates", defaults.GenerateStates);
+            Scribe_Values.Look(ref EnableEmotionChanges, "enableEmotionChanges", defaults.EnableEmotionChanges);
+            Scribe_Values.Look(ref PortraitHelpShown, "portraitHelpShown", false);
+            Scribe_Values.Look(ref EnableHigh, "enableHigh", defaults.EnableHigh); Scribe_Values.Look(ref EnableLow, "enableLow", defaults.EnableLow);
+            Scribe_Values.Look(ref EnableSleep, "enableSleep", defaults.EnableSleep); Scribe_Values.Look(ref EnablePain, "enablePain", defaults.EnablePain);
+            Scribe_Values.Look(ref EnableDown, "enableDown", defaults.EnableDown); Scribe_Values.Look(ref EnableHot, "enableHot", defaults.EnableHot);
+            Scribe_Values.Look(ref EnableCold, "enableCold", defaults.EnableCold); Scribe_Values.Look(ref EnableAngry, "enableAngry", defaults.EnableAngry);
+            Scribe_Values.Look(ref EnableDistressed, "enableDistressed", defaults.EnableDistressed);
+            Scribe_Values.Look(ref DebugMode, "debugMode", defaults.DebugMode);
+            Scribe_Values.Look(ref EnableFrame, "enableFrame", defaults.EnableFrame);
+            Scribe_Values.Look(ref FrameScale, "frameScale", defaults.FrameScale);
+            Scribe_Values.Look(ref FrameImagePath, "frameImagePath", defaults.FrameImagePath);
+            Scribe_Values.Look(ref BackgroundRemovalSensitivity, "backgroundRemovalSensitivity", defaults.BackgroundRemovalSensitivity);
+            Scribe_Values.Look(ref BackgroundColorHex, "backgroundColorHex", defaults.BackgroundColorHex);
+            Scribe_Values.Look(ref BackgroundErosionPixels, "backgroundErosionPixels", defaults.BackgroundErosionPixels);
+            Scribe_Values.Look(ref RemoveEnclosedBackground, "removeEnclosedBackground", defaults.RemoveEnclosedBackground);
+            Scribe_Values.Look(ref EnclosedCleanup, "enclosedCleanup", defaults.EnclosedCleanup);
+            Scribe_Values.Look(ref BackgroundAlignBottom, "backgroundAlignBottom", defaults.BackgroundAlignBottom);
+            Scribe_Values.Look(ref IncludeSprite, "includeSprite", defaults.IncludeSprite); Scribe_Values.Look(ref IncludeGender, "includeGender", defaults.IncludeGender);
+            Scribe_Values.Look(ref IncludeRace, "includeRace", defaults.IncludeRace); Scribe_Values.Look(ref IncludeXenotype, "includeXenotype", defaults.IncludeXenotype);
+            Scribe_Values.Look(ref IncludeAge, "includeAge", defaults.IncludeAge); Scribe_Values.Look(ref IncludeBody, "includeBody", defaults.IncludeBody);
+            Scribe_Values.Look(ref IncludeSkin, "includeSkin", defaults.IncludeSkin); Scribe_Values.Look(ref IncludeHair, "includeHair", defaults.IncludeHair);
+            Scribe_Values.Look(ref IncludeEyes, "includeEyes", defaults.IncludeEyes); Scribe_Values.Look(ref IncludeApparel, "includeApparel", defaults.IncludeApparel);
+            Scribe_Values.Look(ref IncludeApparelQuality, "includeApparelQuality", defaults.IncludeApparelQuality); Scribe_Values.Look(ref IncludeTraits, "includeTraits", defaults.IncludeTraits);
+            Scribe_Values.Look(ref IncludeHealth, "includeHealth", defaults.IncludeHealth);
+            Scribe_Values.Look(ref IncludeBackstory, "includeBackstory", defaults.IncludeBackstory);
+            Scribe_Values.Look(ref NormalPrompt, "normalPrompt", PromptLibrary.State[PortraitState.Normal]);
+            Scribe_Values.Look(ref HighPrompt, "highPrompt", PromptLibrary.State[PortraitState.High]);
+            Scribe_Values.Look(ref LowPrompt, "lowPrompt", PromptLibrary.State[PortraitState.Low]);
+            Scribe_Values.Look(ref SleepPrompt, "sleepPrompt", PromptLibrary.State[PortraitState.Sleep]);
+            Scribe_Values.Look(ref PainPrompt, "painPrompt", PromptLibrary.State[PortraitState.Pain]);
+            Scribe_Values.Look(ref DownPrompt, "downPrompt", PromptLibrary.State[PortraitState.Down]);
+            Scribe_Values.Look(ref HotPrompt, "hotPrompt", PromptLibrary.State[PortraitState.Hot]);
+            Scribe_Values.Look(ref ColdPrompt, "coldPrompt", PromptLibrary.State[PortraitState.Cold]);
+            Scribe_Values.Look(ref AngryPrompt, "angryPrompt", PromptLibrary.State[PortraitState.Angry]);
+            Scribe_Values.Look(ref DistressedPrompt, "distressedPrompt", PromptLibrary.State[PortraitState.Distressed]);
+            Scribe_Values.Look(ref ModelsSplitMigrated, "modelsSplitMigrated", false);
+            Scribe_Values.Look(ref ProviderSettingsSplitMigrated, "providerSettingsSplitMigrated", false);
+            Scribe_Values.Look(ref PositionDefaultsMigrated, "positionDefaultsMigrated", false);
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
+            {
+                MigrateSplitModels();
+                MigrateProviderSettings();
+                MigratePositionDefaults();
+                MigrateOpenAiOptionDefaults();
+                MigrateGoogleOptionDefaults();
+                MigrateNovelAiOptions(legacyCharacterStrength, legacyCharacterFidelity);
+            }
+        }
+
+        /// <summary>Describes the behavior of this type or member.</summary>
+        /// <param name="state">The state value.</param>
+        /// <returns>The resulting value.</returns>
+        public bool IsStateEnabled(PortraitState state)
+        {
+            if (state == PortraitState.Normal) return true;
+            if (state == PortraitState.High) return EnableHigh;
+            if (state == PortraitState.Low) return EnableLow;
+            if (state == PortraitState.Sleep) return EnableSleep;
+            if (state == PortraitState.Pain) return EnablePain;
+            if (state == PortraitState.Down) return EnableDown;
+            if (state == PortraitState.Hot) return EnableHot;
+            if (state == PortraitState.Cold) return EnableCold;
+            if (state == PortraitState.Angry) return EnableAngry;
+            return EnableDistressed;
+        }
+
+        /// <summary>Describes the behavior of this type or member.</summary>
+        private void MigrateOpenAiOptionDefaults()
+        {
+            const string previousDefault = "{\"quality\":\"low\",\"size\":\"1024x1024\"}";
+            const string currentDefault = "{\"quality\":\"low\",\"size\":\"1024x1024\",\"background\":\"transparent\"}";
+            if (OpenAiOptions == previousDefault || OpenAiOptions == currentDefault) OpenAiOptions = ProviderOptionDefaults.OpenAiBase;
+            if (OpenAiExpressionOptions == previousDefault || OpenAiExpressionOptions == currentDefault) OpenAiExpressionOptions = ProviderOptionDefaults.OpenAiExpression;
+        }
+
+        private void MigrateGoogleOptionDefaults()
+        {
+            const string currentDefault = "{\"aspect_ratio\":\"1:1\",\"image_size\":\"1K\"}";
+            if (GoogleOptions == currentDefault) GoogleOptions = ProviderOptionDefaults.GoogleBase;
+            if (GoogleExpressionOptions == currentDefault) GoogleExpressionOptions = ProviderOptionDefaults.GoogleExpression;
+        }
+
+        private void MigrateNovelAiOptions(float legacyCharacterStrength, float legacyCharacterFidelity)
+        {
+            const string previousPackagedBaseDefault = "{\"width\":832,\"height\":832,\"steps\":23,\"scale\":5,\"sampler\":\"k_euler_ancestral\",\"noise_schedule\":\"karras\",\"qualityToggle\":true,\"character_reference_strength\":0.55,\"character_reference_fidelity\":0.7,\"positive_prompt\":\"best quality, very aesthetic, clean anime illustration, anime character portrait, three-quarter view, looking slightly to the side, angled face, clean dark brown lineart, smooth lineart, medium detail, layered hair, defined hair locks, expressive eyes, clean two-tone cel shading, subtle shadows, subtle highlights, clean clothing details, warm muted colors\",\"negative_prompt\":\"worst quality, low quality, lowres, blurry, rough sketch, messy lineart, unfinished, crude drawing, overly simplified, minimalist, flat icon, vector art, front view, straight-on, symmetrical face, symmetrical pose, passport photo, featureless hair, featureless clothing, overly detailed, hyper-detailed, intricate linework, dense linework, crosshatching, hatching, stippling, engraving, etching, manga screentone, realistic hair strands, excessive hair strands, complex shading, excessive shading, photorealistic, 3d render, text, watermark\"}";
+            const string previousBaseDefault = "{\"width\":832,\"height\":832,\"steps\":23,\"scale\":5,\"sampler\":\"k_euler_ancestral\",\"noise_schedule\":\"karras\",\"negative_prompt\":\"lowres, bad anatomy, bad hands, text, watermark\",\"qualityToggle\":true}";
+            const string previousDefault = "{\"width\":832,\"height\":1216,\"steps\":23,\"scale\":5,\"sampler\":\"k_euler_ancestral\",\"noise_schedule\":\"karras\",\"negative_prompt\":\"lowres, bad anatomy, bad hands, text, watermark\",\"strength\":0.6,\"noise\":0.1}";
+            const string currentExpressionDefault = "{\"width\":832,\"height\":832,\"steps\":23,\"scale\":5,\"sampler\":\"k_euler_ancestral\",\"noise_schedule\":\"karras\",\"negative_prompt\":\"lowres, bad anatomy, bad hands, text, watermark\",\"strength\":0.6,\"noise\":0.1}";
+            bool useV5Base = !NovelAiModel.NullOrEmpty()
+                && NovelAiModel.StartsWith("nai-diffusion-5", StringComparison.OrdinalIgnoreCase);
+            bool replacedBaseDefault = NovelAiOptions == previousBaseDefault || NovelAiOptions == previousDefault;
+            if (replacedBaseDefault)
+                NovelAiOptions = useV5Base ? ProviderOptionDefaults.NovelAiBase : previousPackagedBaseDefault;
+            else if (useV5Base && NovelAiOptions == previousPackagedBaseDefault)
+                NovelAiOptions = ProviderOptionDefaults.NovelAiBase;
+            if (NovelAiExpressionOptions == previousDefault || NovelAiExpressionOptions == currentExpressionDefault)
+                NovelAiExpressionOptions = ProviderOptionDefaults.NovelAiExpression;
+            if (!useV5Base)
+            {
+                NovelAiOptions = SetNovelAiReferenceOption(NovelAiOptions, "character_reference_strength", legacyCharacterStrength, replacedBaseDefault);
+                NovelAiOptions = SetNovelAiReferenceOption(NovelAiOptions, "character_reference_fidelity", legacyCharacterFidelity, replacedBaseDefault);
+            }
+        }
+
+        private static string SetNovelAiReferenceOption(string json, string key, float value, bool overwrite)
+        {
+            if (json.NullOrEmpty()) json = "{}";
+            if (float.IsNaN(value) || float.IsInfinity(value))
+                value = key == "character_reference_strength" ? .55f : .7f;
+            string number = Math.Max(0f, Math.Min(1f, value)).ToString("R", CultureInfo.InvariantCulture);
+            string pattern = "(\"" + Regex.Escape(key) + "\"\\s*:\\s*)(?:\"[^\"]*\"|[^,}\\s]+)";
+            Match match = Regex.Match(json, pattern, RegexOptions.IgnoreCase);
+            if (match.Success)
+                return overwrite ? json.Substring(0, match.Index) + match.Groups[1].Value + number + json.Substring(match.Index + match.Length) : json;
+            int end = json.LastIndexOf('}');
+            if (end < 0) return json;
+            string separator = json.Substring(0, end).TrimEnd().EndsWith("{", StringComparison.Ordinal) ? "" : ",";
+            return json.Insert(end, separator + "\"" + key + "\":" + number);
+        }
+
+        /// <summary>Describes the behavior of this type or member.</summary>
+        private void MigratePositionDefaults()
+        {
+            if (PositionDefaultsMigrated) return;
+            if (OffsetX == 15f && OffsetY == 25f) OffsetY = SettingsDefaults.Values.OffsetY;
+            PositionDefaultsMigrated = true;
+        }
+
+        /// <summary>Describes the behavior of this type or member.</summary>
+        private void MigrateProviderSettings()
+        {
+            if (ProviderSettingsSplitMigrated) return;
+            ExpressionProvider = Provider;
+            ExpressionApiKey = ApiKey;
+            ComfyExpressionUrl = ComfyUrl;
+            ComfyExpressionNegativePrompt = ComfyNegativePrompt;
+            ExpressionStyleFolder = StyleFolder;
+            ProviderSettingsSplitMigrated = true;
+        }
+
+        /// <summary>Describes the behavior of this type or member.</summary>
+        private void MigrateSplitModels()
+        {
+            if (ModelsSplitMigrated) return;
+            OpenAiExpressionModel = OpenAiModel;
+            GoogleExpressionModel = GoogleModel;
+            ComfyExpressionWorkflowPath = ComfyWorkflowPath;
+            ModelsSplitMigrated = true;
+        }
+
+    }
+}

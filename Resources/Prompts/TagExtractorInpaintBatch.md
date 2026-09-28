@@ -1,0 +1,7 @@
+Analyze the single supplied Base portrait for all requested facial expressions. Each [State: Name] section describes a separate inpaint result. Use the same visible face as the identity reference for every state, but make the expression tags specific to that state.
+
+Return one JSON object with exactly one field, `states`, containing one item for each requested state. Every item must have exactly `state`, `positive`, and `negative`. Copy each state name exactly. `positive` and `negative` are arrays of short English tag strings. Do not return Markdown or prose. Do not omit, merge, or add states.
+
+For each state's `positive`, describe only the requested facial expression and visible facial details needed to keep the same identity in the edited face: eyes and eyelids, brows, mouth, nose, face or fur color, and distinctive facial markings. Include ears or bangs only if the requested edit directly affects them. For `negative`, describe facial outcomes that would contradict that state's expression or alter those same visible facial details. Keep states independent: for Sleep, closed eyes belong in positive and open eyes may belong in negative; do not copy that eye-state pair into other expressions.
+
+Do not include clothing, jewelry, body, pose, background, framing, art style, overall hair length, or details outside the face. Do not infer hidden details or invent new facial features. Avoid duplicates and contradictions. For each state, use no more than 12 positive and 10 negative tags. If a field has no justified tags, use an empty array.

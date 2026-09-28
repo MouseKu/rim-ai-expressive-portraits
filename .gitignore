@@ -5,3 +5,5 @@
 
 # IDE files
 /.vs/
+
+*.key

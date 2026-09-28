@@ -74,7 +74,7 @@ if (Test-Path -LiteralPath $OutputDirectory) {
 }
 New-Item -ItemType Directory -Path $OutputDirectory | Out-Null
 
-foreach ($directory in @("About", "Languages", "Prompts", "Textures")) {
+foreach ($directory in @("About", "Languages", "Prompts", "Json", "Textures", "Style", "Help")) {
     $resourceDirectory = Join-Path $resourcesRoot $directory
     if (-not (Test-Path -LiteralPath $resourceDirectory -PathType Container)) {
         throw "Required resource directory was not found: $resourceDirectory"

@@ -1,0 +1,15 @@
+{
+  "width": 832,
+  "height": 832,
+  "steps": 23,
+  "scale": 5,
+  "sampler": "k_euler_ancestral",
+  "noise_schedule": "karras",
+  "qualityToggle": true,
+  "character_reference_strength": 1.0,
+  "character_reference_fidelity": 1.0,
+  "style_reference_strength": 0.75,
+  "style_reference_fidelity": 0.5,
+  "positive_prompt": "2d anime game portrait, same character as source image, preserve character identity, preserve species traits, preserve non-human anatomy, preserve recognizable silhouette, preserve original colors, preserve visible character features, clean dark-brown lineart, gentle line weight variation, broad simple two-tone cel shading, restrained soft shadows, clean readable shapes, moderate detail, matte illustration, three-quarter view, gentle head and shoulder turn, medium bust portrait, upper torso visible, plain flat warm-brown background",
+  "negative_prompt": "lowres, bad anatomy, distorted face, mismatched eyes, changed species, humanization, invented human features, invented character features, missing character features, added character features, changed anatomy, changed silhouette, changed colors, missing accessories, added accessories, chibi, oversized head, giant eyes, floating bust, isolated head, close-up face, cropped head, cropped ears, cropped horns, cropped headwear, cropped shoulders, blank lower canvas, sepia, monochrome, global color cast, white background, transparent background, white halo, glowing rim light, white outline, halftone, screentone, linen texture, canvas texture, background texture, crosshatching, dense parallel lines, pencil scribbles, stray marks, deep black shadows, uniform line weight, vector lineart, glossy rendering, strong gradients, photorealism, 3d render, high saturation, dramatic lighting, text, watermark"
+}

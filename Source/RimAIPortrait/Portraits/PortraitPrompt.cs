@@ -20,7 +20,14 @@ namespace RimAIPortrait
         /// <returns>The resulting value.</returns>
         public static string Build(Pawn p, PortraitState state, PortraitSettings s, string expressionOverride = null)
         {
-            string pawnBasePrompt = PortraitData.BasePrompt(p);
+            if (state != PortraitState.Normal)
+            {
+                var expression = new StringBuilder(s.ExpressionInstructions ?? "");
+                string customExpression = expressionOverride ?? StateOverride(s, state);
+                Add(expression, true, "Expression", customExpression.NullOrEmpty() ? PromptLibrary.State[state] : customExpression);
+                return expression.ToString();
+            }
+            string pawnBasePrompt = PortraitData.BasePrompt(p, s.Provider);
             var b = new StringBuilder(string.IsNullOrWhiteSpace(pawnBasePrompt) ? BaseInstructions(s) : pawnBasePrompt.Trim());
             if (!s.Prompt.NullOrEmpty()) b.AppendLine().AppendLine(s.Prompt);
             string extraFeatures = PortraitData.ExtraFeatures(p);
@@ -53,6 +60,10 @@ namespace RimAIPortrait
             if (settings == null) return "";
             return (settings.Provider == AiProvider.Google
                 ? settings.GeminiBaseInstructions
+                : settings.Provider == AiProvider.NovelAI
+                ? settings.NovelAiBaseInstructions
+                : settings.Provider == AiProvider.LocalComfyUI
+                ? settings.ComfyBaseInstructions
                 : settings.BaseInstructions) ?? "";
         }
         private static string HealthConditions(Pawn pawn)

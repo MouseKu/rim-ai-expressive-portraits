@@ -9,6 +9,13 @@ namespace RimAIPortrait
 {
     internal static class PortraitProviderUtilities
     {
+        public const string DefaultStyleFolder = "Using Default Style";
+
+        public static bool UsesDefaultStyle(string folder)
+        {
+            return string.Equals(folder, DefaultStyleFolder, System.StringComparison.Ordinal);
+        }
+
         public static bool Failed(UnityWebRequest request)
         {
             return request.result == UnityWebRequest.Result.ConnectionError
@@ -44,9 +51,16 @@ namespace RimAIPortrait
 
         public static IEnumerable<string> StyleFiles(string folder)
         {
+            if (UsesDefaultStyle(folder)) return BundledStyleFiles();
             return Directory.Exists(folder)
                 ? Directory.EnumerateFiles(folder).Where(file => new[] { ".png", ".jpg", ".jpeg", ".webp" }.Contains(Path.GetExtension(file).ToLowerInvariant()))
                 : Enumerable.Empty<string>();
+        }
+
+        public static IEnumerable<string> BundledStyleFiles()
+        {
+            return StyleFiles(Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Style"))
+                .OrderBy(path => path, System.StringComparer.OrdinalIgnoreCase);
         }
 
         public static string Mime(string file)

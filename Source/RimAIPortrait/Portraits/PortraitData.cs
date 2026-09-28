@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -18,29 +20,80 @@ namespace RimAIPortrait
         private static readonly HashSet<string> MissingPortraits = new HashSet<string>();
         private static Game cachedGame;
         private static string rootPath;
+        private static string configuredRoot;
+        private static bool recheckRoot = true;
         private const string PawnFolderSeparator = "__";
+        public static string DefaultRoot => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "RimAIPortraits");
+
+        public static bool TryNormalizeCustomRoot(string folder, out string path)
+        {
+            path = null;
+            if (string.IsNullOrWhiteSpace(folder)) return false;
+            try
+            {
+                string value = folder.Trim();
+                string root = Path.GetPathRoot(value);
+                bool driveAbsolute = root != null && root.Length >= 3 && root[1] == ':'
+                    && (root[2] == '\\' || root[2] == '/');
+                bool networkAbsolute = root != null && root.StartsWith(@"\\", StringComparison.Ordinal)
+                    && root.IndexOf('\\', 2) > 2 && root.IndexOf('\\', 2) < root.Length - 1;
+                if (!Path.IsPathRooted(value) || (!driveAbsolute && !networkAbsolute)) return false;
+                path = Path.GetFullPath(value);
+                return true;
+            }
+            catch (ArgumentException) { return false; }
+            catch (NotSupportedException) { return false; }
+            catch (PathTooLongException) { return false; }
+        }
+
+        public static bool TryGetCustomRoot(string folder, out string path)
+        {
+            if (!TryNormalizeCustomRoot(folder, out path)) return false;
+            if (Directory.Exists(path)) return true;
+            path = null;
+            return false;
+        }
+
+        public static void RecheckRoot()
+        {
+            recheckRoot = true;
+            _ = Root;
+        }
+
         public static string Root
         {
             get
             {
-                if (rootPath != null) return rootPath;
-                string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string root = Path.Combine(documents, "RimAIPortraits");
-                string legacy = Path.Combine(documents, "rim-portraits");
-                if (!Directory.Exists(root) && Directory.Exists(legacy))
+                string configured = RimAIPortraitMod.Settings?.PortraitRootFolder;
+                if (!recheckRoot && rootPath != null
+                    && string.Equals(configuredRoot, configured, StringComparison.Ordinal)) return rootPath;
+                string custom;
+                bool useCustom = TryGetCustomRoot(configured, out custom);
+                string root = useCustom ? custom : DefaultRoot;
+                if (!useCustom)
                 {
-                    try { Directory.Move(legacy, root); }
-                    catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not migrate portrait root folder: " + e.Message); }
+                    string legacy = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "rim-portraits");
+                    if (!Directory.Exists(root) && Directory.Exists(legacy))
+                    {
+                        try { Directory.Move(legacy, root); }
+                        catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not migrate portrait root folder: " + e.Message); }
+                    }
                 }
+                if (rootPath != null && !string.Equals(rootPath, root, StringComparison.OrdinalIgnoreCase)) ClearCaches();
                 rootPath = root;
+                configuredRoot = configured;
+                recheckRoot = false;
                 return rootPath;
             }
         }
         public static void EnsureGameScope()
         {
-            if (ReferenceEquals(cachedGame, Current.Game)) return;
-            ClearCaches();
-            cachedGame = Current.Game;
+            if (!ReferenceEquals(cachedGame, Current.Game))
+            {
+                ClearCaches();
+                cachedGame = Current.Game;
+            }
+            _ = Root;
         }
 
         private static void ClearCaches()
@@ -59,21 +112,22 @@ namespace RimAIPortrait
         public static string PawnFolder(Pawn p)
         {
             EnsureGameScope();
+            string root = Root;
             string cached;
             if (PawnFolders.TryGetValue(p.ThingID, out cached)) return cached;
             string displayName = SafeName(p.Name?.ToStringShort ?? p.LabelShort ?? "Unnamed");
             string pawnId = SafeName(p.ThingID);
-            string preferred = Path.Combine(Root, displayName + PawnFolderSeparator + pawnId);
+            string preferred = Path.Combine(root, displayName + PawnFolderSeparator + pawnId);
             if (Directory.Exists(preferred)) return PawnFolders[p.ThingID] = preferred;
 
             // Preserve the intended portrait behavior and compatibility.
             // Preserve the intended portrait behavior and compatibility.
-            if (Directory.Exists(Root))
+            if (Directory.Exists(root))
             {
                 string suffix = PawnFolderSeparator + pawnId;
                 try
                 {
-                    string existing = Directory.EnumerateDirectories(Root)
+                    string existing = Directory.EnumerateDirectories(root)
                         .FirstOrDefault(path => Path.GetFileName(path).EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
                     if (existing != null) return PawnFolders[p.ThingID] = existing;
                 }
@@ -84,7 +138,7 @@ namespace RimAIPortrait
             // Preserve the intended portrait behavior and compatibility.
             // Preserve the intended portrait behavior and compatibility.
             // Preserve the intended portrait behavior and compatibility.
-            string legacy = Path.Combine(Root, displayName);
+            string legacy = Path.Combine(root, displayName);
             if (Directory.Exists(legacy))
             {
                 try { Directory.Move(legacy, preferred); return PawnFolders[p.ThingID] = preferred; }
@@ -108,8 +162,22 @@ namespace RimAIPortrait
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static string ExtraFeaturesPath(Pawn p) => Path.Combine(PawnFolder(p), "extra_features.txt");
+        public static string NovelAiExtraTagPath(Pawn p) => Path.Combine(PawnFolder(p), "novelai_extra_tag.txt");
+        public static string ComfyInpaintTagPath(Pawn p) => Path.Combine(PawnFolder(p), "comfy_inpaint_tag.txt");
+        public static string NovelAiInpaintStrengthPath(Pawn p) => Path.Combine(PawnFolder(p), "novelai_inpaint_strength.txt");
+        public static string NovelAiInpaintStrengthPath(Pawn p, PortraitState state) =>
+            Path.Combine(PawnFolder(p), "novelai_inpaint_strength_" + state.ToString().ToLowerInvariant() + ".txt");
         /// <summary>Describes the behavior of this type or member.</summary>
-        public static string BasePromptPath(Pawn p) => Path.Combine(PawnFolder(p), "base_prompt.txt");
+        private static string LegacyBasePromptPath(Pawn p) => Path.Combine(PawnFolder(p), "base_prompt.txt");
+
+        public static string BasePromptPath(Pawn p, AiProvider provider)
+        {
+            string fileName = provider == AiProvider.Google ? "base_google.txt"
+                : provider == AiProvider.NovelAI ? "base_nai.txt"
+                : provider == AiProvider.LocalComfyUI ? "base_comfy.txt"
+                : "base_openai.txt";
+            return Path.Combine(PawnFolder(p), fileName);
+        }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static string ExtraFeatures(Pawn p)
         {
@@ -129,24 +197,120 @@ namespace RimAIPortrait
             }
             catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save Extra Features: " + e.Message); return false; }
         }
-        /// <summary>Describes the behavior of this type or member.</summary>
-        public static string BasePrompt(Pawn p)
+        public static string NovelAiExtraTag(Pawn p)
         {
-            string path = BasePromptPath(p);
+            string path = NovelAiExtraTagPath(p);
+            try { return File.Exists(path) ? File.ReadAllText(path) : ""; }
+            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not read NovelAI Extra Tag: " + e.Message); return ""; }
+        }
+        public static bool SaveNovelAiExtraTag(Pawn p, string value)
+        {
+            try
+            {
+                string path = NovelAiExtraTagPath(p);
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, value ?? "");
+                return true;
+            }
+            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save NovelAI Extra Tag: " + e.Message); return false; }
+        }
+        public static string ComfyInpaintTag(Pawn p)
+        {
+            string path = ComfyInpaintTagPath(p);
+            try { return File.Exists(path) ? File.ReadAllText(path) : ""; }
+            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not read ComfyUI inpaint tag: " + e.Message); return ""; }
+        }
+        public static bool SaveComfyInpaintTag(Pawn p, string value)
+        {
+            try
+            {
+                string path = ComfyInpaintTagPath(p);
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, value ?? "");
+                return true;
+            }
+            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save ComfyUI inpaint tag: " + e.Message); return false; }
+        }
+        public static float NovelAiInpaintStrength(Pawn p, float fallback)
+        {
+            float value;
+            return TryReadNovelAiInpaintStrength(NovelAiInpaintStrengthPath(p), out value) ? value : fallback;
+        }
+        public static float NovelAiInpaintStrength(Pawn p, PortraitState state, float fallback)
+        {
+            float value;
+            if (TryReadNovelAiInpaintStrength(NovelAiInpaintStrengthPath(p, state), out value)) return value;
+            // Older pawn folders kept one strength for every expression.
+            return NovelAiInpaintStrength(p, fallback);
+        }
+        private static bool TryReadNovelAiInpaintStrength(string path, out float value)
+        {
+            value = 0f;
+            try
+            {
+                if (!File.Exists(path)) return false;
+                if (float.TryParse(File.ReadAllText(path), NumberStyles.Float, CultureInfo.InvariantCulture, out value)
+                    && !float.IsNaN(value) && !float.IsInfinity(value) && value >= .1f && value <= 1f)
+                    return true;
+                Log.Warning("[Rim AI Expressive Portraits] Invalid NovelAI inpaint strength in " + path);
+            }
+            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not read NovelAI inpaint strength: " + e.Message); }
+            return false;
+        }
+        public static bool SaveNovelAiInpaintStrength(Pawn p, float value)
+        {
+            return SaveNovelAiInpaintStrength(NovelAiInpaintStrengthPath(p), value);
+        }
+        public static bool SaveNovelAiInpaintStrength(Pawn p, PortraitState state, float value)
+        {
+            return SaveNovelAiInpaintStrength(NovelAiInpaintStrengthPath(p, state), value);
+        }
+        private static bool SaveNovelAiInpaintStrength(string path, float value)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, value.ToString("R", CultureInfo.InvariantCulture));
+                return true;
+            }
+            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save NovelAI inpaint strength: " + e.Message); return false; }
+        }
+        /// <summary>Describes the behavior of this type or member.</summary>
+        public static string BasePrompt(Pawn p, AiProvider provider)
+        {
+            MigrateLegacyBasePrompt(p, provider);
+            string path = BasePromptPath(p, provider);
             try { return File.Exists(path) ? File.ReadAllText(path) : ""; }
             catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not read Base Prompt override: " + e.Message); return ""; }
         }
         /// <summary>Describes the behavior of this type or member.</summary>
-        public static bool SaveBasePrompt(Pawn p, string value)
+        public static bool SaveBasePrompt(Pawn p, AiProvider provider, string value)
         {
             try
             {
-                string path = BasePromptPath(p);
+                MigrateLegacyBasePrompt(p, provider);
+                string path = BasePromptPath(p, provider);
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
                 File.WriteAllText(path, value ?? "");
                 return true;
             }
             catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save Base Prompt override: " + e.Message); return false; }
+        }
+
+        private static void MigrateLegacyBasePrompt(Pawn p, AiProvider provider)
+        {
+            string legacyPath = LegacyBasePromptPath(p);
+            if (!File.Exists(legacyPath)) return;
+            foreach (AiProvider existingProvider in Enum.GetValues(typeof(AiProvider)))
+                if (File.Exists(BasePromptPath(p, existingProvider))) return;
+            try
+            {
+                File.Copy(legacyPath, BasePromptPath(p, provider), false);
+            }
+            catch (Exception e)
+            {
+                Log.Warning("[Rim AI Expressive Portraits] Could not migrate Base Prompt override: " + e.Message);
+            }
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static string SafeId(Pawn p) => SafeName(p.ThingID);
@@ -193,6 +357,23 @@ namespace RimAIPortrait
         public static void Delete(Pawn p, IEnumerable<string> paths)
         {
             foreach (string path in paths.ToArray()) if (File.Exists(path) && Path.GetDirectoryName(path) == PawnFolder(p)) File.Delete(path);
+        }
+        /// <summary>Removes all active portrait assignments while preserving gallery images.</summary>
+        public static void ResetPortraits(Pawn p)
+        {
+            foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
+            {
+                string path = PathFor(p, state);
+                if (File.Exists(path)) File.Delete(path);
+                Invalidate(p, state);
+            }
+            string legacyBasePath = LegacyNormalPath(p);
+            if (File.Exists(legacyBasePath)) File.Delete(legacyBasePath);
+            string deathPath = DeathPath(p);
+            if (File.Exists(deathPath)) File.Delete(deathPath);
+            string deathKey = p.ThingID + "Death";
+            MissingPortraits.Remove(deathKey);
+            RemoveCachedTexture(deathKey);
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         private static void Invalidate(Pawn p, PortraitState state)
@@ -257,18 +438,27 @@ namespace RimAIPortrait
             if (Cache.TryGetValue(key, out var cached)) return cached;
             if (MissingPortraits.Contains(key)) return null;
             string deathPath = DeathPath(p);
-            if (!File.Exists(deathPath)) { MissingPortraits.Add(key); return null; }
+            Texture2D texture = null;
             try
             {
-                var texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
-                if (!texture.LoadImage(File.ReadAllBytes(deathPath))) { UnityEngine.Object.Destroy(texture); return null; }
-                texture.wrapMode = TextureWrapMode.Clamp; Cache[key] = texture; return texture;
+                byte[] image = File.ReadAllBytes(deathPath);
+                texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
+                if (!texture.LoadImage(image)) throw new InvalidDataException(Localization.T("RimAIPortrait.Preview.UnsupportedImage"));
+                texture.wrapMode = TextureWrapMode.Clamp;
+                Cache[key] = texture;
+                Texture2D loaded = texture;
+                texture = null;
+                return loaded;
             }
-            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not load Death portrait: " + e.Message); return null; }
+            catch (FileNotFoundException) { MissingPortraits.Add(key); return null; }
+            catch (DirectoryNotFoundException) { MissingPortraits.Add(key); return null; }
+            catch (Exception e) { ReportLoadFailure(p, key, deathPath, e); return null; }
+            finally { if (texture != null) UnityEngine.Object.Destroy(texture); }
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static Texture2D GetGrayscale(Pawn p)
         {
+            EnsureGameScope();
             if (GrayCache.TryGetValue(p.ThingID, out var cached)) return cached;
             Texture2D source = Get(p, PortraitState.Normal); if (source == null) return null;
             try
@@ -287,18 +477,31 @@ namespace RimAIPortrait
             string key = p.ThingID + state; if (Cache.TryGetValue(key, out var tex)) return tex;
             if (MissingPortraits.Contains(key)) return state == PortraitState.Normal ? null : Get(p, PortraitState.Normal);
             string path = ExistingPathFor(p, state);
-            if (!File.Exists(path))
-            {
-                MissingPortraits.Add(key);
-                return state == PortraitState.Normal ? null : Get(p, PortraitState.Normal);
-            }
+            tex = null;
             try
             {
+                byte[] image = File.ReadAllBytes(path);
                 tex = new Texture2D(2, 2, TextureFormat.ARGB32, false);
-                if (!tex.LoadImage(File.ReadAllBytes(path))) { UnityEngine.Object.Destroy(tex); MissingPortraits.Add(key); return null; }
-                tex.wrapMode = TextureWrapMode.Clamp; Cache[key] = tex; return tex;
+                if (!tex.LoadImage(image)) throw new InvalidDataException(Localization.T("RimAIPortrait.Preview.UnsupportedImage"));
+                tex.wrapMode = TextureWrapMode.Clamp;
+                Cache[key] = tex;
+                Texture2D loaded = tex;
+                tex = null;
+                return loaded;
             }
-            catch (Exception e) { Log.Error("[Rim AI Expressive Portraits] Could not load portrait: " + e); return null; }
+            catch (FileNotFoundException) { MissingPortraits.Add(key); }
+            catch (DirectoryNotFoundException) { MissingPortraits.Add(key); }
+            catch (Exception e) { ReportLoadFailure(p, key, path, e); }
+            finally { if (tex != null) UnityEngine.Object.Destroy(tex); }
+            return state == PortraitState.Normal ? null : Get(p, PortraitState.Normal);
+        }
+
+        private static void ReportLoadFailure(Pawn p, string key, string path, Exception error)
+        {
+            if (!MissingPortraits.Add(key)) return;
+            Log.Warning("[Rim AI Expressive Portraits] Could not load portrait " + path + ": " + error.Message);
+            Messages.Message(Localization.T("RimAIPortrait.Error.PortraitLoadFailed", p.LabelShort, Path.GetFileName(path)),
+                MessageTypeDefOf.RejectInput, false);
         }
 
         public static void RefreshExternalFiles(Pawn p)

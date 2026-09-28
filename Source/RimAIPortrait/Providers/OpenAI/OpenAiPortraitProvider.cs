@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using Verse;
@@ -11,7 +12,22 @@ namespace RimAIPortrait
 {
     internal sealed class OpenAiPortraitProvider : IPortraitGenerationProvider
     {
+        private const int MaximumStyleReferences = 8;
+        private const int MaximumInputImages = 16;
         public AiProvider Id => AiProvider.OpenAI;
+
+        public IReadOnlyList<string> StyleReferences(PortraitGenerationRequest request)
+        {
+            return PortraitProviderUtilities.StyleFiles(request.StyleFolder)
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
+        }
+
+        public int StyleReferenceCapacity(PortraitGenerationRequest request)
+        {
+            int remaining = MaximumInputImages - (request.PrimaryImage == null ? 0 : 1)
+                - Math.Min(MaximumStyleReferences, request.ReferencePaths.Count);
+            return Math.Max(0, Math.Min(MaximumStyleReferences, remaining));
+        }
 
         public PortraitProviderConfiguration CreateConfiguration(PortraitSettings settings, bool expression)
         {
@@ -40,21 +56,56 @@ namespace RimAIPortrait
         {
             OpenAiProviderConfiguration configuration = Require(request.Configuration);
             Dictionary<string, string> options = PortraitProviderUtilities.ParseOptions(configuration.OptionsJson);
+            PortraitImageCaptions captions;
+            try { captions = PortraitImageCaptions.For(Id); }
+            catch (Exception exception)
+            {
+                done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ImageCaptionLoadFailed", exception.Message)));
+                yield break;
+            }
+            var imageParts = new List<IMultipartFormSection>();
+            var imageCaptions = new StringBuilder();
+            int imageNumber = 0;
+            bool hasStyleReference = false;
+            if (request.PrimaryImage != null)
+            {
+                imageParts.Add(new MultipartFormFileSection("image[]", request.PrimaryImage, "pawn.png", "image/png"));
+                imageCaptions.AppendLine(string.Format(captions.Primary(request.ImageUse), ++imageNumber));
+            }
+            foreach (string file in request.ReferencePaths.Take(8))
+            {
+                try
+                {
+                    imageParts.Add(new MultipartFormFileSection("image[]", File.ReadAllBytes(file), Path.GetFileName(file), PortraitProviderUtilities.Mime(file)));
+                    imageCaptions.AppendLine(string.Format(captions.selectedReference, ++imageNumber));
+                }
+                catch (Exception) { }
+            }
+            foreach (string file in request.StylePaths.Take(MaximumStyleReferences))
+            {
+                try
+                {
+                    imageParts.Add(new MultipartFormFileSection("image[]", File.ReadAllBytes(file), Path.GetFileName(file), PortraitProviderUtilities.Mime(file)));
+                    imageCaptions.AppendLine(string.Format(captions.styleReference, ++imageNumber));
+                    hasStyleReference = true;
+                }
+                catch (Exception) { }
+            }
+            string prompt = request.Prompt;
+            if (imageCaptions.Length > 0)
+            {
+                prompt += "\n\n[Image references]\n" + imageCaptions;
+                if (hasStyleReference) prompt += captions.priority;
+            }
             var parts = new List<IMultipartFormSection> {
                 new MultipartFormDataSection("model", configuration.Model),
-                new MultipartFormDataSection("prompt", request.Prompt),
+                new MultipartFormDataSection("prompt", prompt),
                 new MultipartFormDataSection("output_format", "png")
             };
             foreach (KeyValuePair<string, string> option in options)
-                if (option.Key != "model" && option.Key != "prompt" && option.Key != "output_format")
+                if (option.Key != "model" && option.Key != "prompt" && option.Key != "output_format" && option.Key != "mask")
                     parts.Add(new MultipartFormDataSection(option.Key, option.Key == "size" ? NormalizeSize(option.Value) : option.Value));
-            if (request.PrimaryImage != null)
-                parts.Add(new MultipartFormFileSection("image[]", request.PrimaryImage, "pawn.png", "image/png"));
-            foreach (string file in request.ReferencePaths.Take(8))
-                try { parts.Add(new MultipartFormFileSection("image[]", File.ReadAllBytes(file), Path.GetFileName(file), PortraitProviderUtilities.Mime(file))); } catch { }
-            foreach (string file in PortraitProviderUtilities.StyleFiles(request.StyleFolder).Take(8))
-                try { parts.Add(new MultipartFormFileSection("image[]", File.ReadAllBytes(file), Path.GetFileName(file), PortraitProviderUtilities.Mime(file))); } catch { }
-
+            parts.AddRange(imageParts);
             using (UnityWebRequest webRequest = UnityWebRequest.Post("https://api.openai.com/v1/images/edits", parts))
             {
                 webRequest.timeout = 300;

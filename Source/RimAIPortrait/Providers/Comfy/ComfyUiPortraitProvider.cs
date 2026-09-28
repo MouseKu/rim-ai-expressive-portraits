@@ -13,8 +13,21 @@ namespace RimAIPortrait
 {
     internal sealed class ComfyUiPortraitProvider : IPortraitGenerationProvider
     {
+        private const int MaximumUploadedImages = 9;
         private const string OutputPrefix = "RimAI";
         public AiProvider Id => AiProvider.LocalComfyUI;
+
+        public IReadOnlyList<string> StyleReferences(PortraitGenerationRequest request)
+        {
+            return PortraitProviderUtilities.StyleFiles(request.StyleFolder)
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
+        }
+
+        public int StyleReferenceCapacity(PortraitGenerationRequest request)
+        {
+            return Math.Max(0, MaximumUploadedImages - (request.PrimaryImage == null ? 0 : 1)
+                - request.ReferencePaths.Count);
+        }
 
         public PortraitProviderConfiguration CreateConfiguration(PortraitSettings settings, bool expression)
         {
@@ -56,9 +69,15 @@ namespace RimAIPortrait
             var images = new List<LocalImage>();
             if (request.PrimaryImage != null)
                 images.Add(new LocalImage { Data = request.PrimaryImage, Name = "pawn.png", Mime = "image/png" });
-            foreach (string file in request.ReferencePaths.Concat(PortraitProviderUtilities.StyleFiles(request.StyleFolder)))
+            bool usesInpaintMask = workflow.Contains("__RIM_INPAINT_MASK__");
+            if (usesInpaintMask && request.InpaintMask == null)
             {
-                if (images.Count >= 9) break;
+                done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ComfyInpaintMaskRequired")));
+                yield break;
+            }
+            foreach (string file in request.ReferencePaths.Concat(request.StylePaths))
+            {
+                if (images.Count >= MaximumUploadedImages) break;
                 try { images.Add(new LocalImage { Data = File.ReadAllBytes(file), Name = Path.GetFileName(file), Mime = PortraitProviderUtilities.Mime(file) }); }
                 catch (Exception exception) { Log.Warning("[Rim AI Expressive Portraits] Could not read local reference image: " + exception.Message); }
             }
@@ -78,10 +97,46 @@ namespace RimAIPortrait
                 uploaded.Add(uploadedName);
             }
 
+            string uploadedMask = null;
+            if (usesInpaintMask)
+            {
+                byte[] alphaMask;
+                try { alphaMask = PortraitInpaintMask.ForOpenAi(request.InpaintMask); }
+                catch (Exception exception)
+                {
+                    done(PortraitGenerationResult.Failed(exception.Message));
+                    yield break;
+                }
+                string uploadError = null;
+                string remoteName = "rim_ai_inpaint_mask_" + Guid.NewGuid().ToString("N") + ".png";
+                yield return UploadImage(baseUrl, new LocalImage { Data = alphaMask, Name = "inpaint-mask.png", Mime = "image/png" },
+                    remoteName, (name, error) => { uploadedMask = name; uploadError = error; });
+                if (uploadedMask.NullOrEmpty())
+                {
+                    done(PortraitGenerationResult.Failed(uploadError));
+                    yield break;
+                }
+            }
+
             workflow = workflow.Replace("__RIM_PROMPT__", PortraitProviderUtilities.JsonEscape(request.Prompt))
                 .Replace("__RIM_NEGATIVE_PROMPT__", PortraitProviderUtilities.JsonEscape(configuration.NegativePrompt ?? ""))
+                .Replace("__RIM_INPAINT_TAG__", PortraitProviderUtilities.JsonEscape(request.InpaintTag ?? ""))
                 .Replace("__RIM_SEED__", new System.Random().Next(1, int.MaxValue).ToString());
+            if (workflow.Contains("__RIM_EXTRACTED_TAG__"))
+            {
+                string positiveTags = request.ExtractedTags == null ? "" : request.ExtractedTags.PositiveText;
+                string negativeTags = request.ExtractedTags == null ? "" : request.ExtractedTags.NegativeText;
+                workflow = workflow.Replace("__RIM_EXTRACTED_TAG__.positive",
+                        PortraitProviderUtilities.JsonEscape(positiveTags))
+                    .Replace("__RIM_EXTRACTED_TAG__.negative",
+                        PortraitProviderUtilities.JsonEscape(negativeTags));
+                string tagJson = request.ExtractedTags == null ? "{\"positive\":[],\"negative\":[]}"
+                    : JsonUtility.ToJson(request.ExtractedTags);
+                workflow = workflow.Replace("\"__RIM_EXTRACTED_TAG__\"", tagJson)
+                    .Replace("__RIM_EXTRACTED_TAG__", tagJson);
+            }
             if (uploaded.Count > 0) workflow = workflow.Replace("__RIM_INPUT_IMAGE__", PortraitProviderUtilities.JsonEscape(uploaded[0]));
+            if (uploadedMask != null) workflow = workflow.Replace("__RIM_INPAINT_MASK__", PortraitProviderUtilities.JsonEscape(uploadedMask));
             for (int index = 1; index <= 8; index++)
             {
                 string value = index < uploaded.Count ? uploaded[index] : uploaded.Count > 0 ? uploaded[0] : "";

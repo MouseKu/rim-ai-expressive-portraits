@@ -1,17 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
+  <RimAIPortrait.Gallery.Tip.OpenFolder>이 정착민의 초상화 저장 폴더를 엽니다.</RimAIPortrait.Gallery.Tip.OpenFolder>
+  <RimAIPortrait.Gallery.Tip.Refresh>게임 밖에서 추가하거나 수정한 이미지를 목록에 반영합니다.</RimAIPortrait.Gallery.Tip.Refresh>
+  <RimAIPortrait.Gallery.Tip.GenerateBase>선택한 갤러리 이미지를 사용하지 않고 새 Base 초상화를 생성합니다.</RimAIPortrait.Gallery.Tip.GenerateBase>
+  <RimAIPortrait.Gallery.Tip.RegenerateSelected>선택한 이미지 한 장을 참조하여 새 Base 초상화를 생성합니다.</RimAIPortrait.Gallery.Tip.RegenerateSelected>
+  <RimAIPortrait.Gallery.Tip.GenerateEmotions>지정된 Base 초상화로 생성할 감정을 선택합니다.</RimAIPortrait.Gallery.Tip.GenerateEmotions>
+  <RimAIPortrait.Gallery.Tip.RemoveBackground>선택한 갤러리 이미지의 배경 제거 창을 엽니다.</RimAIPortrait.Gallery.Tip.RemoveBackground>
+  <RimAIPortrait.Gallery.Tip.Confirm>선택한 이미지 한 장을 왼쪽에 표시된 감정에 지정합니다. 이미지를 더블클릭해도 됩니다.</RimAIPortrait.Gallery.Tip.Confirm>
+  <RimAIPortrait.Gallery.Tip.ClearSelection>갤러리 이미지 선택을 모두 해제합니다.</RimAIPortrait.Gallery.Tip.ClearSelection>
+  <RimAIPortrait.Gallery.Tip.ResetPortraits>Base를 포함한 모든 초상화 지정을 해제합니다. 갤러리 이미지는 유지됩니다.</RimAIPortrait.Gallery.Tip.ResetPortraits>
+  <RimAIPortrait.Gallery.Tip.DeleteImage>선택한 갤러리 이미지를 확인 후 삭제합니다. 단축키: Delete.</RimAIPortrait.Gallery.Tip.DeleteImage>
+  <RimAIPortrait.Gallery.Tip.LargePreview>선택한 이미지를 크게 봅니다. 단축키: P.</RimAIPortrait.Gallery.Tip.LargePreview>
+  <RimAIPortrait.Gallery.Tip.SaveBase>현재 정착민과 Base Provider의 Base 프롬프트를 저장합니다.</RimAIPortrait.Gallery.Tip.SaveBase>
+  <RimAIPortrait.Gallery.Tip.ResetBase>기본 Base 프롬프트를 편집란에 불러옵니다. 적용하려면 Base 저장을 누르세요.</RimAIPortrait.Gallery.Tip.ResetBase>
+  <RimAIPortrait.Gallery.Tip.SaveExtra>이 정착민의 Extra 지시를 저장합니다.</RimAIPortrait.Gallery.Tip.SaveExtra>
+  <RimAIPortrait.Gallery.Tip.PreviousState>이전 활성 감정을 표시합니다. 단축키: 왼쪽 방향키.</RimAIPortrait.Gallery.Tip.PreviousState>
+  <RimAIPortrait.Gallery.Tip.NextState>다음 활성 감정을 표시합니다. 단축키: 오른쪽 방향키.</RimAIPortrait.Gallery.Tip.NextState>
+  <RimAIPortrait.Gallery.Tip.AssignedPortrait>현재 지정된 {0} 초상화입니다.</RimAIPortrait.Gallery.Tip.AssignedPortrait>
+  <RimAIPortrait.Gallery.Tip.GalleryImage>클릭하면 선택하고, 더블클릭하면 왼쪽에 표시된 감정에 지정합니다.</RimAIPortrait.Gallery.Tip.GalleryImage>
+  <RimAIPortrait.BackgroundRemoval.Tip.Color>배경색을 #RRGGBB 형식으로 입력하거나 이미지에서 클릭해 선택합니다.</RimAIPortrait.BackgroundRemoval.Tip.Color>
+  <RimAIPortrait.BackgroundRemoval.Tip.Sensitivity>높일수록 선택한 색과 차이가 나는 픽셀까지 제거합니다.</RimAIPortrait.BackgroundRemoval.Tip.Sensitivity>
+  <RimAIPortrait.BackgroundRemoval.Tip.Erosion>제거 영역을 안쪽으로 줄여 가장자리 흔적을 줄입니다.</RimAIPortrait.BackgroundRemoval.Tip.Erosion>
+  <RimAIPortrait.BackgroundRemoval.Tip.Undo>마지막 배경 제거 작업을 되돌립니다. 단축키: Ctrl+Z.</RimAIPortrait.BackgroundRemoval.Tip.Undo>
+  <RimAIPortrait.BackgroundRemoval.Tip.Redo>되돌린 작업을 다시 적용합니다. 단축키: Ctrl+Y 또는 Ctrl+Shift+Z.</RimAIPortrait.BackgroundRemoval.Tip.Redo>
+  <RimAIPortrait.BackgroundRemoval.Tip.RemoveEnclosed>이미지 안쪽에 갇힌 배경색 영역도 제거합니다.</RimAIPortrait.BackgroundRemoval.Tip.RemoveEnclosed>
+  <RimAIPortrait.BackgroundRemoval.Tip.EnclosedCleanup>안쪽 배경 영역을 제거하는 강도를 조정합니다.</RimAIPortrait.BackgroundRemoval.Tip.EnclosedCleanup>
+  <RimAIPortrait.BackgroundRemoval.Tip.Image>이미지를 클릭해 색을 선택하고 배경 제거 결과를 미리 봅니다.</RimAIPortrait.BackgroundRemoval.Tip.Image>
+  <RimAIPortrait.Inpaint.StrengthTip>NovelAI가 선택 영역을 변경하는 강도입니다. 높일수록 변화가 커집니다.</RimAIPortrait.Inpaint.StrengthTip>
+  <RimAIPortrait.Inpaint.ExtraTagTip>이 감정 생성 요청에 지시를 추가합니다. 입력값은 정착민별로 저장됩니다.</RimAIPortrait.Inpaint.ExtraTagTip>
+  <RimAIPortrait.Settings.PortraitRootFolder>초상화 저장 폴더</RimAIPortrait.Settings.PortraitRootFolder>
+  <RimAIPortrait.Settings.PortraitRootDefault>경로가 비어 있어 기본 폴더를 사용합니다: {0}</RimAIPortrait.Settings.PortraitRootDefault>
+  <RimAIPortrait.Settings.PortraitRootConfigured>이 폴더에 초상화를 저장합니다. 기존 파일은 이전 폴더에 남습니다.</RimAIPortrait.Settings.PortraitRootConfigured>
+  <RimAIPortrait.Settings.PortraitRootInvalid>잘못된 폴더 경로입니다. 존재하는 절대 경로를 입력하세요. 현재 기본 폴더를 사용합니다.</RimAIPortrait.Settings.PortraitRootInvalid>
+  <RimAIPortrait.Settings.OpenPortraitRoot>초상화 저장 폴더 열기</RimAIPortrait.Settings.OpenPortraitRoot>
+  <RimAIPortrait.Error.OpenPortraitRoot>초상화 저장 폴더를 열지 못했습니다: {0}</RimAIPortrait.Error.OpenPortraitRoot>
+  <RimAIPortrait.Help.Title>초상화 도움말</RimAIPortrait.Help.Title>
+  <RimAIPortrait.Help.Next>다음</RimAIPortrait.Help.Next>
+  <RimAIPortrait.Help.Ok>확인</RimAIPortrait.Help.Ok>
+  <RimAIPortrait.Help.ImageUnavailable>도움말 이미지를 불러올 수 없습니다.</RimAIPortrait.Help.ImageUnavailable>
+  <RimAIPortrait.Error.PortraitLoadFailed>{0}의 초상화({1})를 불러오지 못했습니다. 파일을 교체한 뒤 갤러리를 새로고침하세요.</RimAIPortrait.Error.PortraitLoadFailed>
   <RimAIPortrait.Gizmo.Label>AI 초상화</RimAIPortrait.Gizmo.Label><RimAIPortrait.Gizmo.Description>초상화를 생성하고 저장 이미지로 감정 초상화를 만듭니다.</RimAIPortrait.Gizmo.Description>
-  <RimAIPortrait.Common.Prompt>프롬프트:</RimAIPortrait.Common.Prompt><RimAIPortrait.Common.Refresh>새로고침</RimAIPortrait.Common.Refresh><RimAIPortrait.Common.OpenFolder>폴더 열기</RimAIPortrait.Common.OpenFolder><RimAIPortrait.Common.ClearSelection>선택 해제</RimAIPortrait.Common.ClearSelection><RimAIPortrait.Common.DeleteImage>이미지 삭제</RimAIPortrait.Common.DeleteImage><RimAIPortrait.Common.Save>저장</RimAIPortrait.Common.Save><RimAIPortrait.Error.OpenFolder>폴더 열기 실패: {0}</RimAIPortrait.Error.OpenFolder>
+  <RimAIPortrait.Common.Prompt>프롬프트:</RimAIPortrait.Common.Prompt><RimAIPortrait.Common.Refresh>새로고침</RimAIPortrait.Common.Refresh><RimAIPortrait.Common.OpenFolder>폴더 열기</RimAIPortrait.Common.OpenFolder><RimAIPortrait.Common.ClearSelection>선택 해제</RimAIPortrait.Common.ClearSelection><RimAIPortrait.Common.ResetPortraits>초상화 초기화</RimAIPortrait.Common.ResetPortraits><RimAIPortrait.Common.DeleteImage>이미지 삭제</RimAIPortrait.Common.DeleteImage><RimAIPortrait.Common.Save>저장</RimAIPortrait.Common.Save><RimAIPortrait.Error.OpenFolder>폴더 열기 실패: {0}</RimAIPortrait.Error.OpenFolder>
   <RimAIPortrait.Emotions.Title>생성할 감정 선택</RimAIPortrait.Emotions.Title><RimAIPortrait.Emotions.Description>체크한 감정만 생성되며 완료 즉시 해당 초상화로 적용됩니다.</RimAIPortrait.Emotions.Description><RimAIPortrait.Emotions.Generate>선택한 감정 생성</RimAIPortrait.Emotions.Generate><RimAIPortrait.Emotions.SelectOne>생성할 감정을 하나 이상 체크하세요.</RimAIPortrait.Emotions.SelectOne>
-  <RimAIPortrait.Gallery.InitialStatus>이미지를 클릭하면 복수 선택됩니다. 감정 지정은 이미지 하나를 선택한 뒤 확정하세요.</RimAIPortrait.Gallery.InitialStatus><RimAIPortrait.Gallery.SaveFolder>저장 폴더: {0}</RimAIPortrait.Gallery.SaveFolder><RimAIPortrait.Gallery.Refreshed>외부 이미지 목록을 새로고침했습니다.</RimAIPortrait.Gallery.Refreshed><RimAIPortrait.Gallery.GenerateBase>새 기본 초상화 생성</RimAIPortrait.Gallery.GenerateBase><RimAIPortrait.Gallery.GenerateEmotionsFromBase>Base로 감정 생성</RimAIPortrait.Gallery.GenerateEmotionsFromBase><RimAIPortrait.Gallery.BaseRequired>먼저 Base 초상화를 생성하거나 지정하세요.</RimAIPortrait.Gallery.BaseRequired><RimAIPortrait.Gallery.AssignEmotion>감정 지정 확정</RimAIPortrait.Gallery.AssignEmotion><RimAIPortrait.Gallery.AssignBase>Base 지정</RimAIPortrait.Gallery.AssignBase><RimAIPortrait.Gallery.SelectOneToAssign>감정을 지정할 이미지 하나만 선택하세요.</RimAIPortrait.Gallery.SelectOneToAssign><RimAIPortrait.Gallery.Assigned>{0} 이미지로 지정하고 즉시 적용했습니다.</RimAIPortrait.Gallery.Assigned><RimAIPortrait.Gallery.ConfirmDelete>선택한 이미지 {0}개를 삭제할까요?</RimAIPortrait.Gallery.ConfirmDelete>
-  <RimAIPortrait.Gallery.ExtraFeaturesTip>이 정착민에게만 적용되며 공통 프롬프트 뒤에 추가됩니다.</RimAIPortrait.Gallery.ExtraFeaturesTip><RimAIPortrait.Gallery.ExtraSaved>Extra Features를 저장했습니다.</RimAIPortrait.Gallery.ExtraSaved><RimAIPortrait.Gallery.ExtraSaveFailed>Extra Features 저장에 실패했습니다.</RimAIPortrait.Gallery.ExtraSaveFailed><RimAIPortrait.Gallery.PawnInstructions>정착민별 추가 지시</RimAIPortrait.Gallery.PawnInstructions><RimAIPortrait.Gallery.BasePromptTip>이 정착민에게만 적용됩니다. 비워 두면 모드 옵션의 Base Prompt를 사용합니다.</RimAIPortrait.Gallery.BasePromptTip><RimAIPortrait.Gallery.SaveBase>Base 저장</RimAIPortrait.Gallery.SaveBase><RimAIPortrait.Gallery.BaseSaved>정착민별 Base Prompt를 저장했습니다.</RimAIPortrait.Gallery.BaseSaved><RimAIPortrait.Gallery.BaseSaveFailed>Base Prompt 저장에 실패했습니다.</RimAIPortrait.Gallery.BaseSaveFailed><RimAIPortrait.Gallery.BaseDefaultHint>기본값은 옵션의&#10;Base Prompt</RimAIPortrait.Gallery.BaseDefaultHint><RimAIPortrait.Gallery.SelectedCount>선택된 이미지: {0}</RimAIPortrait.Gallery.SelectedCount><RimAIPortrait.Gallery.ClickToDeselect>클릭하여 선택 해제&#10;{0}</RimAIPortrait.Gallery.ClickToDeselect><RimAIPortrait.Status.GeneratingBase>기본 초상화 생성 중…</RimAIPortrait.Status.GeneratingBase>
+  <RimAIPortrait.Gallery.InitialStatus>클릭: 하나 선택. Ctrl+클릭: 선택 추가/해제. Shift+클릭: 범위 선택. Ctrl+Shift+클릭: 범위 추가.</RimAIPortrait.Gallery.InitialStatus><RimAIPortrait.Gallery.SaveFolder>저장 폴더: {0}</RimAIPortrait.Gallery.SaveFolder><RimAIPortrait.Gallery.Refreshed>외부 이미지 목록을 새로고침했습니다.</RimAIPortrait.Gallery.Refreshed><RimAIPortrait.Gallery.GenerateBase>새 기본 초상화 생성</RimAIPortrait.Gallery.GenerateBase><RimAIPortrait.Gallery.GenerateEmotionsFromBase>Base로 감정 생성</RimAIPortrait.Gallery.GenerateEmotionsFromBase><RimAIPortrait.Gallery.BaseRequired>먼저 Base 초상화를 생성하거나 지정하세요.</RimAIPortrait.Gallery.BaseRequired><RimAIPortrait.Gallery.AssignEmotion>확인</RimAIPortrait.Gallery.AssignEmotion><RimAIPortrait.Gallery.AssignBase>Base 지정</RimAIPortrait.Gallery.AssignBase><RimAIPortrait.Gallery.SelectOneToAssign>감정을 지정할 이미지 하나만 선택하세요.</RimAIPortrait.Gallery.SelectOneToAssign><RimAIPortrait.Gallery.Assigned>{0} 이미지로 지정하고 즉시 적용했습니다.</RimAIPortrait.Gallery.Assigned><RimAIPortrait.Gallery.ConfirmDelete>선택한 이미지 {0}개를 삭제할까요?</RimAIPortrait.Gallery.ConfirmDelete><RimAIPortrait.Gallery.ConfirmResetPortraits>Base를 포함한 모든 초상화 지정을 해제할까요? 갤러리 이미지는 유지됩니다.</RimAIPortrait.Gallery.ConfirmResetPortraits><RimAIPortrait.Gallery.PortraitsReset>모든 초상화 지정을 해제했습니다.</RimAIPortrait.Gallery.PortraitsReset>
+  <RimAIPortrait.Gallery.ExtraFeaturesTip>이 정착민에게만 적용되며 공통 프롬프트 뒤에 추가됩니다.</RimAIPortrait.Gallery.ExtraFeaturesTip><RimAIPortrait.Gallery.ExtraSaved>Extra Features를 저장했습니다.</RimAIPortrait.Gallery.ExtraSaved><RimAIPortrait.Gallery.ExtraSaveFailed>Extra Features 저장에 실패했습니다.</RimAIPortrait.Gallery.ExtraSaveFailed><RimAIPortrait.Gallery.PawnInstructions>정착민별 추가 지시</RimAIPortrait.Gallery.PawnInstructions><RimAIPortrait.Gallery.BasePromptTip>이 정착민과 현재 Base Provider에만 적용됩니다. 비워 두면 해당 Provider의 모드 옵션 Base Prompt를 사용합니다.</RimAIPortrait.Gallery.BasePromptTip><RimAIPortrait.Gallery.SaveBase>Base 저장</RimAIPortrait.Gallery.SaveBase><RimAIPortrait.Gallery.BaseSaved>정착민별 Base Prompt를 저장했습니다.</RimAIPortrait.Gallery.BaseSaved><RimAIPortrait.Gallery.BaseSaveFailed>Base Prompt 저장에 실패했습니다.</RimAIPortrait.Gallery.BaseSaveFailed><RimAIPortrait.Gallery.BaseDefaultHint>기본값은 옵션의&#10;Base Prompt</RimAIPortrait.Gallery.BaseDefaultHint><RimAIPortrait.Gallery.SelectedCount>선택된 이미지: {0}</RimAIPortrait.Gallery.SelectedCount><RimAIPortrait.Gallery.ClickToDeselect>클릭하여 선택 해제&#10;{0}</RimAIPortrait.Gallery.ClickToDeselect><RimAIPortrait.Status.GeneratingBase>기본 초상화 생성 중…</RimAIPortrait.Status.GeneratingBase>
   <RimAIPortrait.Gallery.LargePreview>크게 보기</RimAIPortrait.Gallery.LargePreview><RimAIPortrait.Gallery.SelectOneToPreview>미리 볼 이미지 하나만 선택하세요.</RimAIPortrait.Gallery.SelectOneToPreview><RimAIPortrait.Preview.Title>이미지 미리보기</RimAIPortrait.Preview.Title><RimAIPortrait.Preview.UnsupportedImage>지원하지 않는 이미지 형식입니다.</RimAIPortrait.Preview.UnsupportedImage><RimAIPortrait.Preview.LoadFailed>이미지를 불러오지 못했습니다: {0}</RimAIPortrait.Preview.LoadFailed>
   <RimAIPortrait.Status.GeneratingState>{0} 생성 중…</RimAIPortrait.Status.GeneratingState><RimAIPortrait.Status.StateFailed>{0} 실패: {1}</RimAIPortrait.Status.StateFailed><RimAIPortrait.Status.StateSaved>{0} 저장 및 적용 완료</RimAIPortrait.Status.StateSaved><RimAIPortrait.Status.StatePortraitSaved>{0} 초상화를 저장했습니다.</RimAIPortrait.Status.StatePortraitSaved><RimAIPortrait.Status.SelectedEmotionsComplete>선택한 감정 생성을 완료했습니다.</RimAIPortrait.Status.SelectedEmotionsComplete><RimAIPortrait.Status.GenerationFailed>생성 실패: {0}</RimAIPortrait.Status.GenerationFailed><RimAIPortrait.Status.BaseSaved>기본 초상화를 저장했습니다.</RimAIPortrait.Status.BaseSaved><RimAIPortrait.Status.ReferenceBaseSaved>선택 이미지 기반 기본 초상화를 저장했습니다.</RimAIPortrait.Status.ReferenceBaseSaved><RimAIPortrait.Status.ReferenceReadFailed>선택한 참조 이미지를 읽지 못했습니다: {0}</RimAIPortrait.Status.ReferenceReadFailed><RimAIPortrait.Status.PortraitSavedFor>AI 초상화 저장 완료: {0}</RimAIPortrait.Status.PortraitSavedFor><RimAIPortrait.Status.EmotionsComplete>감정 초상화 생성을 완료했습니다.</RimAIPortrait.Status.EmotionsComplete><RimAIPortrait.Status.EmotionsCompleteFor>감정 초상화 생성 완료: {0}</RimAIPortrait.Status.EmotionsCompleteFor>
-  <RimAIPortrait.Error.NoPawn>정착민이 없습니다.</RimAIPortrait.Error.NoPawn><RimAIPortrait.Error.SettingsUnavailable>모드 설정을 불러오지 못했습니다.</RimAIPortrait.Error.SettingsUnavailable><RimAIPortrait.Error.ApiKeyMissing>{0}용 API 키가 없습니다.</RimAIPortrait.Error.ApiKeyMissing><RimAIPortrait.Error.OpenAiModelMissing>{0}용 OpenAI 모델이 없습니다.</RimAIPortrait.Error.OpenAiModelMissing><RimAIPortrait.Error.GoogleModelMissing>{0}용 Google 모델이 없습니다.</RimAIPortrait.Error.GoogleModelMissing><RimAIPortrait.Error.ComfyUrlMissing>{0}용 ComfyUI 서버 URL이 없습니다.</RimAIPortrait.Error.ComfyUrlMissing><RimAIPortrait.Error.ComfyWorkflowMissing>{0}용 ComfyUI API workflow JSON 파일을 찾을 수 없습니다.</RimAIPortrait.Error.ComfyWorkflowMissing><RimAIPortrait.Kind.Expression>파생 표정</RimAIPortrait.Kind.Expression><RimAIPortrait.Kind.Base>기본 초상화</RimAIPortrait.Kind.Base>
+  <RimAIPortrait.Error.NoPawn>정착민이 없습니다.</RimAIPortrait.Error.NoPawn><RimAIPortrait.Error.SettingsUnavailable>모드 설정을 불러오지 못했습니다.</RimAIPortrait.Error.SettingsUnavailable><RimAIPortrait.Error.ApiKeyMissing>{0}용 API 키가 없습니다.</RimAIPortrait.Error.ApiKeyMissing><RimAIPortrait.Error.OpenAiModelMissing>{0}용 OpenAI 모델이 없습니다.</RimAIPortrait.Error.OpenAiModelMissing><RimAIPortrait.Error.GoogleModelMissing>{0}용 Google 모델이 없습니다.</RimAIPortrait.Error.GoogleModelMissing><RimAIPortrait.Error.NovelAiApiKeyMissing>{0}용 NovelAI API 토큰이 없습니다.</RimAIPortrait.Error.NovelAiApiKeyMissing><RimAIPortrait.Error.NovelAiModelMissing>{0}용 NovelAI 모델이 없습니다.</RimAIPortrait.Error.NovelAiModelMissing><RimAIPortrait.Error.ComfyUrlMissing>{0}용 ComfyUI 서버 URL이 없습니다.</RimAIPortrait.Error.ComfyUrlMissing><RimAIPortrait.Error.ComfyWorkflowMissing>{0}용 ComfyUI API workflow JSON 파일을 찾을 수 없습니다.</RimAIPortrait.Error.ComfyWorkflowMissing><RimAIPortrait.Kind.Expression>파생 표정</RimAIPortrait.Kind.Expression><RimAIPortrait.Kind.Base>기본 초상화</RimAIPortrait.Kind.Base>
   <RimAIPortrait.Settings.PromptInformation>프롬프트에 포함할 정보</RimAIPortrait.Settings.PromptInformation><RimAIPortrait.Settings.CharacterSprite>캐릭터 스프라이트 (참조 이미지)</RimAIPortrait.Settings.CharacterSprite><RimAIPortrait.Settings.Gender>성별</RimAIPortrait.Settings.Gender><RimAIPortrait.Settings.Race>종족</RimAIPortrait.Settings.Race><RimAIPortrait.Settings.Xenotype>유전자형</RimAIPortrait.Settings.Xenotype><RimAIPortrait.Settings.Age>나이</RimAIPortrait.Settings.Age><RimAIPortrait.Settings.BodyType>체형</RimAIPortrait.Settings.BodyType><RimAIPortrait.Settings.SkinColor>피부색</RimAIPortrait.Settings.SkinColor><RimAIPortrait.Settings.Hair>머리카락</RimAIPortrait.Settings.Hair><RimAIPortrait.Settings.EyeColor>눈동자색</RimAIPortrait.Settings.EyeColor><RimAIPortrait.Settings.Apparel>의류</RimAIPortrait.Settings.Apparel><RimAIPortrait.Settings.Health>건강 상태 및 흉터</RimAIPortrait.Settings.Health><RimAIPortrait.Settings.Traits>특성</RimAIPortrait.Settings.Traits>
   <RimAIPortrait.Settings.EmotionChanges>감정에 따른 초상화 자동 변화 활성화</RimAIPortrait.Settings.EmotionChanges><RimAIPortrait.Settings.EmotionChangesTip>끄면 감정 생성 및 전환 설정을 숨기고 Base 초상화만 표시합니다.</RimAIPortrait.Settings.EmotionChangesTip><RimAIPortrait.Settings.SwapInterval>상태 확인 간격: {0}초</RimAIPortrait.Settings.SwapInterval><RimAIPortrait.Settings.WhenLow>낮은 무드 기준: {0} 이하</RimAIPortrait.Settings.WhenLow><RimAIPortrait.Settings.WhenHigh>높은 무드 기준: {0} 이상</RimAIPortrait.Settings.WhenHigh>
   <RimAIPortrait.Settings.DisplayBehavior>초상화 표시 및 동작</RimAIPortrait.Settings.DisplayBehavior><RimAIPortrait.Settings.Width>너비: {0}</RimAIPortrait.Settings.Width><RimAIPortrait.Settings.Scale>크기 배율: {0}</RimAIPortrait.Settings.Scale><RimAIPortrait.Settings.RightOffset>오른쪽 오프셋: {0}</RimAIPortrait.Settings.RightOffset><RimAIPortrait.Settings.UpOffset>위쪽 오프셋: {0}</RimAIPortrait.Settings.UpOffset><RimAIPortrait.Settings.EnableFrame>액자 기능 활성화</RimAIPortrait.Settings.EnableFrame><RimAIPortrait.Settings.EnableFrameTip>지정한 투명 이미지를 캐릭터 초상화 위에 액자처럼 겹쳐 표시합니다.</RimAIPortrait.Settings.EnableFrameTip><RimAIPortrait.Settings.FrameScale>액자 크기 배율: {0}</RimAIPortrait.Settings.FrameScale><RimAIPortrait.Settings.FramePath>액자 이미지 경로 (PNG/JPG)</RimAIPortrait.Settings.FramePath><RimAIPortrait.Settings.OpenFrameFolder>액자 이미지 폴더 열기</RimAIPortrait.Settings.OpenFrameFolder><RimAIPortrait.Settings.DebugMode>디버그 모드</RimAIPortrait.Settings.DebugMode><RimAIPortrait.Settings.DebugModeTip>API 키를 제외한 요청 정보와 최종 프롬프트를 Player.log에 기록합니다.</RimAIPortrait.Settings.DebugModeTip><RimAIPortrait.Settings.BaseProvider>기본 초상화 제공자</RimAIPortrait.Settings.BaseProvider><RimAIPortrait.Settings.ExpressionProvider>감정 초상화 제공자</RimAIPortrait.Settings.ExpressionProvider><RimAIPortrait.Settings.EmotionPrompts>감정별 프롬프트 (비워 두면 기본 프롬프트 사용)</RimAIPortrait.Settings.EmotionPrompts><RimAIPortrait.Settings.PromptSaved>{0} 프롬프트를 저장했습니다.</RimAIPortrait.Settings.PromptSaved>
-  <RimAIPortrait.Settings.ApiKey>API 키</RimAIPortrait.Settings.ApiKey><RimAIPortrait.Settings.Model>모델</RimAIPortrait.Settings.Model><RimAIPortrait.Settings.OptionsJson>옵션 (JSON 키/값)</RimAIPortrait.Settings.OptionsJson><RimAIPortrait.Settings.BasePrompt>기본 프롬프트</RimAIPortrait.Settings.BasePrompt><RimAIPortrait.Settings.ComfyUrl>ComfyUI 서버 URL</RimAIPortrait.Settings.ComfyUrl><RimAIPortrait.Settings.WorkflowPath>워크플로 API JSON 경로</RimAIPortrait.Settings.WorkflowPath><RimAIPortrait.Settings.NegativePrompt>네거티브 프롬프트</RimAIPortrait.Settings.NegativePrompt><RimAIPortrait.Settings.StyleFolder>스타일 참조 폴더</RimAIPortrait.Settings.StyleFolder><RimAIPortrait.Settings.OpenStyleFolder>스타일 참조 폴더 열기</RimAIPortrait.Settings.OpenStyleFolder>
+  <RimAIPortrait.Settings.ApiKey>API 키</RimAIPortrait.Settings.ApiKey><RimAIPortrait.Settings.NovelAiApiKey>NovelAI API 토큰</RimAIPortrait.Settings.NovelAiApiKey><RimAIPortrait.Settings.Model>모델</RimAIPortrait.Settings.Model><RimAIPortrait.Settings.OptionsJson>옵션 (JSON 키/값)</RimAIPortrait.Settings.OptionsJson><RimAIPortrait.Settings.BasePrompt>기본 프롬프트</RimAIPortrait.Settings.BasePrompt><RimAIPortrait.Settings.NovelAiReferenceHelp>주 이미지는 img2img로, 선택 및 스타일 이미지는 Vibe Transfer 참조로 전송합니다(최대 16개).</RimAIPortrait.Settings.NovelAiReferenceHelp><RimAIPortrait.Settings.ComfyUrl>ComfyUI 서버 URL</RimAIPortrait.Settings.ComfyUrl><RimAIPortrait.Settings.WorkflowPath>워크플로 API JSON 경로</RimAIPortrait.Settings.WorkflowPath><RimAIPortrait.Settings.NegativePrompt>네거티브 프롬프트</RimAIPortrait.Settings.NegativePrompt><RimAIPortrait.Settings.StyleFolder>스타일 참조 폴더</RimAIPortrait.Settings.StyleFolder><RimAIPortrait.Settings.OpenStyleFolder>스타일 참조 폴더 열기</RimAIPortrait.Settings.OpenStyleFolder>
+  <RimAIPortrait.Settings.NovelAiInpaintStrengthDefault>기본 인페인트 강도: {0}</RimAIPortrait.Settings.NovelAiInpaintStrengthDefault>
+  <RimAIPortrait.Settings.NovelAiSleepInpaintStrengthDefault>기본 수면 인페인트 강도: {0}</RimAIPortrait.Settings.NovelAiSleepInpaintStrengthDefault>
   <RimAIPortrait.Debug.PawnSprite>전송 Pawn 스프라이트</RimAIPortrait.Debug.PawnSprite><RimAIPortrait.Debug.SpriteDisabled>스프라이트 전송 꺼짐</RimAIPortrait.Debug.SpriteDisabled><RimAIPortrait.Debug.CaptureFailed>캡처 실패</RimAIPortrait.Debug.CaptureFailed><RimAIPortrait.Debug.LastPawnPng>기본 초상화 요청에 마지막으로 사용된 Pawn PNG</RimAIPortrait.Debug.LastPawnPng>
   <RimAIPortrait.State.Normal>Base / 기본</RimAIPortrait.State.Normal><RimAIPortrait.State.High>High / 무드 높음</RimAIPortrait.State.High><RimAIPortrait.State.Low>Low / 무드 낮음</RimAIPortrait.State.Low><RimAIPortrait.State.Sleep>Sleep / 수면</RimAIPortrait.State.Sleep><RimAIPortrait.State.Pain>Pain / 고통</RimAIPortrait.State.Pain><RimAIPortrait.State.Down>Down / 쓰러짐</RimAIPortrait.State.Down><RimAIPortrait.State.Hot>Hot / 고열</RimAIPortrait.State.Hot><RimAIPortrait.State.Cold>Cold / 저체온</RimAIPortrait.State.Cold><RimAIPortrait.State.Angry>Angry / 분노</RimAIPortrait.State.Angry><RimAIPortrait.State.Distressed>Distressed / 괴로움</RimAIPortrait.State.Distressed>
   <RimAIPortrait.Gallery.RegenerateSelected>선택 이미지 재생성</RimAIPortrait.Gallery.RegenerateSelected>
@@ -19,20 +60,20 @@
   <RimAIPortrait.Status.RegeneratingSelected>선택 이미지 재생성 중…</RimAIPortrait.Status.RegeneratingSelected>
   <RimAIPortrait.Gallery.UnavailableForAnimals>애완동물에게는 적용할 수 없는 기능입니다.</RimAIPortrait.Gallery.UnavailableForAnimals>
   <RimAIPortrait.Settings.EnabledEmotions>감정 활성화</RimAIPortrait.Settings.EnabledEmotions>
-  <RimAIPortrait.Settings.Category>Rim AI Expressive Portraits</RimAIPortrait.Settings.Category>
-  <RimAIPortrait.Settings.GenerateSelected>선택한 정착민의 초상화 생성</RimAIPortrait.Settings.GenerateSelected>
+  <RimAIPortrait.Settings.Category>Rim AI Expressive Portraits</RimAIPortrait.Settings.Category><RimAIPortrait.Settings.RestoreDefaults>기본값으로 되돌리기</RimAIPortrait.Settings.RestoreDefaults><RimAIPortrait.Settings.ConfirmRestoreDefaults>모든 옵션을 기본값으로 되돌릴까요? API 키, 제공자 설정, 프롬프트, 로컬 경로도 함께 지워지거나 초기화됩니다.</RimAIPortrait.Settings.ConfirmRestoreDefaults><RimAIPortrait.Settings.DefaultsRestored>모든 옵션을 기본값으로 되돌렸습니다.</RimAIPortrait.Settings.DefaultsRestored>
+  <RimAIPortrait.Settings.ResetPortraitHelp>초상화 도움말 초기화</RimAIPortrait.Settings.ResetPortraitHelp>
+  <RimAIPortrait.Settings.PortraitHelpReset>다음에 정착민의 초상화 갤러리를 열면 도움말이 다시 표시됩니다.</RimAIPortrait.Settings.PortraitHelpReset>
   <RimAIPortrait.Settings.ComfyTimeout>생성 제한 시간: {0}초</RimAIPortrait.Settings.ComfyTimeout>
   <RimAIPortrait.Settings.ComfyRequiredOutput>필수 출력 설정: 마지막 SaveImage 노드의 filename_prefix를 RimAI로 지정하세요.</RimAIPortrait.Settings.ComfyRequiredOutput>
-  <RimAIPortrait.Settings.ComfyWorkflowTokens>워크플로 토큰: __RIM_PROMPT__, __RIM_NEGATIVE_PROMPT__, __RIM_INPUT_IMAGE__, __RIM_REFERENCE_1__ ... __RIM_REFERENCE_8__, __RIM_SEED__</RimAIPortrait.Settings.ComfyWorkflowTokens>
-  <RimAIPortrait.Status.GenerationStarted>생성을 시작했습니다…</RimAIPortrait.Status.GenerationStarted>
+  <RimAIPortrait.Settings.ComfyWorkflowTokens>워크플로 토큰: __RIM_PROMPT__, __RIM_NEGATIVE_PROMPT__, __RIM_EXTRACTED_TAG__.positive, __RIM_EXTRACTED_TAG__.negative, __RIM_INPUT_IMAGE__, __RIM_REFERENCE_1__ ... __RIM_REFERENCE_8__, __RIM_SEED__</RimAIPortrait.Settings.ComfyWorkflowTokens>
   <RimAIPortrait.Status.CapturingSprite>정착민 스프라이트 캡처 중…</RimAIPortrait.Status.CapturingSprite>
   <RimAIPortrait.Status.AllComplete>초상화 생성을 완료했습니다.</RimAIPortrait.Status.AllComplete>
   <RimAIPortrait.Status.AllCompleteFor>Rim AI Expressive Portraits: {0} 생성 완료</RimAIPortrait.Status.AllCompleteFor>
-  <RimAIPortrait.Error.SelectPawnFirst>먼저 정착민을 선택하세요.</RimAIPortrait.Error.SelectPawnFirst>
   <RimAIPortrait.Error.FrameFolderMissing>액자 이미지가 있는 폴더를 찾을 수 없습니다.</RimAIPortrait.Error.FrameFolderMissing>
   <RimAIPortrait.Error.OpenFrameFolder>액자 폴더를 열지 못했습니다: {0}</RimAIPortrait.Error.OpenFrameFolder>
   <RimAIPortrait.Error.StyleFolderEmpty>폴더 경로가 비어 있습니다.</RimAIPortrait.Error.StyleFolderEmpty>
   <RimAIPortrait.Error.OpenStyleFolder>스타일 폴더를 열지 못했습니다: {0}</RimAIPortrait.Error.OpenStyleFolder>
+  <RimAIPortrait.Error.StyleReferenceLimit>{0}에서 현재 참조 이미지와 함께 사용할 수 있는 스타일 이미지는 최대 {2}장인데, 폴더에 {1}장이 있습니다. 생성 전에 스타일 이미지 개수를 줄여 주세요.</RimAIPortrait.Error.StyleReferenceLimit>
   <RimAIPortrait.Error.FramePathInvalid>액자 이미지 경로가 올바르지 않습니다: {0}</RimAIPortrait.Error.FramePathInvalid>
   <RimAIPortrait.Error.FrameFileMissing>액자 이미지 파일을 찾을 수 없습니다.</RimAIPortrait.Error.FrameFileMissing>
   <RimAIPortrait.Error.FrameLoadFailed>액자 이미지를 불러오지 못했습니다: {0}</RimAIPortrait.Error.FrameLoadFailed>
@@ -41,6 +82,8 @@
   <RimAIPortrait.Error.ImageDecodeFailed>생성 이미지를 디코딩하지 못했습니다: {0}</RimAIPortrait.Error.ImageDecodeFailed>
   <RimAIPortrait.Error.ImageDownloadHttp>이미지 다운로드 HTTP {0}: {1}</RimAIPortrait.Error.ImageDownloadHttp>
   <RimAIPortrait.Error.NoImageResponse>API 응답에 이미지가 없습니다. 응답: {0}</RimAIPortrait.Error.NoImageResponse>
+  <RimAIPortrait.Error.NovelAiArchiveEmpty>NovelAI 응답 압축 파일에 지원되는 이미지가 없습니다.</RimAIPortrait.Error.NovelAiArchiveEmpty>
+  <RimAIPortrait.Error.NovelAiVibeEmpty>NovelAI가 참조 이미지의 Vibe 데이터를 반환하지 않았습니다.</RimAIPortrait.Error.NovelAiVibeEmpty>
   <RimAIPortrait.Error.ComfyWorkflowReadFailed>ComfyUI 워크플로를 읽지 못했습니다: {0}</RimAIPortrait.Error.ComfyWorkflowReadFailed>
   <RimAIPortrait.Error.ComfyInputRequired>워크플로에 __RIM_INPUT_IMAGE__가 필요하지만 스프라이트 또는 참조 이미지가 없습니다.</RimAIPortrait.Error.ComfyInputRequired>
   <RimAIPortrait.Error.ComfySubmitHttp>ComfyUI 제출 HTTP {0}: {1} {2}</RimAIPortrait.Error.ComfySubmitHttp>
@@ -52,24 +95,86 @@
   <RimAIPortrait.Error.ComfyTimeout>ComfyUI 생성이 {0}초 후 시간 초과됐습니다.</RimAIPortrait.Error.ComfyTimeout>
   <RimAIPortrait.Error.ComfyUploadHttp>ComfyUI 업로드 HTTP {0}: {1} {2}</RimAIPortrait.Error.ComfyUploadHttp>
   <RimAIPortrait.Settings.BackgroundRemovalSensitivity>배경 제거 민감도: {0}%</RimAIPortrait.Settings.BackgroundRemovalSensitivity>
-  <RimAIPortrait.Settings.BackgroundColor>배경 색상 (#RRGGBB)</RimAIPortrait.Settings.BackgroundColor>
+  <RimAIPortrait.Settings.BackgroundColor>배경 색상</RimAIPortrait.Settings.BackgroundColor>
   <RimAIPortrait.Settings.BackgroundColorInvalid>#FFFFFF와 같은 6자리 16진수 색상을 입력하세요.</RimAIPortrait.Settings.BackgroundColorInvalid>
   <RimAIPortrait.Gallery.RemoveBackground>배경 제거</RimAIPortrait.Gallery.RemoveBackground>
   <RimAIPortrait.Gallery.SelectOneToRemoveBackground>배경을 제거할 이미지 하나만 선택하세요.</RimAIPortrait.Gallery.SelectOneToRemoveBackground>
   <RimAIPortrait.Gallery.BackgroundRemoved>선택한 이미지의 배경을 제거했습니다.</RimAIPortrait.Gallery.BackgroundRemoved>
   <RimAIPortrait.BackgroundRemoval.Title>배경 제거</RimAIPortrait.BackgroundRemoval.Title>
-  <RimAIPortrait.BackgroundRemoval.OriginalPreview>원본 이미지입니다. 옵션을 조절한 뒤 미리보기를 누르세요.</RimAIPortrait.BackgroundRemoval.OriginalPreview>
-  <RimAIPortrait.BackgroundRemoval.Preview>미리보기</RimAIPortrait.BackgroundRemoval.Preview>
+  <RimAIPortrait.BackgroundRemoval.ImagePosition>이미지 {0}/{1}: {2}</RimAIPortrait.BackgroundRemoval.ImagePosition>
+  <RimAIPortrait.BackgroundRemoval.OriginalPreview>이미지의 배경을 클릭하면 제거 결과를 미리 볼 수 있습니다.</RimAIPortrait.BackgroundRemoval.OriginalPreview>
+  <RimAIPortrait.BackgroundRemoval.Undo>되돌리기</RimAIPortrait.BackgroundRemoval.Undo>
+  <RimAIPortrait.BackgroundRemoval.Undone>마지막 이미지 클릭을 되돌렸습니다.</RimAIPortrait.BackgroundRemoval.Undone>
+  <RimAIPortrait.BackgroundRemoval.Redo>다시 실행</RimAIPortrait.BackgroundRemoval.Redo>
+  <RimAIPortrait.BackgroundRemoval.Redone>되돌린 이미지 클릭을 다시 적용했습니다.</RimAIPortrait.BackgroundRemoval.Redone>
   <RimAIPortrait.BackgroundRemoval.Align>아래 맞춤</RimAIPortrait.BackgroundRemoval.Align>
-  <RimAIPortrait.BackgroundRemoval.AlignTip>보이는 초상화를 캔버스 아래쪽 끝에 맞춥니다.</RimAIPortrait.BackgroundRemoval.AlignTip>
-  <RimAIPortrait.BackgroundRemoval.Aligned>초상화를 아래쪽에 맞췄습니다. 확정하면 선택한 이미지를 덮어씁니다.</RimAIPortrait.BackgroundRemoval.Aligned>
-  <RimAIPortrait.BackgroundRemoval.Eyedropper>스포이드</RimAIPortrait.BackgroundRemoval.Eyedropper>
-  <RimAIPortrait.BackgroundRemoval.EyedropperActive>이미지에서 배경색을 클릭하세요.</RimAIPortrait.BackgroundRemoval.EyedropperActive>
-  <RimAIPortrait.BackgroundRemoval.EyedropperCancelled>색상 선택을 취소했습니다.</RimAIPortrait.BackgroundRemoval.EyedropperCancelled>
-  <RimAIPortrait.BackgroundRemoval.ColorSampled>배경색 {0}을 선택했습니다. 적용하려면 미리보기를 누르세요.</RimAIPortrait.BackgroundRemoval.ColorSampled>
+  <RimAIPortrait.BackgroundRemoval.AlignTip>선택한 모든 이미지의 아래 맞춤을 켜거나 끕니다.</RimAIPortrait.BackgroundRemoval.AlignTip>
+  <RimAIPortrait.BackgroundRemoval.Aligned>선택한 모든 이미지에 아래 맞춤을 적용합니다.</RimAIPortrait.BackgroundRemoval.Aligned>
+  <RimAIPortrait.BackgroundRemoval.ColorSampled>{0} 선택. 이미지에 바로 반영했습니다.</RimAIPortrait.BackgroundRemoval.ColorSampled>
   <RimAIPortrait.BackgroundRemoval.Erosion>외곽선 침식: {0}px</RimAIPortrait.BackgroundRemoval.Erosion>
-  <RimAIPortrait.BackgroundRemoval.PreviewReady>미리보기를 갱신했습니다. 확정하면 선택한 이미지를 덮어씁니다.</RimAIPortrait.BackgroundRemoval.PreviewReady>
+  <RimAIPortrait.BackgroundRemoval.RemoveEnclosed>내부 배경 자동 제거</RimAIPortrait.BackgroundRemoval.RemoveEnclosed>
+  <RimAIPortrait.BackgroundRemoval.EnclosedCleanup>내부 배경 정리: {0}%</RimAIPortrait.BackgroundRemoval.EnclosedCleanup>
+  <RimAIPortrait.Gallery.BaseLabel>기본:</RimAIPortrait.Gallery.BaseLabel>
+  <RimAIPortrait.Gallery.BaseProviderLabel>({0})</RimAIPortrait.Gallery.BaseProviderLabel>
+  <RimAIPortrait.Gallery.ExtraLabel>추가:</RimAIPortrait.Gallery.ExtraLabel>
+  <RimAIPortrait.BackgroundRemoval.PreviewReady>이미지를 갱신했습니다. 확정하면 선택한 이미지를 저장하고 창을 닫습니다.</RimAIPortrait.BackgroundRemoval.PreviewReady>
+  <RimAIPortrait.Gallery.SelectImagesToRemoveBackground>배경을 제거할 이미지를 하나 이상 선택하세요.</RimAIPortrait.Gallery.SelectImagesToRemoveBackground>
+  <RimAIPortrait.Gallery.BackgroundRemovalComplete>배경 제거 완료: {0}개 처리, {1}개 실패.</RimAIPortrait.Gallery.BackgroundRemovalComplete>
   <RimAIPortrait.BackgroundRemoval.Confirm>확정</RimAIPortrait.BackgroundRemoval.Confirm>
-  <RimAIPortrait.BackgroundRemoval.Cancel>취소</RimAIPortrait.BackgroundRemoval.Cancel>
+  <RimAIPortrait.BackgroundRemoval.Exit>나가기</RimAIPortrait.BackgroundRemoval.Exit>
+  <RimAIPortrait.BackgroundRemoval.Saving>선택한 이미지를 저장하는 중...</RimAIPortrait.BackgroundRemoval.Saving>
+  <RimAIPortrait.BackgroundRemoval.Saved>{0}개 저장, {1}개 실패. 옵션을 조절한 뒤 다시 확정하세요.</RimAIPortrait.BackgroundRemoval.Saved>
   <RimAIPortrait.BackgroundRemoval.SaveFailed>처리한 이미지를 저장하지 못했습니다: {0}</RimAIPortrait.BackgroundRemoval.SaveFailed>
+  <RimAIPortrait.Settings.NovelAiCharacterStrength>캐릭터 참조 강도: {0}</RimAIPortrait.Settings.NovelAiCharacterStrength>
+  <RimAIPortrait.Settings.NovelAiCharacterFidelity>캐릭터 참조 충실도: {0}</RimAIPortrait.Settings.NovelAiCharacterFidelity>
+  <RimAIPortrait.Settings.NovelAiReferenceHelpV45>V4.5 Base는 Pawn 스프라이트를 캐릭터 참조로, Base 스타일 폴더에서 파일 이름순 첫 번째 이미지 한 장을 스타일 참조로 사용합니다. Using Default Style을 입력하면 모드에 포함된 Style 폴더를 사용하고, 실제 폴더에 이미지가 없어도 해당 폴더로 대체합니다. 빈 경로에는 스타일 참조를 적용하지 않습니다. Base 옵션 JSON에서 character_reference_strength, character_reference_fidelity, style_reference_strength, style_reference_fidelity를 0~1로 설정하세요. 감정은 Base 이미지를 편집합니다.</RimAIPortrait.Settings.NovelAiReferenceHelpV45>
+  <RimAIPortrait.Error.NovelAiPreciseVibeConflict>NovelAI V4.5 Base에는 갤러리에서 선택한 참조 이미지를 정밀 참조와 함께 사용할 수 없습니다. 선택한 갤러리 참조를 해제하세요.</RimAIPortrait.Error.NovelAiPreciseVibeConflict>
+  <RimAIPortrait.Error.NovelAiReferenceImage>Pawn 캐릭터 참조 이미지를 준비하지 못했습니다.</RimAIPortrait.Error.NovelAiReferenceImage>
+  <RimAIPortrait.Error.NovelAiStyleReferenceImage>NovelAI 스타일 참조 이미지 {0}을(를) 준비하지 못했습니다: {1}</RimAIPortrait.Error.NovelAiStyleReferenceImage>
+  <RimAIPortrait.Settings.ExpressionPrompt>감정 프롬프트</RimAIPortrait.Settings.ExpressionPrompt>
+  <RimAIPortrait.Inpaint.Title>{0} 표정 인페인트</RimAIPortrait.Inpaint.Title>
+  <RimAIPortrait.Inpaint.State>생성할 감정: {0}</RimAIPortrait.Inpaint.State>
+  <RimAIPortrait.Inpaint.Strength>인페인트 강도: {0}</RimAIPortrait.Inpaint.Strength>
+  <RimAIPortrait.Inpaint.ExtraTag>추가 태그:</RimAIPortrait.Inpaint.ExtraTag>
+  <RimAIPortrait.Error.ComfyInpaintMaskRequired>ComfyUI 워크플로에서 __RIM_INPAINT_MASK__를 사용합니다. 감정 생성 전에 영역을 선택하세요.</RimAIPortrait.Error.ComfyInpaintMaskRequired>
+  <RimAIPortrait.Inpaint.ComfyInstructions>좌클릭 드래그로 영역을 더하고 우클릭 드래그로 빼세요. 워크플로에서 마스크를 쓰지 않으면 선택 없이 진행할 수 있습니다.</RimAIPortrait.Inpaint.ComfyInstructions>
+  <RimAIPortrait.Inpaint.ExtraTagSaveFailed>이 정착민의 인페인트 추가 태그를 저장할 수 없습니다.</RimAIPortrait.Inpaint.ExtraTagSaveFailed>
+  <RimAIPortrait.Inpaint.StrengthSaveFailed>이 정착민의 NovelAI 인페인트 강도를 저장할 수 없습니다.</RimAIPortrait.Inpaint.StrengthSaveFailed>
+  <RimAIPortrait.Inpaint.Instructions>좌클릭 드래그로 편집할 사각형을 더하고 우클릭 드래그로 영역을 빼세요. 나중에 그린 사각형이 우선합니다.</RimAIPortrait.Inpaint.Instructions>
+  <RimAIPortrait.Inpaint.SleepInstructions>좌클릭 드래그로 두 눈을 각각 선택하고 우클릭 드래그로 영역을 빼세요. 사각형을 여러 개 그릴 수 있으며 나중에 그린 사각형이 우선합니다.</RimAIPortrait.Inpaint.SleepInstructions>
+  <RimAIPortrait.Inpaint.Undo>되돌리기</RimAIPortrait.Inpaint.Undo>
+  <RimAIPortrait.Inpaint.Clear>모두 지우기</RimAIPortrait.Inpaint.Clear>
+  <RimAIPortrait.Inpaint.Confirm>확인</RimAIPortrait.Inpaint.Confirm>
+  <RimAIPortrait.Inpaint.InvalidImage>기본 초상화를 미리 볼 수 없습니다.</RimAIPortrait.Inpaint.InvalidImage>
+  <RimAIPortrait.Inpaint.Cancelled>표정 인페인트를 취소했습니다.</RimAIPortrait.Inpaint.Cancelled>
+  <RimAIPortrait.Inpaint.DimensionMismatch>원본 이미지와 인페인트 마스크의 크기가 같아야 합니다.</RimAIPortrait.Inpaint.DimensionMismatch>
+  <RimAIPortrait.Inpaint.EmptyMask>인페인트할 영역을 선택하세요.</RimAIPortrait.Inpaint.EmptyMask>
+  <RimAIPortrait.Inpaint.ResponseMismatch>NovelAI 응답은 {4}x{5}이지만 원본은 {0}x{1}, 마스크는 {2}x{3}입니다. 결과를 저장하지 않았습니다.</RimAIPortrait.Inpaint.ResponseMismatch>
+  <RimAIPortrait.Error.ImageCaptionLoadFailed>이미지 참조 설명을 불러오지 못했습니다: {0}</RimAIPortrait.Error.ImageCaptionLoadFailed>
+  <RimAIPortrait.Gallery.ResetBase>초기화</RimAIPortrait.Gallery.ResetBase>
+  <RimAIPortrait.Gallery.BaseReset>기본 Base Prompt를 불러왔습니다. 이 정착민에게 적용하려면 저장하세요.</RimAIPortrait.Gallery.BaseReset>
+  <RimAIPortrait.Gallery.BaseResetFailed>기본 Base Prompt를 불러오지 못했습니다: {0}</RimAIPortrait.Gallery.BaseResetFailed>
+  <RimAIPortrait.Settings.StyleDefaultInUse>모드에 포함된 Style 폴더의 이미지를 참조 중입니다.</RimAIPortrait.Settings.StyleDefaultInUse>
+  <RimAIPortrait.Settings.StyleFolderHint>기본 Style 폴더를 쓰려면 Using Default Style을 입력하세요. 빈칸이면 스타일을 적용하지 않습니다.</RimAIPortrait.Settings.StyleFolderHint>
+  <RimAIPortrait.Settings.StyleDefault>기본값</RimAIPortrait.Settings.StyleDefault>
+  <RimAIPortrait.Settings.StyleReferenceIgnored>스타일 참조 파일은 최대 {0}개인데 폴더에 {1}개가 있습니다. 초과한 파일은 무시됩니다.</RimAIPortrait.Settings.StyleReferenceIgnored>
+  <RimAIPortrait.Settings.StyleInvalidNoStyle>유효하지 않은 경로: 아무 스타일도 사용하고 있지 않습니다.</RimAIPortrait.Settings.StyleInvalidNoStyle>
+  <RimAIPortrait.Settings.StyleInvalidDefaultInUse>유효하지 않은 경로: 모드에 포함된 Style 폴더의 이미지를 참조 중입니다.</RimAIPortrait.Settings.StyleInvalidDefaultInUse>
+  <RimAIPortrait.Settings.StyleFolderWithDefault>폴더의 스타일 이미지를 사용합니다. 이미지가 없으면 모드에 포함된 Style 폴더의 이미지를 참조합니다.</RimAIPortrait.Settings.StyleFolderWithDefault>
+  <RimAIPortrait.Settings.StyleFolderConfigured>이미지가 있으면 이 폴더의 스타일 이미지를 사용합니다.</RimAIPortrait.Settings.StyleFolderConfigured>
+  <RimAIPortrait.Error.GoogleDefaultStyleReadFailed>Google 기본 스타일 이미지를 읽지 못했습니다: {0}</RimAIPortrait.Error.GoogleDefaultStyleReadFailed>
+  <RimAIPortrait.Error.BundledStyleMissing>모드에 포함된 Style 폴더에서 스타일 이미지를 찾지 못했습니다.</RimAIPortrait.Error.BundledStyleMissing>
+  <RimAIPortrait.TagExtractor.Enabled>NAI/Comfy 생성 전에 Positive/Negative 태그 추출</RimAIPortrait.TagExtractor.Enabled>
+  <RimAIPortrait.TagExtractor.Scope>NAI/Comfy의 선택 기능입니다. 같은 Base에서 여러 표정을 만들면 한 번만 추출합니다. Comfy는 워크플로에 토큰이 있을 때만 태그를 사용합니다.</RimAIPortrait.TagExtractor.Scope>
+  <RimAIPortrait.TagExtractor.Model>태그 추출 모델</RimAIPortrait.TagExtractor.Model>
+  <RimAIPortrait.TagExtractor.Model.OpenAI>OpenAI</RimAIPortrait.TagExtractor.Model.OpenAI>
+  <RimAIPortrait.TagExtractor.Model.Google>Google</RimAIPortrait.TagExtractor.Model.Google>
+  <RimAIPortrait.TagExtractor.Model.LocalModel>로컬 모델</RimAIPortrait.TagExtractor.Model.LocalModel>
+  <RimAIPortrait.TagExtractor.LocalUrl>로컬 OpenAI 호환 서버 URL</RimAIPortrait.TagExtractor.LocalUrl>
+  <RimAIPortrait.TagExtractor.ImageRequired>태그 추출에는 8 MB 미만의 입력 이미지가 필요합니다.</RimAIPortrait.TagExtractor.ImageRequired>
+  <RimAIPortrait.TagExtractor.PromptMissing>TagExtractor.md가 없거나 비어 있습니다.</RimAIPortrait.TagExtractor.PromptMissing>
+  <RimAIPortrait.TagExtractor.ConfigurationMissing>태그 추출 모델 설정이 불완전합니다.</RimAIPortrait.TagExtractor.ConfigurationMissing>
+  <RimAIPortrait.TagExtractor.HttpError>태그 추출 요청 실패(HTTP {0}): {1}</RimAIPortrait.TagExtractor.HttpError>
+  <RimAIPortrait.TagExtractor.InvalidResponse>태그 추출 응답 JSON이 잘못되었거나 완성되지 않았습니다.</RimAIPortrait.TagExtractor.InvalidResponse>
+  <RimAIPortrait.TagExtractor.Failed>태그 추출로 인한 실패: {0}</RimAIPortrait.TagExtractor.Failed>
 </LanguageData>

@@ -12,7 +12,30 @@ namespace RimAIPortrait
 {
     internal sealed class GooglePortraitProvider : IPortraitGenerationProvider
     {
+        private const int MaximumStyleReferences = 8;
+        private const int MaximumGemini3InputImages = 14;
+
         public AiProvider Id => AiProvider.Google;
+
+        public IReadOnlyList<string> StyleReferences(PortraitGenerationRequest request)
+        {
+            string[] configured = PortraitProviderUtilities.StyleFiles(request.StyleFolder)
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
+            bool useBundled = PortraitProviderUtilities.UsesDefaultStyle(request.StyleFolder)
+                || (Directory.Exists(request.StyleFolder) && configured.Length == 0);
+            return useBundled ? PortraitProviderUtilities.BundledStyleFiles().ToArray() : configured;
+        }
+
+        public int StyleReferenceCapacity(PortraitGenerationRequest request)
+        {
+            GoogleProviderConfiguration configuration = Require(request.Configuration);
+            if (configuration.Model.NullOrEmpty()
+                || !configuration.Model.StartsWith("gemini-3", StringComparison.OrdinalIgnoreCase))
+                return MaximumStyleReferences;
+            int remaining = MaximumGemini3InputImages - (request.PrimaryImage == null ? 0 : 1)
+                - Math.Min(MaximumStyleReferences, request.ReferencePaths.Count);
+            return Math.Max(0, Math.Min(MaximumStyleReferences, remaining));
+        }
 
         public PortraitProviderConfiguration CreateConfiguration(PortraitSettings settings, bool expression)
         {
@@ -44,13 +67,56 @@ namespace RimAIPortrait
             string aspectRatio = options.ContainsKey("aspect_ratio") ? options["aspect_ratio"] : "1:1";
             string configuredImageSize = options.ContainsKey("image_size") ? options["image_size"] : "1K";
             string imageSize = SupportsImageSize(configuration.Model) ? configuredImageSize : null;
+            PortraitImageCaptions captions;
+            try { captions = PortraitImageCaptions.For(Id); }
+            catch (Exception exception)
+            {
+                done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ImageCaptionLoadFailed", exception.Message)));
+                yield break;
+            }
             var pieces = new List<GooglePart> { new GooglePart { text = request.Prompt } };
             if (request.PrimaryImage != null)
+            {
+                pieces.Add(new GooglePart { text = captions.Primary(request.ImageUse) });
                 pieces.Add(ImagePart(request.PrimaryImage, "image/png"));
+            }
             foreach (string file in request.ReferencePaths.Take(8))
-                try { pieces.Add(ImagePart(File.ReadAllBytes(file), PortraitProviderUtilities.Mime(file))); } catch { }
-            foreach (string file in PortraitProviderUtilities.StyleFiles(request.StyleFolder).Take(8))
-                try { pieces.Add(ImagePart(File.ReadAllBytes(file), PortraitProviderUtilities.Mime(file))); } catch { }
+            {
+                try
+                {
+                    GooglePart image = ImagePart(File.ReadAllBytes(file), PortraitProviderUtilities.Mime(file));
+                    pieces.Add(new GooglePart { text = captions.selectedReference });
+                    pieces.Add(image);
+                }
+                catch (Exception) { }
+            }
+            bool hasStyleReference = false;
+            string[] styleFiles = request.StylePaths.Take(MaximumStyleReferences).ToArray();
+            bool useDefaultStyle = PortraitProviderUtilities.UsesDefaultStyle(request.StyleFolder)
+                || (Directory.Exists(request.StyleFolder)
+                    && !PortraitProviderUtilities.StyleFiles(request.StyleFolder).Any());
+            if (useDefaultStyle && styleFiles.Length == 0 && StyleReferenceCapacity(request) > 0)
+            {
+                done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.BundledStyleMissing")));
+                yield break;
+            }
+            foreach (string file in styleFiles)
+            {
+                try
+                {
+                    GooglePart image = ImagePart(File.ReadAllBytes(file), PortraitProviderUtilities.Mime(file));
+                    if (!hasStyleReference) pieces.Add(new GooglePart { text = captions.priority });
+                    pieces.Add(new GooglePart { text = captions.styleReference });
+                    pieces.Add(image);
+                    hasStyleReference = true;
+                }
+                catch (Exception exception)
+                {
+                    if (!useDefaultStyle) continue;
+                    done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.GoogleDefaultStyleReadFailed", exception.Message)));
+                    yield break;
+                }
+            }
 
             string body = BuildRequestJson(pieces, aspectRatio, imageSize);
             string url = "https://generativelanguage.googleapis.com/v1beta/models/" + UnityWebRequest.EscapeURL(configuration.Model) + ":generateContent";

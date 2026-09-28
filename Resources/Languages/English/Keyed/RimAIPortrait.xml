@@ -1,11 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
+  <RimAIPortrait.Gallery.Tip.OpenFolder>Open this colonist's portrait folder.</RimAIPortrait.Gallery.Tip.OpenFolder>
+  <RimAIPortrait.Gallery.Tip.Refresh>Reload the image list after adding or changing files outside the game.</RimAIPortrait.Gallery.Tip.Refresh>
+  <RimAIPortrait.Gallery.Tip.GenerateBase>Generate a new Base portrait without using selected gallery images.</RimAIPortrait.Gallery.Tip.GenerateBase>
+  <RimAIPortrait.Gallery.Tip.RegenerateSelected>Generate a new Base portrait using one selected image as a reference.</RimAIPortrait.Gallery.Tip.RegenerateSelected>
+  <RimAIPortrait.Gallery.Tip.GenerateEmotions>Choose expressions to generate from the assigned Base portrait.</RimAIPortrait.Gallery.Tip.GenerateEmotions>
+  <RimAIPortrait.Gallery.Tip.RemoveBackground>Open background removal for the selected gallery images.</RimAIPortrait.Gallery.Tip.RemoveBackground>
+  <RimAIPortrait.Gallery.Tip.Confirm>Assign one selected gallery image to the state shown on the left. You can also double-click the image.</RimAIPortrait.Gallery.Tip.Confirm>
+  <RimAIPortrait.Gallery.Tip.ClearSelection>Deselect all gallery images.</RimAIPortrait.Gallery.Tip.ClearSelection>
+  <RimAIPortrait.Gallery.Tip.ResetPortraits>Remove all assigned portraits, including Base. Gallery images are kept.</RimAIPortrait.Gallery.Tip.ResetPortraits>
+  <RimAIPortrait.Gallery.Tip.DeleteImage>Delete selected gallery images after confirmation. Shortcut: Delete.</RimAIPortrait.Gallery.Tip.DeleteImage>
+  <RimAIPortrait.Gallery.Tip.LargePreview>Open the selected image at a larger size. Shortcut: P.</RimAIPortrait.Gallery.Tip.LargePreview>
+  <RimAIPortrait.Gallery.Tip.SaveBase>Save this Base prompt for the current colonist and Base provider.</RimAIPortrait.Gallery.Tip.SaveBase>
+  <RimAIPortrait.Gallery.Tip.ResetBase>Load the default Base prompt into the editor. Use Save Base to apply it.</RimAIPortrait.Gallery.Tip.ResetBase>
+  <RimAIPortrait.Gallery.Tip.SaveExtra>Save these Extra instructions for this colonist.</RimAIPortrait.Gallery.Tip.SaveExtra>
+  <RimAIPortrait.Gallery.Tip.PreviousState>Show the previous enabled portrait state. Shortcut: Left Arrow.</RimAIPortrait.Gallery.Tip.PreviousState>
+  <RimAIPortrait.Gallery.Tip.NextState>Show the next enabled portrait state. Shortcut: Right Arrow.</RimAIPortrait.Gallery.Tip.NextState>
+  <RimAIPortrait.Gallery.Tip.AssignedPortrait>Currently assigned {0} portrait.</RimAIPortrait.Gallery.Tip.AssignedPortrait>
+  <RimAIPortrait.Gallery.Tip.GalleryImage>Click to select; double-click to assign to the state shown on the left.</RimAIPortrait.Gallery.Tip.GalleryImage>
+  <RimAIPortrait.BackgroundRemoval.Tip.Color>Enter a background color in #RRGGBB format, or click the image to pick one.</RimAIPortrait.BackgroundRemoval.Tip.Color>
+  <RimAIPortrait.BackgroundRemoval.Tip.Sensitivity>Increase to remove pixels with colors less similar to the chosen color.</RimAIPortrait.BackgroundRemoval.Tip.Sensitivity>
+  <RimAIPortrait.BackgroundRemoval.Tip.Erosion>Pull the removed area inward to reduce edge remnants.</RimAIPortrait.BackgroundRemoval.Tip.Erosion>
+  <RimAIPortrait.BackgroundRemoval.Tip.Undo>Undo the last background removal step. Shortcut: Ctrl+Z.</RimAIPortrait.BackgroundRemoval.Tip.Undo>
+  <RimAIPortrait.BackgroundRemoval.Tip.Redo>Redo an undone step. Shortcut: Ctrl+Y or Ctrl+Shift+Z.</RimAIPortrait.BackgroundRemoval.Tip.Redo>
+  <RimAIPortrait.BackgroundRemoval.Tip.RemoveEnclosed>Also remove matching background areas enclosed inside the image.</RimAIPortrait.BackgroundRemoval.Tip.RemoveEnclosed>
+  <RimAIPortrait.BackgroundRemoval.Tip.EnclosedCleanup>Adjust how strongly enclosed background areas are removed.</RimAIPortrait.BackgroundRemoval.Tip.EnclosedCleanup>
+  <RimAIPortrait.BackgroundRemoval.Tip.Image>Click the image to pick a color and preview background removal.</RimAIPortrait.BackgroundRemoval.Tip.Image>
+  <RimAIPortrait.Inpaint.StrengthTip>Controls how much NovelAI changes the selected area. Higher values make stronger changes.</RimAIPortrait.Inpaint.StrengthTip>
+  <RimAIPortrait.Inpaint.ExtraTagTip>Add instructions to this expression request. This value is saved for the colonist.</RimAIPortrait.Inpaint.ExtraTagTip>
+  <RimAIPortrait.Settings.PortraitRootFolder>Portrait storage folder</RimAIPortrait.Settings.PortraitRootFolder>
+  <RimAIPortrait.Settings.PortraitRootDefault>Empty path: using the default folder, {0}</RimAIPortrait.Settings.PortraitRootDefault>
+  <RimAIPortrait.Settings.PortraitRootConfigured>Portraits are saved in this folder. Existing files stay in their previous folder.</RimAIPortrait.Settings.PortraitRootConfigured>
+  <RimAIPortrait.Settings.PortraitRootInvalid>Invalid folder path. Enter an existing absolute folder path; the default folder is in use.</RimAIPortrait.Settings.PortraitRootInvalid>
+  <RimAIPortrait.Settings.OpenPortraitRoot>Open portrait storage folder</RimAIPortrait.Settings.OpenPortraitRoot>
+  <RimAIPortrait.Error.OpenPortraitRoot>Could not open the portrait storage folder: {0}</RimAIPortrait.Error.OpenPortraitRoot>
+  <RimAIPortrait.Help.Title>Portrait help</RimAIPortrait.Help.Title>
+  <RimAIPortrait.Help.Next>Next</RimAIPortrait.Help.Next>
+  <RimAIPortrait.Help.Ok>OK</RimAIPortrait.Help.Ok>
+  <RimAIPortrait.Help.ImageUnavailable>Could not load this help image.</RimAIPortrait.Help.ImageUnavailable>
+  <RimAIPortrait.Error.PortraitLoadFailed>Could not load {0}'s portrait ({1}). Replace the file and refresh the gallery.</RimAIPortrait.Error.PortraitLoadFailed>
   <RimAIPortrait.Gizmo.Label>AI Portrait</RimAIPortrait.Gizmo.Label>
   <RimAIPortrait.Gizmo.Description>Generate portraits and assign saved images to emotional states.</RimAIPortrait.Gizmo.Description>
   <RimAIPortrait.Common.Prompt>Prompt:</RimAIPortrait.Common.Prompt>
   <RimAIPortrait.Common.Refresh>Refresh</RimAIPortrait.Common.Refresh>
   <RimAIPortrait.Common.OpenFolder>Open folder</RimAIPortrait.Common.OpenFolder>
   <RimAIPortrait.Common.ClearSelection>Clear selection</RimAIPortrait.Common.ClearSelection>
+  <RimAIPortrait.Common.ResetPortraits>Reset Portraits</RimAIPortrait.Common.ResetPortraits>
   <RimAIPortrait.Common.DeleteImage>Delete image</RimAIPortrait.Common.DeleteImage>
   <RimAIPortrait.Common.Save>Save</RimAIPortrait.Common.Save>
   <RimAIPortrait.Error.OpenFolder>Could not open folder: {0}</RimAIPortrait.Error.OpenFolder>
@@ -13,22 +53,24 @@
   <RimAIPortrait.Emotions.Description>Only checked emotions are generated and immediately assigned when complete.</RimAIPortrait.Emotions.Description>
   <RimAIPortrait.Emotions.Generate>Generate selected emotions</RimAIPortrait.Emotions.Generate>
   <RimAIPortrait.Emotions.SelectOne>Select at least one emotion to generate.</RimAIPortrait.Emotions.SelectOne>
-  <RimAIPortrait.Gallery.InitialStatus>Click images to select multiple. Select one image before assigning it to an emotion.</RimAIPortrait.Gallery.InitialStatus>
+  <RimAIPortrait.Gallery.InitialStatus>Click: select one. Ctrl+click: toggle. Shift+click: select range. Ctrl+Shift+click: add range.</RimAIPortrait.Gallery.InitialStatus>
   <RimAIPortrait.Gallery.SaveFolder>Save folder: {0}</RimAIPortrait.Gallery.SaveFolder>
   <RimAIPortrait.Gallery.Refreshed>Refreshed the external image list.</RimAIPortrait.Gallery.Refreshed>
   <RimAIPortrait.Gallery.GenerateBase>Generate new Base</RimAIPortrait.Gallery.GenerateBase>
   <RimAIPortrait.Gallery.GenerateEmotionsFromBase>Generate emotions from Base</RimAIPortrait.Gallery.GenerateEmotionsFromBase>
   <RimAIPortrait.Gallery.BaseRequired>Generate or assign a Base portrait first.</RimAIPortrait.Gallery.BaseRequired>
-  <RimAIPortrait.Gallery.AssignEmotion>Confirm emotion assignment</RimAIPortrait.Gallery.AssignEmotion>
+  <RimAIPortrait.Gallery.AssignEmotion>Confirm</RimAIPortrait.Gallery.AssignEmotion>
   <RimAIPortrait.Gallery.AssignBase>Assign Base</RimAIPortrait.Gallery.AssignBase>
   <RimAIPortrait.Gallery.SelectOneToAssign>Select exactly one image to assign.</RimAIPortrait.Gallery.SelectOneToAssign>
   <RimAIPortrait.Gallery.Assigned>Assigned and immediately applied as {0}.</RimAIPortrait.Gallery.Assigned>
   <RimAIPortrait.Gallery.ConfirmDelete>Delete the {0} selected image(s)?</RimAIPortrait.Gallery.ConfirmDelete>
+  <RimAIPortrait.Gallery.ConfirmResetPortraits>Reset all assigned portraits, including Base? Gallery images will be kept.</RimAIPortrait.Gallery.ConfirmResetPortraits>
+  <RimAIPortrait.Gallery.PortraitsReset>Reset all assigned portraits.</RimAIPortrait.Gallery.PortraitsReset>
   <RimAIPortrait.Gallery.ExtraFeaturesTip>Applies only to this colonist and is appended to the shared prompt.</RimAIPortrait.Gallery.ExtraFeaturesTip>
   <RimAIPortrait.Gallery.ExtraSaved>Saved Extra Features.</RimAIPortrait.Gallery.ExtraSaved>
   <RimAIPortrait.Gallery.ExtraSaveFailed>Could not save Extra Features.</RimAIPortrait.Gallery.ExtraSaveFailed>
   <RimAIPortrait.Gallery.PawnInstructions>Colonist-specific instructions</RimAIPortrait.Gallery.PawnInstructions>
-  <RimAIPortrait.Gallery.BasePromptTip>Applies only to this colonist. Leave blank to use the mod option Base Prompt.</RimAIPortrait.Gallery.BasePromptTip>
+  <RimAIPortrait.Gallery.BasePromptTip>Applies to this colonist and the current Base provider. Leave blank to use that provider's Base Prompt in mod options.</RimAIPortrait.Gallery.BasePromptTip>
   <RimAIPortrait.Gallery.SaveBase>Save Base</RimAIPortrait.Gallery.SaveBase>
   <RimAIPortrait.Gallery.BaseSaved>Saved the colonist-specific Base Prompt.</RimAIPortrait.Gallery.BaseSaved>
   <RimAIPortrait.Gallery.BaseSaveFailed>Could not save the Base Prompt.</RimAIPortrait.Gallery.BaseSaveFailed>
@@ -38,7 +80,7 @@
   <RimAIPortrait.Gallery.LargePreview>Large preview</RimAIPortrait.Gallery.LargePreview><RimAIPortrait.Gallery.SelectOneToPreview>Select exactly one image to preview.</RimAIPortrait.Gallery.SelectOneToPreview><RimAIPortrait.Preview.Title>Image preview</RimAIPortrait.Preview.Title><RimAIPortrait.Preview.UnsupportedImage>Unsupported image format.</RimAIPortrait.Preview.UnsupportedImage><RimAIPortrait.Preview.LoadFailed>Could not load image: {0}</RimAIPortrait.Preview.LoadFailed>
   <RimAIPortrait.Status.GeneratingBase>Generating Base portrait…</RimAIPortrait.Status.GeneratingBase>
   <RimAIPortrait.Status.GeneratingState>Generating {0}…</RimAIPortrait.Status.GeneratingState><RimAIPortrait.Status.StateFailed>{0} failed: {1}</RimAIPortrait.Status.StateFailed><RimAIPortrait.Status.StateSaved>Saved and applied {0}.</RimAIPortrait.Status.StateSaved><RimAIPortrait.Status.StatePortraitSaved>Saved the {0} portrait.</RimAIPortrait.Status.StatePortraitSaved><RimAIPortrait.Status.SelectedEmotionsComplete>Finished generating the selected emotions.</RimAIPortrait.Status.SelectedEmotionsComplete><RimAIPortrait.Status.GenerationFailed>Generation failed: {0}</RimAIPortrait.Status.GenerationFailed><RimAIPortrait.Status.BaseSaved>Saved the Base portrait.</RimAIPortrait.Status.BaseSaved><RimAIPortrait.Status.ReferenceBaseSaved>Saved the reference-based Base portrait.</RimAIPortrait.Status.ReferenceBaseSaved><RimAIPortrait.Status.ReferenceReadFailed>Could not read the selected reference image: {0}</RimAIPortrait.Status.ReferenceReadFailed><RimAIPortrait.Status.PortraitSavedFor>AI portrait saved: {0}</RimAIPortrait.Status.PortraitSavedFor><RimAIPortrait.Status.EmotionsComplete>Finished generating emotion portraits.</RimAIPortrait.Status.EmotionsComplete><RimAIPortrait.Status.EmotionsCompleteFor>Emotion portraits complete: {0}</RimAIPortrait.Status.EmotionsCompleteFor>
-  <RimAIPortrait.Error.NoPawn>No colonist was provided.</RimAIPortrait.Error.NoPawn><RimAIPortrait.Error.SettingsUnavailable>Could not load mod settings.</RimAIPortrait.Error.SettingsUnavailable><RimAIPortrait.Error.ApiKeyMissing>No API key is configured for {0}.</RimAIPortrait.Error.ApiKeyMissing><RimAIPortrait.Error.OpenAiModelMissing>No OpenAI model is configured for {0}.</RimAIPortrait.Error.OpenAiModelMissing><RimAIPortrait.Error.GoogleModelMissing>No Google model is configured for {0}.</RimAIPortrait.Error.GoogleModelMissing><RimAIPortrait.Error.ComfyUrlMissing>No ComfyUI server URL is configured for {0}.</RimAIPortrait.Error.ComfyUrlMissing><RimAIPortrait.Error.ComfyWorkflowMissing>Could not find the ComfyUI API workflow JSON for {0}.</RimAIPortrait.Error.ComfyWorkflowMissing><RimAIPortrait.Kind.Expression>expression portraits</RimAIPortrait.Kind.Expression><RimAIPortrait.Kind.Base>Base portraits</RimAIPortrait.Kind.Base>
+  <RimAIPortrait.Error.NoPawn>No colonist was provided.</RimAIPortrait.Error.NoPawn><RimAIPortrait.Error.SettingsUnavailable>Could not load mod settings.</RimAIPortrait.Error.SettingsUnavailable><RimAIPortrait.Error.ApiKeyMissing>No API key is configured for {0}.</RimAIPortrait.Error.ApiKeyMissing><RimAIPortrait.Error.OpenAiModelMissing>No OpenAI model is configured for {0}.</RimAIPortrait.Error.OpenAiModelMissing><RimAIPortrait.Error.GoogleModelMissing>No Google model is configured for {0}.</RimAIPortrait.Error.GoogleModelMissing><RimAIPortrait.Error.NovelAiApiKeyMissing>No NovelAI API token is configured for {0}.</RimAIPortrait.Error.NovelAiApiKeyMissing><RimAIPortrait.Error.NovelAiModelMissing>No NovelAI model is configured for {0}.</RimAIPortrait.Error.NovelAiModelMissing><RimAIPortrait.Error.ComfyUrlMissing>No ComfyUI server URL is configured for {0}.</RimAIPortrait.Error.ComfyUrlMissing><RimAIPortrait.Error.ComfyWorkflowMissing>Could not find the ComfyUI API workflow JSON for {0}.</RimAIPortrait.Error.ComfyWorkflowMissing><RimAIPortrait.Kind.Expression>expression portraits</RimAIPortrait.Kind.Expression><RimAIPortrait.Kind.Base>Base portraits</RimAIPortrait.Kind.Base>
   <RimAIPortrait.Settings.PromptInformation>Information included in prompt</RimAIPortrait.Settings.PromptInformation>
   <RimAIPortrait.Settings.CharacterSprite>Character sprite (reference image)</RimAIPortrait.Settings.CharacterSprite>
   <RimAIPortrait.Settings.Gender>Gender</RimAIPortrait.Settings.Gender><RimAIPortrait.Settings.Race>Race</RimAIPortrait.Settings.Race><RimAIPortrait.Settings.Xenotype>Xenotype</RimAIPortrait.Settings.Xenotype><RimAIPortrait.Settings.Age>Age</RimAIPortrait.Settings.Age><RimAIPortrait.Settings.BodyType>Body type</RimAIPortrait.Settings.BodyType><RimAIPortrait.Settings.SkinColor>Skin color</RimAIPortrait.Settings.SkinColor><RimAIPortrait.Settings.Hair>Hair</RimAIPortrait.Settings.Hair><RimAIPortrait.Settings.EyeColor>Eye color</RimAIPortrait.Settings.EyeColor><RimAIPortrait.Settings.Apparel>Apparel</RimAIPortrait.Settings.Apparel><RimAIPortrait.Settings.Health>Health conditions and scars</RimAIPortrait.Settings.Health><RimAIPortrait.Settings.Traits>Traits</RimAIPortrait.Settings.Traits>
@@ -49,7 +91,9 @@
   <RimAIPortrait.Settings.EnableFrame>Enable portrait frame</RimAIPortrait.Settings.EnableFrame><RimAIPortrait.Settings.EnableFrameTip>Draws the selected transparent image over the portrait as a frame.</RimAIPortrait.Settings.EnableFrameTip><RimAIPortrait.Settings.FrameScale>Frame scale: {0}</RimAIPortrait.Settings.FrameScale><RimAIPortrait.Settings.FramePath>Frame image path (PNG/JPG)</RimAIPortrait.Settings.FramePath><RimAIPortrait.Settings.OpenFrameFolder>Open frame image folder</RimAIPortrait.Settings.OpenFrameFolder>
   <RimAIPortrait.Settings.DebugMode>Debug mode</RimAIPortrait.Settings.DebugMode><RimAIPortrait.Settings.DebugModeTip>Logs request information and the final prompt, excluding API keys, to Player.log.</RimAIPortrait.Settings.DebugModeTip>
   <RimAIPortrait.Settings.BaseProvider>Base provider</RimAIPortrait.Settings.BaseProvider><RimAIPortrait.Settings.ExpressionProvider>Expression provider</RimAIPortrait.Settings.ExpressionProvider><RimAIPortrait.Settings.EmotionPrompts>Emotion prompts (leave blank to use defaults)</RimAIPortrait.Settings.EmotionPrompts><RimAIPortrait.Settings.PromptSaved>Saved the {0} prompt.</RimAIPortrait.Settings.PromptSaved>
-  <RimAIPortrait.Settings.ApiKey>API Key</RimAIPortrait.Settings.ApiKey><RimAIPortrait.Settings.Model>Model</RimAIPortrait.Settings.Model><RimAIPortrait.Settings.OptionsJson>Options (JSON key/value)</RimAIPortrait.Settings.OptionsJson><RimAIPortrait.Settings.BasePrompt>Base Prompt</RimAIPortrait.Settings.BasePrompt><RimAIPortrait.Settings.ComfyUrl>ComfyUI server URL</RimAIPortrait.Settings.ComfyUrl><RimAIPortrait.Settings.WorkflowPath>Workflow (API format) JSON path</RimAIPortrait.Settings.WorkflowPath><RimAIPortrait.Settings.NegativePrompt>Negative prompt</RimAIPortrait.Settings.NegativePrompt><RimAIPortrait.Settings.StyleFolder>Style reference folder</RimAIPortrait.Settings.StyleFolder><RimAIPortrait.Settings.OpenStyleFolder>Open style reference folder</RimAIPortrait.Settings.OpenStyleFolder>
+  <RimAIPortrait.Settings.ApiKey>API Key</RimAIPortrait.Settings.ApiKey><RimAIPortrait.Settings.NovelAiApiKey>NovelAI API Token</RimAIPortrait.Settings.NovelAiApiKey><RimAIPortrait.Settings.Model>Model</RimAIPortrait.Settings.Model><RimAIPortrait.Settings.OptionsJson>Options (JSON key/value)</RimAIPortrait.Settings.OptionsJson><RimAIPortrait.Settings.BasePrompt>Base Prompt</RimAIPortrait.Settings.BasePrompt><RimAIPortrait.Settings.NovelAiReferenceHelp>The primary image is sent as img2img; selected and style images are sent as Vibe Transfer references (up to 16).</RimAIPortrait.Settings.NovelAiReferenceHelp><RimAIPortrait.Settings.ComfyUrl>ComfyUI server URL</RimAIPortrait.Settings.ComfyUrl><RimAIPortrait.Settings.WorkflowPath>Workflow (API format) JSON path</RimAIPortrait.Settings.WorkflowPath><RimAIPortrait.Settings.NegativePrompt>Negative prompt</RimAIPortrait.Settings.NegativePrompt><RimAIPortrait.Settings.StyleFolder>Style reference folder</RimAIPortrait.Settings.StyleFolder><RimAIPortrait.Settings.OpenStyleFolder>Open style reference folder</RimAIPortrait.Settings.OpenStyleFolder>
+  <RimAIPortrait.Settings.NovelAiInpaintStrengthDefault>Default inpaint strength: {0}</RimAIPortrait.Settings.NovelAiInpaintStrengthDefault>
+  <RimAIPortrait.Settings.NovelAiSleepInpaintStrengthDefault>Default sleep inpaint strength: {0}</RimAIPortrait.Settings.NovelAiSleepInpaintStrengthDefault>
   <RimAIPortrait.Debug.PawnSprite>Sent pawn sprite</RimAIPortrait.Debug.PawnSprite><RimAIPortrait.Debug.SpriteDisabled>Sprite sending disabled</RimAIPortrait.Debug.SpriteDisabled><RimAIPortrait.Debug.CaptureFailed>Capture failed</RimAIPortrait.Debug.CaptureFailed><RimAIPortrait.Debug.LastPawnPng>Pawn PNG most recently used for a Base portrait request</RimAIPortrait.Debug.LastPawnPng>
   <RimAIPortrait.State.Normal>Base / Normal</RimAIPortrait.State.Normal><RimAIPortrait.State.High>High / High mood</RimAIPortrait.State.High><RimAIPortrait.State.Low>Low / Low mood</RimAIPortrait.State.Low><RimAIPortrait.State.Sleep>Sleep</RimAIPortrait.State.Sleep><RimAIPortrait.State.Pain>Pain</RimAIPortrait.State.Pain><RimAIPortrait.State.Down>Downed</RimAIPortrait.State.Down><RimAIPortrait.State.Hot>Hot / Heatstroke</RimAIPortrait.State.Hot><RimAIPortrait.State.Cold>Cold / Hypothermia</RimAIPortrait.State.Cold><RimAIPortrait.State.Angry>Angry</RimAIPortrait.State.Angry><RimAIPortrait.State.Distressed>Distressed</RimAIPortrait.State.Distressed>
   <RimAIPortrait.Gallery.RegenerateSelected>Regenerate selected image</RimAIPortrait.Gallery.RegenerateSelected>
@@ -58,19 +102,22 @@
   <RimAIPortrait.Gallery.UnavailableForAnimals>This feature is not available for animals.</RimAIPortrait.Gallery.UnavailableForAnimals>
   <RimAIPortrait.Settings.EnabledEmotions>Enabled emotions</RimAIPortrait.Settings.EnabledEmotions>
   <RimAIPortrait.Settings.Category>Rim AI Expressive Portraits</RimAIPortrait.Settings.Category>
-  <RimAIPortrait.Settings.GenerateSelected>Generate portrait for selected colonist</RimAIPortrait.Settings.GenerateSelected>
+  <RimAIPortrait.Settings.RestoreDefaults>Restore defaults</RimAIPortrait.Settings.RestoreDefaults>
+  <RimAIPortrait.Settings.ConfirmRestoreDefaults>Restore all options to their defaults? API keys, provider settings, prompts, and local paths will also be cleared or reset.</RimAIPortrait.Settings.ConfirmRestoreDefaults>
+  <RimAIPortrait.Settings.DefaultsRestored>Restored all options to their defaults.</RimAIPortrait.Settings.DefaultsRestored>
+  <RimAIPortrait.Settings.ResetPortraitHelp>Reset portrait help</RimAIPortrait.Settings.ResetPortraitHelp>
+  <RimAIPortrait.Settings.PortraitHelpReset>Portrait help will appear the next time you open a colonist's portrait gallery.</RimAIPortrait.Settings.PortraitHelpReset>
   <RimAIPortrait.Settings.ComfyTimeout>Generation timeout: {0} seconds</RimAIPortrait.Settings.ComfyTimeout>
   <RimAIPortrait.Settings.ComfyRequiredOutput>Required output: set the final SaveImage node filename_prefix to RimAI</RimAIPortrait.Settings.ComfyRequiredOutput>
-  <RimAIPortrait.Settings.ComfyWorkflowTokens>Workflow tokens: __RIM_PROMPT__, __RIM_NEGATIVE_PROMPT__, __RIM_INPUT_IMAGE__, __RIM_REFERENCE_1__ ... __RIM_REFERENCE_8__, __RIM_SEED__</RimAIPortrait.Settings.ComfyWorkflowTokens>
-  <RimAIPortrait.Status.GenerationStarted>Generation started…</RimAIPortrait.Status.GenerationStarted>
+  <RimAIPortrait.Settings.ComfyWorkflowTokens>Workflow tokens: __RIM_PROMPT__, __RIM_NEGATIVE_PROMPT__, __RIM_EXTRACTED_TAG__.positive, __RIM_EXTRACTED_TAG__.negative, __RIM_INPUT_IMAGE__, __RIM_REFERENCE_1__ ... __RIM_REFERENCE_8__, __RIM_SEED__</RimAIPortrait.Settings.ComfyWorkflowTokens>
   <RimAIPortrait.Status.CapturingSprite>Capturing pawn sprite…</RimAIPortrait.Status.CapturingSprite>
   <RimAIPortrait.Status.AllComplete>Portrait generation complete.</RimAIPortrait.Status.AllComplete>
   <RimAIPortrait.Status.AllCompleteFor>Rim AI Expressive Portraits: {0} complete</RimAIPortrait.Status.AllCompleteFor>
-  <RimAIPortrait.Error.SelectPawnFirst>Select a pawn first.</RimAIPortrait.Error.SelectPawnFirst>
   <RimAIPortrait.Error.FrameFolderMissing>Could not find the folder containing the frame image.</RimAIPortrait.Error.FrameFolderMissing>
   <RimAIPortrait.Error.OpenFrameFolder>Could not open the frame folder: {0}</RimAIPortrait.Error.OpenFrameFolder>
   <RimAIPortrait.Error.StyleFolderEmpty>The folder path is empty.</RimAIPortrait.Error.StyleFolderEmpty>
   <RimAIPortrait.Error.OpenStyleFolder>Could not open the style folder: {0}</RimAIPortrait.Error.OpenStyleFolder>
+  <RimAIPortrait.Error.StyleReferenceLimit>{0} can use only {2} style reference image(s) with the current references, but the style folder contains {1}. Reduce the number of style images before generating.</RimAIPortrait.Error.StyleReferenceLimit>
   <RimAIPortrait.Error.FramePathInvalid>The frame image path is invalid: {0}</RimAIPortrait.Error.FramePathInvalid>
   <RimAIPortrait.Error.FrameFileMissing>Could not find the frame image file.</RimAIPortrait.Error.FrameFileMissing>
   <RimAIPortrait.Error.FrameLoadFailed>Could not load the frame image: {0}</RimAIPortrait.Error.FrameLoadFailed>
@@ -79,6 +126,8 @@
   <RimAIPortrait.Error.ImageDecodeFailed>Could not decode the generated image: {0}</RimAIPortrait.Error.ImageDecodeFailed>
   <RimAIPortrait.Error.ImageDownloadHttp>Image download HTTP {0}: {1}</RimAIPortrait.Error.ImageDownloadHttp>
   <RimAIPortrait.Error.NoImageResponse>No image in the API response. Response: {0}</RimAIPortrait.Error.NoImageResponse>
+  <RimAIPortrait.Error.NovelAiArchiveEmpty>The NovelAI response archive contained no supported image.</RimAIPortrait.Error.NovelAiArchiveEmpty>
+  <RimAIPortrait.Error.NovelAiVibeEmpty>NovelAI returned no Vibe data for a reference image.</RimAIPortrait.Error.NovelAiVibeEmpty>
   <RimAIPortrait.Error.ComfyWorkflowReadFailed>Could not read the ComfyUI workflow: {0}</RimAIPortrait.Error.ComfyWorkflowReadFailed>
   <RimAIPortrait.Error.ComfyInputRequired>The workflow requires __RIM_INPUT_IMAGE__, but no sprite or reference image was available.</RimAIPortrait.Error.ComfyInputRequired>
   <RimAIPortrait.Error.ComfySubmitHttp>ComfyUI submit HTTP {0}: {1} {2}</RimAIPortrait.Error.ComfySubmitHttp>
@@ -90,24 +139,86 @@
   <RimAIPortrait.Error.ComfyTimeout>ComfyUI generation timed out after {0} seconds.</RimAIPortrait.Error.ComfyTimeout>
   <RimAIPortrait.Error.ComfyUploadHttp>ComfyUI upload HTTP {0}: {1} {2}</RimAIPortrait.Error.ComfyUploadHttp>
   <RimAIPortrait.Settings.BackgroundRemovalSensitivity>Background sensitivity: {0}%</RimAIPortrait.Settings.BackgroundRemovalSensitivity>
-  <RimAIPortrait.Settings.BackgroundColor>Background color (#RRGGBB)</RimAIPortrait.Settings.BackgroundColor>
+  <RimAIPortrait.Settings.BackgroundColor>Background color</RimAIPortrait.Settings.BackgroundColor>
   <RimAIPortrait.Settings.BackgroundColorInvalid>Enter a six-digit hexadecimal color such as #FFFFFF.</RimAIPortrait.Settings.BackgroundColorInvalid>
   <RimAIPortrait.Gallery.RemoveBackground>Remove Background</RimAIPortrait.Gallery.RemoveBackground>
   <RimAIPortrait.Gallery.SelectOneToRemoveBackground>Select exactly one image to remove its background.</RimAIPortrait.Gallery.SelectOneToRemoveBackground>
   <RimAIPortrait.Gallery.BackgroundRemoved>Removed the selected image background.</RimAIPortrait.Gallery.BackgroundRemoved>
   <RimAIPortrait.BackgroundRemoval.Title>Remove Background</RimAIPortrait.BackgroundRemoval.Title>
-  <RimAIPortrait.BackgroundRemoval.OriginalPreview>Showing the original image. Adjust the options and select Preview.</RimAIPortrait.BackgroundRemoval.OriginalPreview>
-  <RimAIPortrait.BackgroundRemoval.Preview>Preview</RimAIPortrait.BackgroundRemoval.Preview>
+  <RimAIPortrait.BackgroundRemoval.ImagePosition>Image {0}/{1}: {2}</RimAIPortrait.BackgroundRemoval.ImagePosition>
+  <RimAIPortrait.BackgroundRemoval.OriginalPreview>Click the background in the image to preview removal.</RimAIPortrait.BackgroundRemoval.OriginalPreview>
+  <RimAIPortrait.BackgroundRemoval.Undo>Undo</RimAIPortrait.BackgroundRemoval.Undo>
+  <RimAIPortrait.BackgroundRemoval.Undone>Undid the last image click.</RimAIPortrait.BackgroundRemoval.Undone>
+  <RimAIPortrait.BackgroundRemoval.Redo>Redo</RimAIPortrait.BackgroundRemoval.Redo>
+  <RimAIPortrait.BackgroundRemoval.Redone>Restored the last undone image click.</RimAIPortrait.BackgroundRemoval.Redone>
   <RimAIPortrait.BackgroundRemoval.Align>Align</RimAIPortrait.BackgroundRemoval.Align>
-  <RimAIPortrait.BackgroundRemoval.AlignTip>Move the visible portrait down until it touches the bottom edge.</RimAIPortrait.BackgroundRemoval.AlignTip>
-  <RimAIPortrait.BackgroundRemoval.Aligned>Aligned the portrait to the bottom. Confirm to overwrite the selected image.</RimAIPortrait.BackgroundRemoval.Aligned>
-  <RimAIPortrait.BackgroundRemoval.Eyedropper>Eyedropper</RimAIPortrait.BackgroundRemoval.Eyedropper>
-  <RimAIPortrait.BackgroundRemoval.EyedropperActive>Click a background color in the image.</RimAIPortrait.BackgroundRemoval.EyedropperActive>
-  <RimAIPortrait.BackgroundRemoval.EyedropperCancelled>Color picking cancelled.</RimAIPortrait.BackgroundRemoval.EyedropperCancelled>
-  <RimAIPortrait.BackgroundRemoval.ColorSampled>Selected background color: {0}. Select Preview to apply it.</RimAIPortrait.BackgroundRemoval.ColorSampled>
+  <RimAIPortrait.BackgroundRemoval.AlignTip>Toggle bottom alignment for all selected images.</RimAIPortrait.BackgroundRemoval.AlignTip>
+  <RimAIPortrait.BackgroundRemoval.Aligned>Bottom alignment enabled for all selected images.</RimAIPortrait.BackgroundRemoval.Aligned>
+  <RimAIPortrait.BackgroundRemoval.ColorSampled>Selected {0}. The image has been updated.</RimAIPortrait.BackgroundRemoval.ColorSampled>
   <RimAIPortrait.BackgroundRemoval.Erosion>Edge erosion: {0}px</RimAIPortrait.BackgroundRemoval.Erosion>
-  <RimAIPortrait.BackgroundRemoval.PreviewReady>Preview updated. Confirm to overwrite the selected image.</RimAIPortrait.BackgroundRemoval.PreviewReady>
+  <RimAIPortrait.BackgroundRemoval.RemoveEnclosed>Auto remove enclosed areas</RimAIPortrait.BackgroundRemoval.RemoveEnclosed>
+  <RimAIPortrait.BackgroundRemoval.EnclosedCleanup>Enclosed cleanup: {0}%</RimAIPortrait.BackgroundRemoval.EnclosedCleanup>
+  <RimAIPortrait.Gallery.BaseLabel>Base:</RimAIPortrait.Gallery.BaseLabel>
+  <RimAIPortrait.Gallery.BaseProviderLabel>({0})</RimAIPortrait.Gallery.BaseProviderLabel>
+  <RimAIPortrait.Gallery.ExtraLabel>Extra:</RimAIPortrait.Gallery.ExtraLabel>
+  <RimAIPortrait.BackgroundRemoval.PreviewReady>Image updated. Confirm saves the selected images and closes this window.</RimAIPortrait.BackgroundRemoval.PreviewReady>
+  <RimAIPortrait.Gallery.SelectImagesToRemoveBackground>Select one or more images to remove the background.</RimAIPortrait.Gallery.SelectImagesToRemoveBackground>
+  <RimAIPortrait.Gallery.BackgroundRemovalComplete>Background removal complete: {0} processed, {1} failed.</RimAIPortrait.Gallery.BackgroundRemovalComplete>
   <RimAIPortrait.BackgroundRemoval.Confirm>Confirm</RimAIPortrait.BackgroundRemoval.Confirm>
-  <RimAIPortrait.BackgroundRemoval.Cancel>Cancel</RimAIPortrait.BackgroundRemoval.Cancel>
+  <RimAIPortrait.BackgroundRemoval.Exit>Exit</RimAIPortrait.BackgroundRemoval.Exit>
+  <RimAIPortrait.BackgroundRemoval.Saving>Saving selected images...</RimAIPortrait.BackgroundRemoval.Saving>
+  <RimAIPortrait.BackgroundRemoval.Saved>Saved {0} image(s); {1} failed. Adjust the options and confirm again.</RimAIPortrait.BackgroundRemoval.Saved>
   <RimAIPortrait.BackgroundRemoval.SaveFailed>Could not save the processed image: {0}</RimAIPortrait.BackgroundRemoval.SaveFailed>
+  <RimAIPortrait.Settings.NovelAiCharacterStrength>Character reference strength: {0}</RimAIPortrait.Settings.NovelAiCharacterStrength>
+  <RimAIPortrait.Settings.NovelAiCharacterFidelity>Character reference fidelity: {0}</RimAIPortrait.Settings.NovelAiCharacterFidelity>
+  <RimAIPortrait.Settings.NovelAiReferenceHelpV45>V4.5 Base uses the Pawn sprite as Character Reference and the first image by filename in the Base style folder as a Style Reference. Enter Using Default Style to use the bundled Style folder; an existing folder with no images also falls back to it. A blank path uses no style reference. Set character_reference_strength, character_reference_fidelity, style_reference_strength, and style_reference_fidelity (0 to 1) in Base options JSON. Emotion portraits edit the Base image.</RimAIPortrait.Settings.NovelAiReferenceHelpV45>
+  <RimAIPortrait.Error.NovelAiPreciseVibeConflict>NovelAI V4.5 Base cannot combine selected gallery references with Precise References. Clear the selected gallery references to generate the Base portrait.</RimAIPortrait.Error.NovelAiPreciseVibeConflict>
+  <RimAIPortrait.Error.NovelAiReferenceImage>Could not prepare the Pawn Character Reference image.</RimAIPortrait.Error.NovelAiReferenceImage>
+  <RimAIPortrait.Error.NovelAiStyleReferenceImage>Could not prepare the NovelAI Style Reference image {0}: {1}</RimAIPortrait.Error.NovelAiStyleReferenceImage>
+  <RimAIPortrait.Settings.ExpressionPrompt>Expression Prompt</RimAIPortrait.Settings.ExpressionPrompt>
+  <RimAIPortrait.Inpaint.Title>{0} Expression Inpaint</RimAIPortrait.Inpaint.Title>
+  <RimAIPortrait.Inpaint.State>Expression: {0}</RimAIPortrait.Inpaint.State>
+  <RimAIPortrait.Inpaint.Strength>Inpaint strength: {0}</RimAIPortrait.Inpaint.Strength>
+  <RimAIPortrait.Inpaint.ExtraTag>Extra Tag:</RimAIPortrait.Inpaint.ExtraTag>
+  <RimAIPortrait.Error.ComfyInpaintMaskRequired>The ComfyUI workflow uses __RIM_INPAINT_MASK__. Select an area before generating this expression.</RimAIPortrait.Error.ComfyInpaintMaskRequired>
+  <RimAIPortrait.Inpaint.ComfyInstructions>Left-drag to add areas; right-drag to remove areas. If your workflow does not use a mask, continue without selecting an area.</RimAIPortrait.Inpaint.ComfyInstructions>
+  <RimAIPortrait.Inpaint.ExtraTagSaveFailed>Could not save this pawn's inpaint extra tag.</RimAIPortrait.Inpaint.ExtraTagSaveFailed>
+  <RimAIPortrait.Inpaint.StrengthSaveFailed>Could not save this pawn's NovelAI inpaint strength.</RimAIPortrait.Inpaint.StrengthSaveFailed>
+  <RimAIPortrait.Inpaint.Instructions>Left-drag to add rectangular areas to edit; right-drag to remove areas. Later drags take precedence.</RimAIPortrait.Inpaint.Instructions>
+  <RimAIPortrait.Inpaint.SleepInstructions>Left-drag around each eye; right-drag to exclude areas. Add as many rectangles as needed. Later drags take precedence.</RimAIPortrait.Inpaint.SleepInstructions>
+  <RimAIPortrait.Inpaint.Undo>Undo</RimAIPortrait.Inpaint.Undo>
+  <RimAIPortrait.Inpaint.Clear>Clear</RimAIPortrait.Inpaint.Clear>
+  <RimAIPortrait.Inpaint.Confirm>Confirm</RimAIPortrait.Inpaint.Confirm>
+  <RimAIPortrait.Inpaint.InvalidImage>Could not preview the base portrait.</RimAIPortrait.Inpaint.InvalidImage>
+  <RimAIPortrait.Inpaint.Cancelled>Expression inpaint was cancelled.</RimAIPortrait.Inpaint.Cancelled>
+  <RimAIPortrait.Inpaint.DimensionMismatch>The source image and inpaint mask must have the same dimensions.</RimAIPortrait.Inpaint.DimensionMismatch>
+  <RimAIPortrait.Inpaint.EmptyMask>Select an area to inpaint.</RimAIPortrait.Inpaint.EmptyMask>
+  <RimAIPortrait.Inpaint.ResponseMismatch>NovelAI returned {4}x{5}, but the source is {0}x{1} and the mask is {2}x{3}. The inpaint result was not saved.</RimAIPortrait.Inpaint.ResponseMismatch>
+  <RimAIPortrait.Error.ImageCaptionLoadFailed>Could not load image reference captions: {0}</RimAIPortrait.Error.ImageCaptionLoadFailed>
+  <RimAIPortrait.Gallery.ResetBase>Reset</RimAIPortrait.Gallery.ResetBase>
+  <RimAIPortrait.Gallery.BaseReset>Loaded the default Base Prompt. Save to apply it to this colonist.</RimAIPortrait.Gallery.BaseReset>
+  <RimAIPortrait.Gallery.BaseResetFailed>Could not load the default Base Prompt: {0}</RimAIPortrait.Gallery.BaseResetFailed>
+  <RimAIPortrait.Settings.StyleDefaultInUse>Using images in the bundled Style folder.</RimAIPortrait.Settings.StyleDefaultInUse>
+  <RimAIPortrait.Settings.StyleFolderHint>Enter Using Default Style for the bundled Style folder. Leave blank to use no style reference.</RimAIPortrait.Settings.StyleFolderHint>
+  <RimAIPortrait.Settings.StyleDefault>Default</RimAIPortrait.Settings.StyleDefault>
+  <RimAIPortrait.Settings.StyleReferenceIgnored>Style reference limit: {0} image(s); folder contains {1}. Excess images will be ignored.</RimAIPortrait.Settings.StyleReferenceIgnored>
+  <RimAIPortrait.Settings.StyleInvalidNoStyle>Invalid path: no style reference is being used.</RimAIPortrait.Settings.StyleInvalidNoStyle>
+  <RimAIPortrait.Settings.StyleInvalidDefaultInUse>Invalid path: using images in the bundled Style folder.</RimAIPortrait.Settings.StyleInvalidDefaultInUse>
+  <RimAIPortrait.Settings.StyleFolderWithDefault>Images in this folder are used; if it is empty, images in the bundled Style folder are used.</RimAIPortrait.Settings.StyleFolderWithDefault>
+  <RimAIPortrait.Settings.StyleFolderConfigured>Images in this folder are used when available.</RimAIPortrait.Settings.StyleFolderConfigured>
+  <RimAIPortrait.Error.GoogleDefaultStyleReadFailed>Could not read a bundled Google style image: {0}</RimAIPortrait.Error.GoogleDefaultStyleReadFailed>
+  <RimAIPortrait.Error.BundledStyleMissing>No style images were found in the bundled Style folder.</RimAIPortrait.Error.BundledStyleMissing>
+  <RimAIPortrait.TagExtractor.Enabled>Extract positive and negative tags before NAI/Comfy generation</RimAIPortrait.TagExtractor.Enabled>
+  <RimAIPortrait.TagExtractor.Scope>Optional for NAI and Comfy. Multiple expressions from one Base share one extraction call. Comfy uses tags only when its workflow includes the token.</RimAIPortrait.TagExtractor.Scope>
+  <RimAIPortrait.TagExtractor.Model>Tag extraction model</RimAIPortrait.TagExtractor.Model>
+  <RimAIPortrait.TagExtractor.Model.OpenAI>OpenAI</RimAIPortrait.TagExtractor.Model.OpenAI>
+  <RimAIPortrait.TagExtractor.Model.Google>Google</RimAIPortrait.TagExtractor.Model.Google>
+  <RimAIPortrait.TagExtractor.Model.LocalModel>Local model</RimAIPortrait.TagExtractor.Model.LocalModel>
+  <RimAIPortrait.TagExtractor.LocalUrl>Local OpenAI-compatible server URL</RimAIPortrait.TagExtractor.LocalUrl>
+  <RimAIPortrait.TagExtractor.ImageRequired>Tag extraction requires an input image smaller than 8 MB.</RimAIPortrait.TagExtractor.ImageRequired>
+  <RimAIPortrait.TagExtractor.PromptMissing>TagExtractor.md is missing or empty.</RimAIPortrait.TagExtractor.PromptMissing>
+  <RimAIPortrait.TagExtractor.ConfigurationMissing>Tag extraction model settings are incomplete.</RimAIPortrait.TagExtractor.ConfigurationMissing>
+  <RimAIPortrait.TagExtractor.HttpError>Tag extraction request failed (HTTP {0}): {1}</RimAIPortrait.TagExtractor.HttpError>
+  <RimAIPortrait.TagExtractor.InvalidResponse>Tag extraction returned invalid or incomplete JSON.</RimAIPortrait.TagExtractor.InvalidResponse>
+  <RimAIPortrait.TagExtractor.Failed>Tag extraction failed: {0}</RimAIPortrait.TagExtractor.Failed>
 </LanguageData>
