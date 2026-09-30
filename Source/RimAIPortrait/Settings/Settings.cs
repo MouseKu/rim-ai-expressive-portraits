@@ -18,6 +18,7 @@ namespace RimAIPortrait
     {
         public AiProvider Provider;
         public AiProvider ExpressionProvider;
+        public AiProvider RegenerateProvider;
         public string ApiKey;
         public string ExpressionApiKey;
         public string GoogleApiKey;
@@ -30,6 +31,19 @@ namespace RimAIPortrait
         public string GoogleExpressionModel;
         public string GoogleOptions = ProviderOptionDefaults.GoogleBase;
         public string GoogleExpressionOptions = ProviderOptionDefaults.GoogleExpression;
+        public string RegenerateOpenAiApiKey;
+        public string RegenerateOpenAiModel;
+        public string RegenerateOpenAiOptions = ProviderOptionDefaults.OpenAiBase;
+        public string RegenerateGoogleApiKey;
+        public string RegenerateGoogleModel;
+        public string RegenerateGoogleOptions = ProviderOptionDefaults.GoogleBase;
+        public string RegenerateNovelAiApiKey;
+        public string RegenerateNovelAiModel;
+        public string RegenerateNovelAiOptions = ProviderOptionDefaults.NovelAiExpression;
+        public string RegenerateComfyUrl;
+        public string RegenerateComfyWorkflowPath;
+        public string RegenerateComfyNegativePrompt;
+        public string RegenerateStyleFolder;
         public string NovelAiApiKey;
         public string NovelAiExpressionApiKey;
         public string NovelAiModel;
@@ -61,6 +75,9 @@ namespace RimAIPortrait
         public string BaseInstructions = PromptLibrary.DefaultBase;
         public string ComfyBaseInstructions;
         public string ExpressionInstructions = PromptLibrary.DefaultExpression;
+        public string GoogleExpressionInstructions;
+        public string ComfyExpressionInstructions;
+        public string NovelAiExpressionInstructions;
         public string GeminiBaseInstructions;
         public string NovelAiBaseInstructions;
         public float Width;
@@ -74,6 +91,7 @@ namespace RimAIPortrait
         public bool GenerateStates;
         public bool EnableEmotionChanges;
         public bool PortraitHelpShown;
+        public bool PortraitHelpAfterImageShown;
         public bool EnableHigh, EnableLow, EnableSleep,
             EnablePain, EnableDown, EnableHot,
             EnableCold, EnableAngry, EnableDistressed;
@@ -102,10 +120,16 @@ namespace RimAIPortrait
         public string ColdPrompt = PromptLibrary.State[PortraitState.Cold];
         public string AngryPrompt = PromptLibrary.State[PortraitState.Angry];
         public string DistressedPrompt = PromptLibrary.State[PortraitState.Distressed];
+        public ProviderStatePrompts GoogleStatePrompts = new ProviderStatePrompts();
+        public ProviderStatePrompts ComfyStatePrompts = new ProviderStatePrompts();
+        public ProviderStatePrompts NovelAiStatePrompts = new ProviderStatePrompts();
         private bool ModelsSplitMigrated;
         private bool ProviderSettingsSplitMigrated;
         private bool ProviderApiKeysSplitMigrated;
         private bool PositionDefaultsMigrated;
+        private bool ProviderPromptsSplitMigrated = true;
+        private bool RegenerateSettingsMigrated;
+        internal bool ProviderPromptMigrationPending;
 
         public PortraitSettings()
         {
@@ -116,12 +140,15 @@ namespace RimAIPortrait
         public void ResetToDefaults()
         {
             bool portraitHelpShown = PortraitHelpShown;
+            bool portraitHelpAfterImageShown = PortraitHelpAfterImageShown;
             var defaults = new PortraitSettings();
             foreach (FieldInfo field in typeof(PortraitSettings).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
                 if (!field.IsInitOnly) field.SetValue(this, field.GetValue(defaults));
             }
             PortraitHelpShown = portraitHelpShown;
+            PortraitHelpAfterImageShown = portraitHelpAfterImageShown;
+            RegenerateSettingsMigrated = true;
         }
 
         /// <summary>Describes the behavior of this type or member.</summary>
@@ -132,6 +159,21 @@ namespace RimAIPortrait
             float legacyCharacterFidelity = .7f;
             Scribe_Values.Look(ref Provider, "provider", defaults.Provider);
             Scribe_Values.Look(ref ExpressionProvider, "expressionProvider", defaults.ExpressionProvider);
+            Scribe_Values.Look(ref RegenerateProvider, "regenerateProvider", defaults.RegenerateProvider);
+            Scribe_Values.Look(ref RegenerateOpenAiApiKey, "regenerateOpenAiApiKey", defaults.RegenerateOpenAiApiKey);
+            Scribe_Values.Look(ref RegenerateOpenAiModel, "regenerateOpenAiModel", defaults.RegenerateOpenAiModel);
+            Scribe_Values.Look(ref RegenerateOpenAiOptions, "regenerateOpenAiOptions", ProviderOptionDefaults.OpenAiBase);
+            Scribe_Values.Look(ref RegenerateGoogleApiKey, "regenerateGoogleApiKey", defaults.RegenerateGoogleApiKey);
+            Scribe_Values.Look(ref RegenerateGoogleModel, "regenerateGoogleModel", defaults.RegenerateGoogleModel);
+            Scribe_Values.Look(ref RegenerateGoogleOptions, "regenerateGoogleOptions", ProviderOptionDefaults.GoogleBase);
+            Scribe_Values.Look(ref RegenerateNovelAiApiKey, "regenerateNovelAiApiKey", defaults.RegenerateNovelAiApiKey);
+            Scribe_Values.Look(ref RegenerateNovelAiModel, "regenerateNovelAiModel", defaults.RegenerateNovelAiModel);
+            Scribe_Values.Look(ref RegenerateNovelAiOptions, "regenerateNovelAiOptions", ProviderOptionDefaults.NovelAiExpression);
+            Scribe_Values.Look(ref RegenerateComfyUrl, "regenerateComfyUrl", defaults.RegenerateComfyUrl);
+            Scribe_Values.Look(ref RegenerateComfyWorkflowPath, "regenerateComfyWorkflowPath", defaults.RegenerateComfyWorkflowPath);
+            Scribe_Values.Look(ref RegenerateComfyNegativePrompt, "regenerateComfyNegativePrompt", defaults.RegenerateComfyNegativePrompt);
+            Scribe_Values.Look(ref RegenerateStyleFolder, "regenerateStyleFolder", defaults.RegenerateStyleFolder);
+            Scribe_Values.Look(ref RegenerateSettingsMigrated, "regenerateSettingsMigrated", false);
             Scribe_Values.Look(ref ApiKey, "apiKey", defaults.ApiKey);
             Scribe_Values.Look(ref ExpressionApiKey, "expressionApiKey", defaults.ExpressionApiKey);
             Scribe_Values.Look(ref GoogleApiKey, "googleApiKey", defaults.GoogleApiKey);
@@ -180,6 +222,9 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref BaseInstructions, "baseInstructions", PromptLibrary.DefaultBase);
             Scribe_Values.Look(ref ComfyBaseInstructions, "comfyBaseInstructions", defaults.ComfyBaseInstructions);
             Scribe_Values.Look(ref ExpressionInstructions, "expressionInstructions", PromptLibrary.DefaultExpression);
+            Scribe_Values.Look(ref GoogleExpressionInstructions, "googleExpressionInstructions");
+            Scribe_Values.Look(ref ComfyExpressionInstructions, "comfyExpressionInstructions");
+            Scribe_Values.Look(ref NovelAiExpressionInstructions, "novelAiExpressionInstructions");
             Scribe_Values.Look(ref GeminiBaseInstructions, "geminiBaseInstructions", defaults.GeminiBaseInstructions);
             Scribe_Values.Look(ref NovelAiBaseInstructions, "novelAiBaseInstructions", defaults.NovelAiBaseInstructions);
             Scribe_Values.Look(ref Width, "width", defaults.Width); Scribe_Values.Look(ref Height, "height", defaults.Height);
@@ -190,6 +235,7 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref GenerateStates, "generateStates", defaults.GenerateStates);
             Scribe_Values.Look(ref EnableEmotionChanges, "enableEmotionChanges", defaults.EnableEmotionChanges);
             Scribe_Values.Look(ref PortraitHelpShown, "portraitHelpShown", false);
+            Scribe_Values.Look(ref PortraitHelpAfterImageShown, "portraitHelpAfterImageShown", PortraitHelpShown);
             Scribe_Values.Look(ref EnableHigh, "enableHigh", defaults.EnableHigh); Scribe_Values.Look(ref EnableLow, "enableLow", defaults.EnableLow);
             Scribe_Values.Look(ref EnableSleep, "enableSleep", defaults.EnableSleep); Scribe_Values.Look(ref EnablePain, "enablePain", defaults.EnablePain);
             Scribe_Values.Look(ref EnableDown, "enableDown", defaults.EnableDown); Scribe_Values.Look(ref EnableHot, "enableHot", defaults.EnableHot);
@@ -223,6 +269,10 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref ColdPrompt, "coldPrompt", PromptLibrary.State[PortraitState.Cold]);
             Scribe_Values.Look(ref AngryPrompt, "angryPrompt", PromptLibrary.State[PortraitState.Angry]);
             Scribe_Values.Look(ref DistressedPrompt, "distressedPrompt", PromptLibrary.State[PortraitState.Distressed]);
+            Scribe_Deep.Look(ref GoogleStatePrompts, "googleStatePrompts");
+            Scribe_Deep.Look(ref ComfyStatePrompts, "comfyStatePrompts");
+            Scribe_Deep.Look(ref NovelAiStatePrompts, "novelAiStatePrompts");
+            Scribe_Values.Look(ref ProviderPromptsSplitMigrated, "providerPromptsSplitMigrated", false);
             Scribe_Values.Look(ref ModelsSplitMigrated, "modelsSplitMigrated", false);
             Scribe_Values.Look(ref ProviderSettingsSplitMigrated, "providerSettingsSplitMigrated", false);
             Scribe_Values.Look(ref ProviderApiKeysSplitMigrated, "providerApiKeysSplitMigrated", false);
@@ -236,7 +286,99 @@ namespace RimAIPortrait
                 MigrateOpenAiOptionDefaults();
                 MigrateGoogleOptionDefaults();
                 MigrateNovelAiOptions(legacyCharacterStrength, legacyCharacterFidelity);
+                MigrateRegenerateSettings();
             }
+            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            {
+                if (!ProviderPromptsSplitMigrated)
+                {
+                    ProviderPromptMigrationPending = true;
+                    GoogleStatePrompts = LegacyStatePrompts();
+                    ComfyStatePrompts = LegacyStatePrompts();
+                    NovelAiStatePrompts = LegacyStatePrompts();
+                    if (ExpressionInstructions != PromptLibrary.DefaultExpression)
+                    {
+                        GoogleExpressionInstructions = ExpressionInstructions;
+                        ComfyExpressionInstructions = ExpressionInstructions;
+                        NovelAiExpressionInstructions = ExpressionInstructions;
+                    }
+                    ProviderPromptsSplitMigrated = true;
+                }
+                if (GoogleStatePrompts == null) GoogleStatePrompts = new ProviderStatePrompts();
+                if (ComfyStatePrompts == null) ComfyStatePrompts = new ProviderStatePrompts();
+                if (NovelAiStatePrompts == null) NovelAiStatePrompts = new ProviderStatePrompts();
+            }
+        }
+
+        private ProviderStatePrompts LegacyStatePrompts()
+        {
+            var prompts = new ProviderStatePrompts();
+            foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
+                prompts.Set(state, LegacyStatePrompt(state));
+            return prompts;
+        }
+
+        private string LegacyStatePrompt(PortraitState state)
+        {
+            switch (state)
+            {
+                case PortraitState.Normal: return NormalPrompt;
+                case PortraitState.High: return HighPrompt;
+                case PortraitState.Low: return LowPrompt;
+                case PortraitState.Sleep: return SleepPrompt;
+                case PortraitState.Pain: return PainPrompt;
+                case PortraitState.Down: return DownPrompt;
+                case PortraitState.Hot: return HotPrompt;
+                case PortraitState.Cold: return ColdPrompt;
+                case PortraitState.Angry: return AngryPrompt;
+                default: return DistressedPrompt;
+            }
+        }
+
+        public string GetStatePrompt(AiProvider provider, PortraitState state)
+        {
+            ProviderStatePrompts prompts = provider == AiProvider.Google ? GoogleStatePrompts
+                : provider == AiProvider.LocalComfyUI ? ComfyStatePrompts
+                : provider == AiProvider.NovelAI ? NovelAiStatePrompts : null;
+            return prompts == null ? LegacyStatePrompt(state) : prompts.Get(state);
+        }
+
+        public void SetStatePrompt(AiProvider provider, PortraitState state, string value)
+        {
+            if (provider != AiProvider.OpenAI)
+            {
+                ProviderStatePrompts prompts = provider == AiProvider.Google ? GoogleStatePrompts
+                    : provider == AiProvider.LocalComfyUI ? ComfyStatePrompts : NovelAiStatePrompts;
+                if (prompts == null)
+                {
+                    prompts = new ProviderStatePrompts();
+                    if (provider == AiProvider.Google) GoogleStatePrompts = prompts;
+                    else if (provider == AiProvider.LocalComfyUI) ComfyStatePrompts = prompts;
+                    else NovelAiStatePrompts = prompts;
+                }
+                prompts.Set(state, value);
+                return;
+            }
+            switch (state)
+            {
+                case PortraitState.Normal: NormalPrompt = value; break;
+                case PortraitState.High: HighPrompt = value; break;
+                case PortraitState.Low: LowPrompt = value; break;
+                case PortraitState.Sleep: SleepPrompt = value; break;
+                case PortraitState.Pain: PainPrompt = value; break;
+                case PortraitState.Down: DownPrompt = value; break;
+                case PortraitState.Hot: HotPrompt = value; break;
+                case PortraitState.Cold: ColdPrompt = value; break;
+                case PortraitState.Angry: AngryPrompt = value; break;
+                default: DistressedPrompt = value; break;
+            }
+        }
+
+        public string GetExpressionInstructions(AiProvider provider)
+        {
+            return provider == AiProvider.Google ? GoogleExpressionInstructions
+                : provider == AiProvider.LocalComfyUI ? ComfyExpressionInstructions
+                : provider == AiProvider.NovelAI ? NovelAiExpressionInstructions : ExpressionInstructions;
         }
 
         /// <summary>Describes the behavior of this type or member.</summary>
@@ -336,6 +478,46 @@ namespace RimAIPortrait
             MigrateProviderApiKey(ref ApiKey, ref GoogleApiKey, Provider);
             MigrateProviderApiKey(ref ExpressionApiKey, ref GoogleExpressionApiKey, ExpressionProvider);
             ProviderApiKeysSplitMigrated = true;
+        }
+
+        private void MigrateRegenerateSettings()
+        {
+            if (RegenerateSettingsMigrated) return;
+            RegenerateProvider = Provider;
+            RegenerateOpenAiApiKey = ApiKey;
+            RegenerateOpenAiModel = OpenAiModel;
+            RegenerateOpenAiOptions = OpenAiOptions;
+            RegenerateGoogleApiKey = GoogleApiKey;
+            RegenerateGoogleModel = GoogleModel;
+            RegenerateGoogleOptions = GoogleOptions;
+            RegenerateNovelAiApiKey = NovelAiApiKey;
+            RegenerateNovelAiModel = NovelAiModel;
+            RegenerateNovelAiOptions = NovelAiExpressionOptions;
+            RegenerateComfyUrl = ComfyUrl;
+            RegenerateComfyWorkflowPath = ComfyWorkflowPath;
+            RegenerateComfyNegativePrompt = ComfyNegativePrompt;
+            RegenerateStyleFolder = StyleFolder;
+            RegenerateSettingsMigrated = true;
+        }
+
+        internal PortraitProviderConfiguration RegenerateConfiguration()
+        {
+            switch (RegenerateProvider)
+            {
+                case AiProvider.OpenAI:
+                    return new OpenAiProviderConfiguration { ApiKey = RegenerateOpenAiApiKey,
+                        Model = RegenerateOpenAiModel, OptionsJson = RegenerateOpenAiOptions };
+                case AiProvider.Google:
+                    return new GoogleProviderConfiguration { ApiKey = RegenerateGoogleApiKey,
+                        Model = RegenerateGoogleModel, OptionsJson = RegenerateGoogleOptions };
+                case AiProvider.NovelAI:
+                    return new NovelAiProviderConfiguration { ApiKey = RegenerateNovelAiApiKey,
+                        Model = RegenerateNovelAiModel, OptionsJson = RegenerateNovelAiOptions };
+                default:
+                    return new ComfyUiProviderConfiguration { ServerUrl = RegenerateComfyUrl,
+                        WorkflowPath = RegenerateComfyWorkflowPath, NegativePrompt = RegenerateComfyNegativePrompt,
+                        TimeoutSeconds = ComfyTimeoutSeconds };
+            }
         }
 
         private static void MigrateProviderApiKey(ref string sharedKey, ref string googleKey, AiProvider provider)

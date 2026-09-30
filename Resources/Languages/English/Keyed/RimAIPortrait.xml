@@ -35,6 +35,7 @@
   <RimAIPortrait.Settings.OpenPortraitRoot>Open portrait storage folder</RimAIPortrait.Settings.OpenPortraitRoot>
   <RimAIPortrait.Error.OpenPortraitRoot>Could not open the portrait storage folder: {0}</RimAIPortrait.Error.OpenPortraitRoot>
   <RimAIPortrait.Help.Title>Portrait help</RimAIPortrait.Help.Title>
+  <RimAIPortrait.Help.Prev>Previous</RimAIPortrait.Help.Prev>
   <RimAIPortrait.Help.Next>Next</RimAIPortrait.Help.Next>
   <RimAIPortrait.Help.Ok>OK</RimAIPortrait.Help.Ok>
   <RimAIPortrait.Help.ImageUnavailable>Could not load this help image.</RimAIPortrait.Help.ImageUnavailable>
@@ -106,7 +107,7 @@
   <RimAIPortrait.Settings.ConfirmRestoreDefaults>Restore all options to their defaults? API keys, provider settings, prompts, and local paths will also be cleared or reset.</RimAIPortrait.Settings.ConfirmRestoreDefaults>
   <RimAIPortrait.Settings.DefaultsRestored>Restored all options to their defaults.</RimAIPortrait.Settings.DefaultsRestored>
   <RimAIPortrait.Settings.ResetPortraitHelp>Reset portrait help</RimAIPortrait.Settings.ResetPortraitHelp>
-  <RimAIPortrait.Settings.PortraitHelpReset>Portrait help will appear the next time you open a colonist's portrait gallery.</RimAIPortrait.Settings.PortraitHelpReset>
+  <RimAIPortrait.Settings.PortraitHelpReset>Page 1 will appear the next time you open a colonist's portrait gallery. Pages 2 and 3 will appear on a later visit after an image is available.</RimAIPortrait.Settings.PortraitHelpReset>
   <RimAIPortrait.Settings.ComfyTimeout>Generation timeout: {0} seconds</RimAIPortrait.Settings.ComfyTimeout>
   <RimAIPortrait.Settings.ComfyRequiredOutput>Required output: set the final SaveImage node filename_prefix to RimAI</RimAIPortrait.Settings.ComfyRequiredOutput>
   <RimAIPortrait.Settings.ComfyWorkflowTokens>Workflow tokens: __RIM_PROMPT__, __RIM_NEGATIVE_PROMPT__, __RIM_EXTRACTED_TAG__.positive, __RIM_EXTRACTED_TAG__.negative, __RIM_INPUT_IMAGE__, __RIM_REFERENCE_1__ ... __RIM_REFERENCE_8__, __RIM_SEED__</RimAIPortrait.Settings.ComfyWorkflowTokens>
@@ -211,7 +212,8 @@
   <RimAIPortrait.Error.GoogleDefaultStyleReadFailed>Could not read a bundled Google style image: {0}</RimAIPortrait.Error.GoogleDefaultStyleReadFailed>
   <RimAIPortrait.Error.BundledStyleMissing>No style images were found in the bundled Style folder.</RimAIPortrait.Error.BundledStyleMissing>
   <RimAIPortrait.TagExtractor.Enabled>Extract positive and negative tags before NAI/Comfy generation</RimAIPortrait.TagExtractor.Enabled>
-  <RimAIPortrait.TagExtractor.Scope>Optional for NAI and Comfy. Multiple expressions from one Base share one extraction call. Comfy uses tags only when its workflow includes the token.</RimAIPortrait.TagExtractor.Scope>
+  <RimAIPortrait.TagExtractor.Scope>Before NAI/Comfy expression generation, extracted positive tags fill the editable Inpaint Extra Tag field. NAI uses negative tags; Comfy uses them when its workflow includes the extracted negative tag token. Multiple expressions from one Base share one extraction call.</RimAIPortrait.TagExtractor.Scope>
+  <RimAIPortrait.TagExtractor.SetupWarning>Tag Extractor is enabled but its model is not configured. Check the settings, or turn Tag Extractor off if you do not want to use it.</RimAIPortrait.TagExtractor.SetupWarning>
   <RimAIPortrait.TagExtractor.Model>Tag extraction model</RimAIPortrait.TagExtractor.Model>
   <RimAIPortrait.TagExtractor.Model.OpenAI>OpenAI</RimAIPortrait.TagExtractor.Model.OpenAI>
   <RimAIPortrait.TagExtractor.Model.Google>Google</RimAIPortrait.TagExtractor.Model.Google>
@@ -222,5 +224,11 @@
   <RimAIPortrait.TagExtractor.ConfigurationMissing>Tag extraction model settings are incomplete.</RimAIPortrait.TagExtractor.ConfigurationMissing>
   <RimAIPortrait.TagExtractor.HttpError>Tag extraction request failed (HTTP {0}): {1}</RimAIPortrait.TagExtractor.HttpError>
   <RimAIPortrait.TagExtractor.InvalidResponse>Tag extraction returned invalid or incomplete JSON.</RimAIPortrait.TagExtractor.InvalidResponse>
-  <RimAIPortrait.TagExtractor.Failed>Tag extraction failed: {0}</RimAIPortrait.TagExtractor.Failed>
+  <RimAIPortrait.TagExtractor.Failed>Tag extraction failed: {0} Check the model settings, or turn Tag Extractor off if you do not want to use it.</RimAIPortrait.TagExtractor.Failed>
+  <RimAIPortrait.Settings.RegenerateProvider>Regenerate provider</RimAIPortrait.Settings.RegenerateProvider>
+  <RimAIPortrait.Kind.Regenerate>portrait regeneration</RimAIPortrait.Kind.Regenerate>
+  <RimAIPortrait.Regenerate.Title>Regenerate selected image</RimAIPortrait.Regenerate.Title>
+  <RimAIPortrait.Regenerate.PromptPrefix>Based on this image, change the following features: </RimAIPortrait.Regenerate.PromptPrefix>
+  <RimAIPortrait.Inpaint.ExtraTagPlaceholder>Describe the features of the selected area.</RimAIPortrait.Inpaint.ExtraTagPlaceholder>
+  <RimAIPortrait.Gallery.ShowAll>Show All</RimAIPortrait.Gallery.ShowAll>
 </LanguageData>

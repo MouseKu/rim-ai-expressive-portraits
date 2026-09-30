@@ -82,6 +82,18 @@ foreach ($directory in @("About", "Languages", "Prompts", "Json", "Textures", "S
     Copy-Item -LiteralPath $resourceDirectory -Destination $OutputDirectory -Recurse
 }
 
+# RimWorld uses this exact filename for the in-game and Steam Workshop preview.
+$previewJpg = Join-Path $resourcesRoot "About\Preview.jpg"
+$previewPng = Join-Path $OutputDirectory "About\Preview.png"
+if (-not (Test-Path -LiteralPath $previewJpg -PathType Leaf)) {
+    throw "Required preview image was not found: $previewJpg"
+}
+
+if (Test-Path -LiteralPath $previewPng -PathType Leaf) {
+    Remove-Item -LiteralPath $previewPng -Force
+}
+Copy-Item -LiteralPath $previewJpg -Destination $previewPng
+
 $distAssemblies = Join-Path $OutputDirectory "Assemblies"
 New-Item -ItemType Directory -Path $distAssemblies | Out-Null
 Copy-Item -LiteralPath $assemblyPath -Destination $distAssemblies

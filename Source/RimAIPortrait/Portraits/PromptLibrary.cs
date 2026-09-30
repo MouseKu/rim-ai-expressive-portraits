@@ -27,6 +27,13 @@ namespace RimAIPortrait
     /// </summary>
     public static class PromptLibrary
     {
+        public static string ProviderFolder(AiProvider provider)
+        {
+            return provider == AiProvider.Google ? "Google"
+                : provider == AiProvider.LocalComfyUI ? "Comfy"
+                : provider == AiProvider.NovelAI ? "NAI" : "OpenAI";
+        }
+
         public const string DefaultExpression = "Edit the first attached portrait to show the requested expression clearly. Keep the same character, facial features, hair, clothing, pose, framing, colors, art style, and background. Change the eyebrows, eyes, and mouth as needed so the expression is easy to read at small size. Preserve everything else.";
         public const string DefaultBase = "Redraw the attached character as a 2D colonist portrait that blends naturally with RimWorld’s in-game visuals.\n\nArt style:\n\nThick, clean, dark brown outlines\nBroad areas of color with simple two- or three-tone cel shading\nA subdued palette centered on muted browns, grays, and creams\nHair drawn in large, distinct shapes without fine strands\nEyes slightly smaller than in the original, with minimal highlights and eyelashes\nSimply drawn nose and mouth while preserving the character’s facial identity\nRetain some cuteness, but give the character an understated, slightly indifferent frontier-colonist look\nKeep the face and silhouette clearly readable at small game UI sizes\nUse a fully transparent background, with alpha set to 0 everywhere outside the character\n\nUse a three-quarter-view bust composition showing the head and shoulders. Center the character with enough padding to avoid cropping the ears or hair.\n\nExclude pixel art, photorealism, 3D rendering, glossy anime effects, oversized eyes, finely detailed hair strands, background scenery, green backgrounds, text, and borders.";
         public static readonly Dictionary<PortraitState, string> State = new Dictionary<PortraitState, string> {

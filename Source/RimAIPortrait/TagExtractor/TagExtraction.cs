@@ -72,12 +72,12 @@ namespace RimAIPortrait
         }
 
         public static IEnumerator Extract(PortraitSettings settings, byte[] image, string portraitPrompt, bool inpaint,
-            Action<ExtractedTags, string> done)
+            Action<ExtractedTags, string> done, string features = null)
         {
             string response = null;
             string error = null;
             yield return Send(settings, image, portraitPrompt, inpaint ? "TagExtractorInpaint.md" : "TagExtractor.md",
-                false, (value, failure) => { response = value; error = failure; });
+                false, (value, failure) => { response = value; error = failure; }, features);
             if (response == null) { done(null, error); yield break; }
             try
             {
@@ -116,9 +116,12 @@ namespace RimAIPortrait
             }
             try
             {
-                ExtractedTagBatch batch = JsonUtility.FromJson<ExtractedTagBatch>(response);
+                ExtractedTagBatch batch;
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(response)))
+                    batch = (ExtractedTagBatch)new DataContractJsonSerializer(typeof(ExtractedTagBatch)).ReadObject(stream);
                 Debug(settings, "batch validation", "expected_states=" + prompts.Count
-                    + ", returned_states=" + (batch?.states?.Length ?? -1));
+                    + ", returned_states=" + (batch?.states?.Length ?? -1)
+                    + ", has_states_field=" + HasJsonField(response, "states"));
                 if (batch == null || batch.states == null || batch.states.Length != prompts.Count) throw new InvalidDataException();
                 foreach (ExtractedStateTags item in batch.states)
                 {
@@ -145,7 +148,7 @@ namespace RimAIPortrait
         }
 
         private static IEnumerator Send(PortraitSettings settings, byte[] image, string portraitPrompt,
-            string promptFile, bool batch, Action<string, string> done)
+            string promptFile, bool batch, Action<string, string> done, string features = null)
         {
             if (image == null || image.Length == 0 || image.Length > 8 * 1024 * 1024)
             {
@@ -156,7 +159,7 @@ namespace RimAIPortrait
             string instruction;
             try
             {
-                instruction = File.ReadAllText(Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Prompts", promptFile)).Trim();
+                instruction = File.ReadAllText(Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Prompts", "Common", promptFile)).Trim();
                 if (instruction.Length == 0) throw new InvalidDataException();
             }
             catch (Exception)
@@ -193,7 +196,8 @@ namespace RimAIPortrait
                 yield break;
             }
 
-            string message = instruction + "\n\nPortrait request: " + (portraitPrompt ?? "");
+            string message = instruction + (string.IsNullOrWhiteSpace(features) ? "" : "\n\nFeatures:\n" + features.Trim())
+                + "\n\nPortrait request: " + (portraitPrompt ?? "");
             string encodedImage = Convert.ToBase64String(image);
             string mime = image.Length > 3 && image[0] == 0xff && image[1] == 0xd8 ? "image/jpeg"
                 : image.Length > 12 && image[0] == 'R' && image[1] == 'I' && image[2] == 'F' && image[3] == 'F'
@@ -275,12 +279,24 @@ namespace RimAIPortrait
 
         private static string OpenAiText(PortraitSettings settings, string json)
         {
-            OpenAiResponse response = JsonUtility.FromJson<OpenAiResponse>(json);
+            Debug(settings, "OpenAI raw response", "json_characters=" + (json?.Length ?? 0)
+                + ", has_output=" + HasJsonField(json, "output")
+                + ", has_output_text=" + HasJsonField(json, "output_text"));
+            OpenAiResponse response;
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+                response = (OpenAiResponse)new DataContractJsonSerializer(typeof(OpenAiResponse)).ReadObject(stream);
             Debug(settings, "OpenAI response", "status=" + SafeStatus(response?.status)
+                + ", has_output=" + HasJsonField(json, "output")
                 + ", output_items=" + (response?.output?.Length ?? -1));
-            if (response == null || response.status != "completed" || response.output == null) throw new InvalidDataException();
-            return string.Concat(response.output.Where(item => item.content != null)
-                .SelectMany(item => item.content).Where(part => part.type == "output_text").Select(part => part.text));
+            if (response == null || response.status != "completed") throw new InvalidDataException();
+            string text = response.output == null ? null : string.Concat(response.output
+                .Where(item => item != null && item.content != null)
+                .SelectMany(item => item.content)
+                .Where(part => part != null && part.type == "output_text")
+                .Select(part => part.text));
+            if (string.IsNullOrWhiteSpace(text)) text = response.output_text;
+            if (string.IsNullOrWhiteSpace(text)) throw new InvalidDataException();
+            return text;
         }
 
         private static string GoogleText(PortraitSettings settings, string json)
@@ -349,16 +365,28 @@ namespace RimAIPortrait
                 && Regex.IsMatch(json, "\"" + Regex.Escape(name) + "\"\\s*:");
         }
 
-        [Serializable] private sealed class TextPart { public string type = null; public string text = null; }
-        [Serializable] private sealed class ExtractedStateTags
+        [DataContract] private sealed class TextPart
         {
-            public string state = null;
-            public string[] positive = null;
-            public string[] negative = null;
+            [DataMember] public string type = null;
+            [DataMember] public string text = null;
         }
-        [Serializable] private sealed class ExtractedTagBatch { public ExtractedStateTags[] states = null; }
-        [Serializable] private sealed class OpenAiOutput { public TextPart[] content = null; }
-        [Serializable] private sealed class OpenAiResponse { public string status = null; public OpenAiOutput[] output = null; }
+        [DataContract] private sealed class ExtractedStateTags
+        {
+            [DataMember] public string state = null;
+            [DataMember] public string[] positive = null;
+            [DataMember] public string[] negative = null;
+        }
+        [DataContract] private sealed class ExtractedTagBatch
+        {
+            [DataMember] public ExtractedStateTags[] states = null;
+        }
+        [DataContract] private sealed class OpenAiOutput { [DataMember] public TextPart[] content = null; }
+        [DataContract] private sealed class OpenAiResponse
+        {
+            [DataMember] public string status = null;
+            [DataMember] public OpenAiOutput[] output = null;
+            [DataMember] public string output_text = null;
+        }
         [DataContract] private sealed class GooglePart { [DataMember] public string text = null; }
         [DataContract] private sealed class GoogleContent { [DataMember] public GooglePart[] parts = null; }
         [DataContract] private sealed class GoogleCandidate

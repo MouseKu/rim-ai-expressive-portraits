@@ -10,12 +10,15 @@ namespace RimAIPortrait
     {
         private const int PageCount = 3;
         private readonly Texture2D[] pages = new Texture2D[PageCount];
+        private readonly int lastPageIndex;
         private int pageIndex;
 
         public override Vector2 InitialSize => new Vector2(1030f, 430f);
 
-        public Dialog_PortraitHelp()
+        public Dialog_PortraitHelp(int firstPageIndex, int lastPageIndex)
         {
+            pageIndex = firstPageIndex;
+            this.lastPageIndex = lastPageIndex;
             doCloseX = true;
             absorbInputAroundWindow = true;
             closeOnClickedOutside = false;
@@ -60,8 +63,11 @@ namespace RimAIPortrait
                 Widgets.Label(imageArea.ContractedBy(12f), Localization.T("RimAIPortrait.Help.ImageUnavailable"));
 
             float buttonY = rect.height - 46f;
+            if (Widgets.ButtonText(new Rect(0f, buttonY, 120f, 38f),
+                Localization.T("RimAIPortrait.Help.Prev"), true, true, pageIndex > 0))
+                pageIndex--;
             if (Widgets.ButtonText(new Rect(rect.width - 250f, buttonY, 120f, 38f),
-                Localization.T("RimAIPortrait.Help.Next"), true, true, pageIndex < PageCount - 1))
+                Localization.T("RimAIPortrait.Help.Next"), true, true, pageIndex < lastPageIndex))
                 pageIndex++;
             if (Widgets.ButtonText(new Rect(rect.width - 120f, buttonY, 120f, 38f),
                 Localization.T("RimAIPortrait.Help.Ok")))

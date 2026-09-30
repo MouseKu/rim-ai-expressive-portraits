@@ -1,0 +1,1 @@
+peaceful sleep, both eyes fully closed, natural closed eyelids, relaxed brows, relaxed face, no visible irises, no visible pupils,

@@ -29,6 +29,7 @@ namespace RimAIPortrait
         private Texture2D debugSprite;
         private byte[] debugSpriteSource;
         private PortraitState targetState = PortraitState.Normal;
+        private bool showAll;
         private string status = Localization.T("RimAIPortrait.Gallery.InitialStatus");
         private bool checkedFirstHelp;
         private const string BasePromptControl = "RimAIPortrait.Gallery.BasePrompt";
@@ -53,7 +54,14 @@ namespace RimAIPortrait
                 {
                     RimAIPortraitMod.Settings.PortraitHelpShown = true;
                     RimAIPortraitMod.SaveSettings();
-                    Find.WindowStack.Add(new Dialog_PortraitHelp());
+                    Find.WindowStack.Add(new Dialog_PortraitHelp(0, 0));
+                }
+                else if (!RimAIPortraitMod.Settings.PortraitHelpAfterImageShown &&
+                    (files.Length > 0 || File.Exists(PortraitData.ExistingPathFor(pawn, PortraitState.Normal))))
+                {
+                    RimAIPortraitMod.Settings.PortraitHelpAfterImageShown = true;
+                    RimAIPortraitMod.SaveSettings();
+                    Find.WindowStack.Add(new Dialog_PortraitHelp(1, 2));
                 }
             }
             if (basePromptProvider != RimAIPortraitMod.Settings.Provider)
@@ -62,8 +70,12 @@ namespace RimAIPortrait
                 LoadBasePrompt();
             }
             bool emotionChangesAvailable = RimAIPortraitMod.Settings.EnableEmotionChanges && !pawn.RaceProps.Animal;
-            if (!emotionChangesAvailable || !RimAIPortraitMod.Settings.IsStateEnabled(targetState))
+            if (targetState != PortraitState.Normal &&
+                (!emotionChangesAvailable || !RimAIPortraitMod.Settings.IsStateEnabled(targetState)))
+            {
                 targetState = PortraitState.Normal;
+                UpdateVisibleSelection();
+            }
             HandleShortcuts(emotionChangesAvailable);
 
             Rect openFolderButton = new Rect(0f, 0f, 95f, 32f);
@@ -85,8 +97,10 @@ namespace RimAIPortrait
 
             float firstWidth = (rect.width - 30f) / 4f;
             Rect generateBaseButton = new Rect(0f, 45f, firstWidth, 34f);
-            if (Widgets.ButtonText(generateBaseButton, Localization.T("RimAIPortrait.Gallery.GenerateBase")))
+            if (Widgets.ButtonText(generateBaseButton, Localization.T("RimAIPortrait.Gallery.GenerateBase"),
+                true, true, PortraitRuntime.GenerationButtonReady))
             {
+                PortraitRuntime.StartGenerationButtonCooldown();
                 SaveRequestFields();
                 PortraitRuntime.EnsureCreated();
                 status = Localization.T("RimAIPortrait.Status.GeneratingBase");
@@ -95,27 +109,43 @@ namespace RimAIPortrait
             Tip(generateBaseButton, "GenerateBase");
             Rect regenerateButton = new Rect(firstWidth + 10f, 45f, firstWidth, 34f);
             if (Widgets.ButtonText(regenerateButton,
-                Localization.T("RimAIPortrait.Gallery.RegenerateSelected")))
+                Localization.T("RimAIPortrait.Gallery.RegenerateSelected"),
+                true, true, PortraitRuntime.GenerationButtonReady))
             {
                 if (selected.Count != 1) status = Localization.T("RimAIPortrait.Gallery.SelectOneToRegenerate");
                 else
                 {
                     SaveRequestFields();
                     PortraitRuntime.EnsureCreated();
-                    status = Localization.T("RimAIPortrait.Status.RegeneratingSelected");
-                    PortraitRuntime.Instance.GenerateNormalFromReference(pawn, selected.First(),
-                        x => { status = x; RefreshFiles(); });
+                    string referencePath = selected.First();
+                    AiProvider provider = RimAIPortraitMod.Settings.RegenerateProvider;
+                    if (provider == AiProvider.OpenAI || provider == AiProvider.Google)
+                        Find.WindowStack.Add(new Dialog_PortraitRegenerate(referencePath, prompt =>
+                        {
+                            PortraitRuntime.StartGenerationButtonCooldown();
+                            status = Localization.T("RimAIPortrait.Status.RegeneratingSelected");
+                            PortraitRuntime.Instance.GenerateNormalFromReference(pawn, referencePath, prompt,
+                                x => { status = x; RefreshFiles(); });
+                        }));
+                    else
+                    {
+                        PortraitRuntime.StartGenerationButtonCooldown();
+                        status = Localization.T("RimAIPortrait.Status.RegeneratingSelected");
+                        PortraitRuntime.Instance.GenerateNormalFromReference(pawn, referencePath, null,
+                            x => { status = x; RefreshFiles(); });
+                    }
                 }
             }
             Tip(regenerateButton, "RegenerateSelected");
             Rect emotionRect = new Rect((firstWidth + 10f) * 2f, 45f, firstWidth, 34f);
             if (Widgets.ButtonText(emotionRect, Localization.T("RimAIPortrait.Gallery.GenerateEmotionsFromBase"),
-                true, true, emotionChangesAvailable))
+                true, true, emotionChangesAvailable && PortraitRuntime.GenerationButtonReady))
             {
                 string basePath = PortraitData.ExistingPathFor(pawn, PortraitState.Normal);
                 if (!File.Exists(basePath)) status = Localization.T("RimAIPortrait.Gallery.BaseRequired");
                 else
                 {
+                    PortraitRuntime.StartGenerationButtonCooldown();
                     SaveRequestFields();
                     PortraitRuntime.EnsureCreated();
                     Find.WindowStack.Add(new Dialog_EmotionGeneration(pawn, new[] { basePath }, RefreshFiles));
@@ -301,7 +331,25 @@ namespace RimAIPortrait
             PortraitState[] states = AvailableStates(emotionChangesAvailable);
             int nextIndex = Array.IndexOf(states, targetState) + direction;
             if (nextIndex >= 0 && nextIndex < states.Length)
+            {
                 targetState = states[nextIndex];
+                UpdateVisibleSelection();
+            }
+        }
+
+        private bool IsVisibleFile(string path)
+        {
+            if (showAll) return true;
+            string name = Path.GetFileNameWithoutExtension(path);
+            return name.StartsWith(PortraitStateNames.Display(targetState) + "_", StringComparison.OrdinalIgnoreCase)
+                || targetState == PortraitState.Normal && name.StartsWith("Normal_", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void UpdateVisibleSelection()
+        {
+            scroll = Vector2.zero;
+            selected.RemoveWhere(path => !IsVisibleFile(path));
+            if (selectionAnchor != null && !IsVisibleFile(selectionAnchor)) selectionAnchor = null;
         }
 
         private static void Tip(Rect area, string name)
@@ -321,6 +369,10 @@ namespace RimAIPortrait
                 Texture2D texture = Load(path);
                 if (texture != null)
                 {
+                    Event current = Event.current;
+                    if (current.type == EventType.MouseDown && current.button == 0
+                        && imageArea.Contains(current.mousePosition))
+                        GUIUtility.keyboardControl = 0;
                     GUI.DrawTexture(imageArea, texture, ScaleMode.ScaleToFit, true);
                     TooltipHandler.TipRegion(imageArea,
                         Localization.T("RimAIPortrait.Gallery.Tip.AssignedPortrait", PortraitStateNames.Display(targetState)));
@@ -347,20 +399,26 @@ namespace RimAIPortrait
 
         private void DrawGallery(Rect area)
         {
+            bool previousShowAll = showAll;
+            Widgets.CheckboxLabeled(new Rect(area.x + 8f, area.y, area.width - 16f, 28f),
+                Localization.T("RimAIPortrait.Gallery.ShowAll"), ref showAll);
+            if (showAll != previousShowAll) UpdateVisibleSelection();
+            area = new Rect(area.x, area.y + 32f, area.width, area.height - 32f);
             Widgets.DrawMenuSection(area);
+            string[] visibleFiles = files.Where(IsVisibleFile).ToArray();
             float cell = 140f;
             float gap = 10f;
             int columns = Math.Max(1, (int)((area.width - 24f + gap) / (cell + gap)));
             float rowHeight = cell + gap;
-            float contentHeight = Math.Max(area.height, ((files.Length + columns - 1) / columns) * rowHeight + 8f);
+            float contentHeight = Math.Max(area.height, ((visibleFiles.Length + columns - 1) / columns) * rowHeight + 8f);
             Rect view = new Rect(0f, 0f, area.width - 20f, contentHeight);
             Widgets.BeginScrollView(area.ContractedBy(4f), ref scroll, view);
             int firstRow = Math.Max(0, (int)(scroll.y / rowHeight));
-            int lastRow = Math.Min((files.Length + columns - 1) / columns,
+            int lastRow = Math.Min((visibleFiles.Length + columns - 1) / columns,
                 (int)Math.Ceiling((scroll.y + area.height) / rowHeight) + 1);
-            for (int i = firstRow * columns; i < Math.Min(files.Length, lastRow * columns); i++)
+            for (int i = firstRow * columns; i < Math.Min(visibleFiles.Length, lastRow * columns); i++)
             {
-                string file = files[i];
+                string file = visibleFiles[i];
                 float x = (i % columns) * (cell + gap) + 4f;
                 float y = (i / columns) * rowHeight + 4f;
                 Rect box = new Rect(x, y, cell, cell);
@@ -373,28 +431,29 @@ namespace RimAIPortrait
                     && !current.shift && !current.control && !current.alt && !current.command
                     && box.Contains(current.mousePosition))
                 {
-                    SelectGalleryImage(i, false, false);
+                    SelectGalleryImage(visibleFiles, i, false, false);
                     AssignSelected();
                     current.Use();
                 }
                 bool shift = Event.current.shift;
                 bool control = Event.current.control;
                 if (Widgets.ButtonInvisible(box))
-                    SelectGalleryImage(i, shift, control);
+                    SelectGalleryImage(visibleFiles, i, shift, control);
                 TooltipHandler.TipRegion(box, Localization.T("RimAIPortrait.Gallery.Tip.GalleryImage") + "\n" + file);
             }
             Widgets.EndScrollView();
         }
-        private void SelectGalleryImage(int index, bool shift, bool control)
+        private void SelectGalleryImage(string[] visibleFiles, int index, bool shift, bool control)
         {
-            string file = files[index];
-            int anchorIndex = selectionAnchor == null ? -1 : Array.IndexOf(files, selectionAnchor);
+            GUIUtility.keyboardControl = 0;
+            string file = visibleFiles[index];
+            int anchorIndex = selectionAnchor == null ? -1 : Array.IndexOf(visibleFiles, selectionAnchor);
             if (shift && anchorIndex >= 0)
             {
                 if (!control) selected.Clear();
                 int start = Math.Min(anchorIndex, index);
                 int end = Math.Max(anchorIndex, index);
-                for (int i = start; i <= end; i++) selected.Add(files[i]);
+                for (int i = start; i <= end; i++) selected.Add(visibleFiles[i]);
                 return;
             }
 
@@ -478,12 +537,15 @@ namespace RimAIPortrait
         private void ResetBasePrompt()
         {
             AiProvider provider = basePromptProvider;
-            string fileName = provider == AiProvider.Google ? "BasePrompt(Gemini).md"
-                : provider == AiProvider.NovelAI ? "BasePrompt(NAI).md" : "BasePrompt.md";
+            const string fileName = "BasePrompt.md";
             try
             {
-                string path = Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Prompts", fileName);
+                string path = Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Prompts",
+                    PromptLibrary.ProviderFolder(provider), fileName);
                 string prompt = File.ReadAllText(path).Trim();
+                if (prompt.NullOrEmpty() && provider == AiProvider.LocalComfyUI)
+                    prompt = File.ReadAllText(Path.Combine(RimAIPortraitMod.ModPack.RootDir,
+                        "Prompts", "OpenAI", fileName)).Trim();
                 if (prompt.NullOrEmpty()) throw new InvalidDataException(fileName + " is empty.");
                 basePromptOverride = prompt;
                 status = Localization.T("RimAIPortrait.Gallery.BaseReset");
@@ -519,6 +581,7 @@ namespace RimAIPortrait
             selected.RemoveWhere(path => !File.Exists(path));
             if (selectionAnchor != null && Array.IndexOf(files, selectionAnchor) < 0)
                 selectionAnchor = null;
+            UpdateVisibleSelection();
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         public override void PostClose() { SaveRequestFields(); foreach (var t in textures.Values) UnityEngine.Object.Destroy(t); if (debugSprite != null) UnityEngine.Object.Destroy(debugSprite); base.PostClose(); }

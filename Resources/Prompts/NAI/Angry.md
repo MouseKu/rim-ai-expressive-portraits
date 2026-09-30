@@ -1,0 +1,1 @@
+furious, enraged, deeply furrowed brows, fierce eyes, intense glare, clenched jaw, tense face,

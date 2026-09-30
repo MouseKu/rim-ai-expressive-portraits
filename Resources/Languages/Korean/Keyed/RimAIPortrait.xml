@@ -35,6 +35,7 @@
   <RimAIPortrait.Settings.OpenPortraitRoot>초상화 저장 폴더 열기</RimAIPortrait.Settings.OpenPortraitRoot>
   <RimAIPortrait.Error.OpenPortraitRoot>초상화 저장 폴더를 열지 못했습니다: {0}</RimAIPortrait.Error.OpenPortraitRoot>
   <RimAIPortrait.Help.Title>초상화 도움말</RimAIPortrait.Help.Title>
+  <RimAIPortrait.Help.Prev>이전</RimAIPortrait.Help.Prev>
   <RimAIPortrait.Help.Next>다음</RimAIPortrait.Help.Next>
   <RimAIPortrait.Help.Ok>확인</RimAIPortrait.Help.Ok>
   <RimAIPortrait.Help.ImageUnavailable>도움말 이미지를 불러올 수 없습니다.</RimAIPortrait.Help.ImageUnavailable>
@@ -62,7 +63,7 @@
   <RimAIPortrait.Settings.EnabledEmotions>감정 활성화</RimAIPortrait.Settings.EnabledEmotions>
   <RimAIPortrait.Settings.Category>Rim AI Expressive Portraits</RimAIPortrait.Settings.Category><RimAIPortrait.Settings.RestoreDefaults>기본값으로 되돌리기</RimAIPortrait.Settings.RestoreDefaults><RimAIPortrait.Settings.ConfirmRestoreDefaults>모든 옵션을 기본값으로 되돌릴까요? API 키, 제공자 설정, 프롬프트, 로컬 경로도 함께 지워지거나 초기화됩니다.</RimAIPortrait.Settings.ConfirmRestoreDefaults><RimAIPortrait.Settings.DefaultsRestored>모든 옵션을 기본값으로 되돌렸습니다.</RimAIPortrait.Settings.DefaultsRestored>
   <RimAIPortrait.Settings.ResetPortraitHelp>초상화 도움말 초기화</RimAIPortrait.Settings.ResetPortraitHelp>
-  <RimAIPortrait.Settings.PortraitHelpReset>다음에 정착민의 초상화 갤러리를 열면 도움말이 다시 표시됩니다.</RimAIPortrait.Settings.PortraitHelpReset>
+  <RimAIPortrait.Settings.PortraitHelpReset>다음에 정착민의 초상화 갤러리를 열면 1번 도움말이 표시됩니다. 이미지가 생긴 뒤 다시 방문하면 2~3번이 표시됩니다.</RimAIPortrait.Settings.PortraitHelpReset>
   <RimAIPortrait.Settings.ComfyTimeout>생성 제한 시간: {0}초</RimAIPortrait.Settings.ComfyTimeout>
   <RimAIPortrait.Settings.ComfyRequiredOutput>필수 출력 설정: 마지막 SaveImage 노드의 filename_prefix를 RimAI로 지정하세요.</RimAIPortrait.Settings.ComfyRequiredOutput>
   <RimAIPortrait.Settings.ComfyWorkflowTokens>워크플로 토큰: __RIM_PROMPT__, __RIM_NEGATIVE_PROMPT__, __RIM_EXTRACTED_TAG__.positive, __RIM_EXTRACTED_TAG__.negative, __RIM_INPUT_IMAGE__, __RIM_REFERENCE_1__ ... __RIM_REFERENCE_8__, __RIM_SEED__</RimAIPortrait.Settings.ComfyWorkflowTokens>
@@ -167,7 +168,8 @@
   <RimAIPortrait.Error.GoogleDefaultStyleReadFailed>Google 기본 스타일 이미지를 읽지 못했습니다: {0}</RimAIPortrait.Error.GoogleDefaultStyleReadFailed>
   <RimAIPortrait.Error.BundledStyleMissing>모드에 포함된 Style 폴더에서 스타일 이미지를 찾지 못했습니다.</RimAIPortrait.Error.BundledStyleMissing>
   <RimAIPortrait.TagExtractor.Enabled>NAI/Comfy 생성 전에 Positive/Negative 태그 추출</RimAIPortrait.TagExtractor.Enabled>
-  <RimAIPortrait.TagExtractor.Scope>NAI/Comfy의 선택 기능입니다. 같은 Base에서 여러 표정을 만들면 한 번만 추출합니다. Comfy는 워크플로에 토큰이 있을 때만 태그를 사용합니다.</RimAIPortrait.TagExtractor.Scope>
+  <RimAIPortrait.TagExtractor.Scope>NAI/Comfy 감정 생성 전에 추출한 Positive 태그를 수정 가능한 인페인트 추가 태그 칸에 채웁니다. Negative 태그는 NAI에 적용되며 Comfy에서는 워크플로에 추출 Negative 태그 토큰이 있을 때 사용됩니다. 같은 Base에서 여러 표정을 만들면 한 번만 추출합니다.</RimAIPortrait.TagExtractor.Scope>
+  <RimAIPortrait.TagExtractor.SetupWarning>Tag Extractor가 켜져 있지만 모델 설정이 완료되지 않았습니다. 설정을 확인하거나 사용하지 않을 경우 Tag Extractor를 끄세요.</RimAIPortrait.TagExtractor.SetupWarning>
   <RimAIPortrait.TagExtractor.Model>태그 추출 모델</RimAIPortrait.TagExtractor.Model>
   <RimAIPortrait.TagExtractor.Model.OpenAI>OpenAI</RimAIPortrait.TagExtractor.Model.OpenAI>
   <RimAIPortrait.TagExtractor.Model.Google>Google</RimAIPortrait.TagExtractor.Model.Google>
@@ -178,5 +180,11 @@
   <RimAIPortrait.TagExtractor.ConfigurationMissing>태그 추출 모델 설정이 불완전합니다.</RimAIPortrait.TagExtractor.ConfigurationMissing>
   <RimAIPortrait.TagExtractor.HttpError>태그 추출 요청 실패(HTTP {0}): {1}</RimAIPortrait.TagExtractor.HttpError>
   <RimAIPortrait.TagExtractor.InvalidResponse>태그 추출 응답 JSON이 잘못되었거나 완성되지 않았습니다.</RimAIPortrait.TagExtractor.InvalidResponse>
-  <RimAIPortrait.TagExtractor.Failed>태그 추출로 인한 실패: {0}</RimAIPortrait.TagExtractor.Failed>
+  <RimAIPortrait.TagExtractor.Failed>태그 추출 실패: {0} 모델 설정을 확인하거나 사용하지 않을 경우 Tag Extractor를 끄세요.</RimAIPortrait.TagExtractor.Failed>
+  <RimAIPortrait.Settings.RegenerateProvider>재생성 제공자</RimAIPortrait.Settings.RegenerateProvider>
+  <RimAIPortrait.Kind.Regenerate>초상화 재생성</RimAIPortrait.Kind.Regenerate>
+  <RimAIPortrait.Regenerate.Title>선택 이미지 재생성</RimAIPortrait.Regenerate.Title>
+  <RimAIPortrait.Regenerate.PromptPrefix>이 이미지를 바탕으로 다음 특징을 수정해줘: </RimAIPortrait.Regenerate.PromptPrefix>
+  <RimAIPortrait.Inpaint.ExtraTagPlaceholder>선택된 영역의 특징을 묘사하세요.</RimAIPortrait.Inpaint.ExtraTagPlaceholder>
+  <RimAIPortrait.Gallery.ShowAll>전체 보기</RimAIPortrait.Gallery.ShowAll>
 </LanguageData>

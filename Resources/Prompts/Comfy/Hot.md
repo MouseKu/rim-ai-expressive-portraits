@@ -1,0 +1,1 @@
+severely overheated, exhausted, flushed face, heavy sweating, strained brows, weary eyes, distressed expression, heat exhaustion, 

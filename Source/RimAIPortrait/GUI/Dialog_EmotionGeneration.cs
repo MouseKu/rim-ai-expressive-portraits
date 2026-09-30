@@ -28,7 +28,8 @@ namespace RimAIPortrait
             {
                 if (!RimAIPortraitMod.Settings.IsStateEnabled(state)) continue;
                 enabled[state] = false;
-                string custom = PortraitPrompt.StateOverride(RimAIPortraitMod.Settings, state);
+                string custom = PortraitPrompt.StateOverride(RimAIPortraitMod.Settings,
+                    RimAIPortraitMod.Settings.ExpressionProvider, state);
                 prompts[state] = custom.NullOrEmpty() ? PromptLibrary.State[state] : custom;
             }
         }
@@ -47,10 +48,12 @@ namespace RimAIPortrait
                 Widgets.Label(new Rect(165, y, 75, 30), Localization.T("RimAIPortrait.Common.Prompt")); prompts[state] = Widgets.TextArea(new Rect(240, y, view.width - 245, 62), prompts[state] ?? ""); y += 74;
             }
             Widgets.EndScrollView();
-            if (Widgets.ButtonText(new Rect(rect.width - 190, rect.height - 45, 190, 40), Localization.T("RimAIPortrait.Emotions.Generate")))
+            if (Widgets.ButtonText(new Rect(rect.width - 190, rect.height - 45, 190, 40),
+                Localization.T("RimAIPortrait.Emotions.Generate"), true, true, PortraitRuntime.GenerationButtonReady))
             {
                 var chosen = prompts.Where(x => enabled[x.Key]).ToDictionary(x => x.Key, x => x.Value);
                 if (chosen.Count == 0) { Messages.Message(Localization.T("RimAIPortrait.Emotions.SelectOne"), MessageTypeDefOf.RejectInput, false); return; }
+                PortraitRuntime.StartGenerationButtonCooldown();
                 PortraitRuntime.Instance.GenerateSelectedEmotions(pawn, references, chosen, message => { onChanged?.Invoke(); Messages.Message(message, MessageTypeDefOf.NeutralEvent, false); }); Close();
             }
         }

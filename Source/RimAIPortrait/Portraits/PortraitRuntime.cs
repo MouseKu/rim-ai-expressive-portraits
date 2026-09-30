@@ -14,18 +14,15 @@ namespace RimAIPortrait
     /// <summary>Describes the behavior of this type or member.</summary>
     public sealed class PortraitRuntime : MonoBehaviour
     {
-        private sealed class InpaintSelection
+        public static PortraitRuntime Instance { get; private set; }
+        private static float nextGenerationButtonTime;
+        internal static bool GenerationButtonReady => Time.realtimeSinceStartup >= nextGenerationButtonTime;
+
+        internal static void StartGenerationButtonCooldown()
         {
-            public byte[] Source;
-            public byte[] Mask;
-            public byte[] RequestMask;
-            public float Strength;
-            public bool NarrowFeather;
-            public string ExtraTag;
-            public string Error;
+            nextGenerationButtonTime = Time.realtimeSinceStartup + 1f;
         }
 
-        public static PortraitRuntime Instance { get; private set; }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static void EnsureCreated()
         {
@@ -45,10 +42,18 @@ namespace RimAIPortrait
             StartCoroutine(GenerateNormalRoutine(pawn, report));
         }
         /// <summary>Describes the behavior of this type or member.</summary>
-        public void GenerateNormalFromReference(Pawn pawn, string referencePath, Action<string> report)
+        public void GenerateNormalFromReference(Pawn pawn, string referencePath, string prompt, Action<string> report)
         {
-            if (!CanGenerate(pawn, report, true, false)) return;
-            StartCoroutine(GenerateNormalFromReferenceRoutine(pawn, referencePath, report));
+            if (pawn == null || RimAIPortraitMod.Settings == null)
+            {
+                report(Localization.T(pawn == null ? "RimAIPortrait.Error.NoPawn" : "RimAIPortrait.Error.SettingsUnavailable"));
+                return;
+            }
+            PortraitSettings settings = RimAIPortraitMod.Settings;
+            IPortraitGenerationProvider provider = PortraitProviderRegistry.Get(settings.RegenerateProvider);
+            string error = provider.Validate(settings.RegenerateConfiguration(), Localization.T("RimAIPortrait.Kind.Regenerate"));
+            if (!string.IsNullOrEmpty(error)) { report(error); return; }
+            StartCoroutine(GenerateNormalFromReferenceRoutine(pawn, referencePath, prompt, report));
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         public void GenerateEmotions(Pawn pawn, IEnumerable<string> references, Action<string> report)
@@ -80,16 +85,15 @@ namespace RimAIPortrait
             foreach (var item in prompts.OrderBy(item => item.Key == PortraitState.Normal ? 0 : 1))
             {
                 if (!RimAIPortraitMod.Settings.IsStateEnabled(item.Key)) continue;
-                if (item.Key != PortraitState.Normal && selections == null && UsesInpaintSelection())
-                {
-                    yield return CollectInpaintSelections(pawn, prompts.Keys, null, value => selections = value);
-                }
                 if (item.Key != PortraitState.Normal && !batchPrepared)
                 {
                     batchPrepared = true;
-                    yield return PrepareBatchTags(pawn, prompts.Keys, selections, null, prompts,
+                    yield return PrepareBatchTags(pawn, prompts.Keys, null, prompts,
                         value => batchTags = value);
                 }
+                if (item.Key != PortraitState.Normal && selections == null && UsesInpaintSelection())
+                    yield return CollectInpaintSelections(pawn, prompts.Keys, null, batchTags,
+                        value => selections = value);
                 InpaintSelection selection = null;
                 if (selections != null && selections.TryGetValue(item.Key, out selection) && selection.Error != null)
                 {
@@ -97,8 +101,10 @@ namespace RimAIPortrait
                     continue;
                 }
                 byte[] image = null; string error = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(item.Key)));
-                yield return Request(pawn, item.Key, null, references, (data, err) => { image = data; error = err; }, item.Value,
-                    preparedInpaint: selection, batchTags: batchTags);
+                yield return Request(new PortraitRequestOptions {
+                    Pawn = pawn, State = item.Key, ReferencePaths = references,
+                    ExpressionOverride = item.Value, PreparedInpaint = selection, BatchTags = batchTags
+                }, (data, err) => { image = data; error = err; });
                 if (image == null) { Fail(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(item.Key), error), report); continue; }
                 PortraitData.Save(pawn, item.Key, image);
                 if (item.Key == PortraitState.Normal) InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Normal);
@@ -110,7 +116,9 @@ namespace RimAIPortrait
         private IEnumerator GenerateEmotionRoutine(Pawn pawn, PortraitState state, string[] references, Action<string> report)
         {
             byte[] image = null; string error = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(state)));
-            yield return Request(pawn, state, null, references, (data, err) => { image = data; error = err; });
+            yield return Request(new PortraitRequestOptions {
+                Pawn = pawn, State = state, ReferencePaths = references
+            }, (data, err) => { image = data; error = err; });
             if (image == null) { Fail(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(state), error), report); yield break; }
             PortraitData.Save(pawn, state, image);
             if (state == PortraitState.Normal) InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Normal);
@@ -123,8 +131,10 @@ namespace RimAIPortrait
             byte[] sprite = RimAIPortraitMod.Settings.IncludeSprite ? PawnCapture.Capture(pawn) : null; byte[] image = null; string error = null;
             if (RimAIPortraitMod.Settings.IncludeSprite && sprite == null)
                 Log.Warning("[Rim AI Expressive Portraits] Pawn capture returned no image; continuing without a source image.");
-            yield return Request(pawn, PortraitState.Normal, sprite, new string[0],
-                (data, err) => { image = data; error = err; }, imageUse: PortraitImageUse.CharacterReference);
+            yield return Request(new PortraitRequestOptions {
+                Pawn = pawn, State = PortraitState.Normal, PrimaryImage = sprite,
+                ImageUse = PortraitImageUse.CharacterReference
+            }, (data, err) => { image = data; error = err; });
             if (image == null) { Fail(Localization.T("RimAIPortrait.Status.GenerationFailed", error), report); yield break; }
             PortraitData.Save(pawn, PortraitState.Normal, image);
             InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Normal);
@@ -132,15 +142,17 @@ namespace RimAIPortrait
             Messages.Message(Localization.T("RimAIPortrait.Status.PortraitSavedFor", pawn.LabelShort), MessageTypeDefOf.PositiveEvent, false);
         }
         /// <summary>Describes the behavior of this type or member.</summary>
-        private IEnumerator GenerateNormalFromReferenceRoutine(Pawn pawn, string referencePath, Action<string> report)
+        private IEnumerator GenerateNormalFromReferenceRoutine(Pawn pawn, string referencePath, string prompt, Action<string> report)
         {
             byte[] reference;
             try { reference = File.ReadAllBytes(referencePath); }
             catch (Exception e) { Fail(Localization.T("RimAIPortrait.Status.ReferenceReadFailed", e.Message), report); yield break; }
             byte[] image = null; string error = null;
             Log.Message("[Rim AI Expressive Portraits] Starting referenced normal portrait for " + pawn.LabelShort);
-            const string referenceInstruction = "Use the first attached image as the primary portrait to edit. Apply the requested changes from Extra Features. Unless explicitly requested, preserve the character's identity, face, hairstyle, pose, and composition.";
-            yield return Request(pawn, PortraitState.Normal, reference, new string[0], (data, err) => { image = data; error = err; }, null, referenceInstruction, PortraitImageUse.Edit);
+            yield return Request(new PortraitRequestOptions {
+                Pawn = pawn, State = PortraitState.Normal, PrimaryImage = reference,
+                ImageUse = PortraitImageUse.Edit, Regenerate = true, RegeneratePrompt = prompt
+            }, (data, err) => { image = data; error = err; });
             if (image == null) { Fail(Localization.T("RimAIPortrait.Status.GenerationFailed", error), report); yield break; }
             PortraitData.Save(pawn, PortraitState.Normal, image);
             InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Normal);
@@ -152,12 +164,12 @@ namespace RimAIPortrait
         {
             string error = null;
             Dictionary<PortraitState, InpaintSelection> selections = null;
-            if (UsesInpaintSelection())
-                yield return CollectInpaintSelections(pawn, Enum.GetValues(typeof(PortraitState)).Cast<PortraitState>(), null,
-                    value => selections = value);
             Dictionary<PortraitState, ExtractedTags> batchTags = null;
             yield return PrepareBatchTags(pawn, Enum.GetValues(typeof(PortraitState)).Cast<PortraitState>(),
-                selections, null, null, value => batchTags = value);
+                null, null, value => batchTags = value);
+            if (UsesInpaintSelection())
+                yield return CollectInpaintSelections(pawn, Enum.GetValues(typeof(PortraitState)).Cast<PortraitState>(),
+                    null, batchTags, value => selections = value);
             foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
             {
                 InpaintSelection selection = null;
@@ -167,8 +179,10 @@ namespace RimAIPortrait
                     continue;
                 }
                 if (state == PortraitState.Normal || !RimAIPortraitMod.Settings.IsStateEnabled(state)) continue; byte[] image = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(state)));
-                yield return Request(pawn, state, null, references, (data, err) => { image = data; error = err; },
-                    preparedInpaint: selection, batchTags: batchTags);
+                yield return Request(new PortraitRequestOptions {
+                    Pawn = pawn, State = state, ReferencePaths = references,
+                    PreparedInpaint = selection, BatchTags = batchTags
+                }, (data, err) => { image = data; error = err; });
                 if (image == null) { Fail(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(state), error), report); continue; }
                 PortraitData.Save(pawn, state, image);
             }
@@ -206,7 +220,10 @@ namespace RimAIPortrait
             var s = RimAIPortraitMod.Settings; byte[] sprite = null;
             if (s.IncludeSprite) { report(Localization.T("RimAIPortrait.Status.CapturingSprite")); yield return null; sprite = PawnCapture.Capture(pawn); }
             byte[] normal = null; string error = null;
-            yield return Request(pawn, PortraitState.Normal, sprite, new string[0], (data, err) => { normal = data; error = err; }, imageUse: PortraitImageUse.CharacterReference);
+            yield return Request(new PortraitRequestOptions {
+                Pawn = pawn, State = PortraitState.Normal, PrimaryImage = sprite,
+                ImageUse = PortraitImageUse.CharacterReference
+            }, (data, err) => { normal = data; error = err; });
             if (normal == null) { report(Localization.T("RimAIPortrait.Status.GenerationFailed", error)); yield break; }
             PortraitData.Save(pawn, PortraitState.Normal, normal);
             InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Normal);
@@ -214,12 +231,12 @@ namespace RimAIPortrait
             if (s.EnableEmotionChanges)
             {
                 Dictionary<PortraitState, InpaintSelection> selections = null;
-                if (UsesInpaintSelection())
-                    yield return CollectInpaintSelections(pawn, Enum.GetValues(typeof(PortraitState)).Cast<PortraitState>(), normal,
-                        value => selections = value);
                 Dictionary<PortraitState, ExtractedTags> batchTags = null;
                 yield return PrepareBatchTags(pawn, Enum.GetValues(typeof(PortraitState)).Cast<PortraitState>(),
-                    selections, normal, null, value => batchTags = value);
+                    normal, null, value => batchTags = value);
+                if (UsesInpaintSelection())
+                    yield return CollectInpaintSelections(pawn, Enum.GetValues(typeof(PortraitState)).Cast<PortraitState>(),
+                        normal, batchTags, value => selections = value);
                 foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
                 {
                     if (state == PortraitState.Normal || !s.IsStateEnabled(state)) continue;
@@ -230,8 +247,10 @@ namespace RimAIPortrait
                         continue;
                     }
                     byte[] image = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(state)));
-                    yield return Request(pawn, state, normal, new string[0], (data, err) => { image = data; error = err; },
-                        imageUse: PortraitImageUse.Edit, preparedInpaint: selection, batchTags: batchTags);
+                    yield return Request(new PortraitRequestOptions {
+                        Pawn = pawn, State = state, PrimaryImage = normal,
+                        ImageUse = PortraitImageUse.Edit, PreparedInpaint = selection, BatchTags = batchTags
+                    }, (data, err) => { image = data; error = err; });
                     if (image == null) { Log.Warning("[Rim AI Expressive Portraits] " + state + " failed: " + error); continue; }
                     PortraitData.Save(pawn, state, image);
                 }
@@ -241,6 +260,7 @@ namespace RimAIPortrait
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         private IEnumerator CollectInpaintSelections(Pawn pawn, IEnumerable<PortraitState> states, byte[] source,
+            Dictionary<PortraitState, ExtractedTags> extractedTags,
             Action<Dictionary<PortraitState, InpaintSelection>> done)
         {
             var selections = new Dictionary<PortraitState, InpaintSelection>();
@@ -259,7 +279,9 @@ namespace RimAIPortrait
                     continue;
                 }
                 InpaintSelection selection = null;
-                yield return SelectInpaint(pawn, state, source, value => selection = value);
+                ExtractedTags tags;
+                if (extractedTags == null || !extractedTags.TryGetValue(state, out tags)) tags = null;
+                yield return SelectInpaint(pawn, state, source, value => selection = value, null, tags);
                 selections[state] = selection;
             }
             done(selections);
@@ -271,40 +293,29 @@ namespace RimAIPortrait
             return provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI;
         }
 
-        private IEnumerator PrepareBatchTags(Pawn pawn, IEnumerable<PortraitState> states,
-            Dictionary<PortraitState, InpaintSelection> selections, byte[] source,
+        private IEnumerator PrepareBatchTags(Pawn pawn, IEnumerable<PortraitState> states, byte[] source,
             IDictionary<PortraitState, string> overrides, Action<Dictionary<PortraitState, ExtractedTags>> done)
         {
             PortraitSettings settings = RimAIPortraitMod.Settings;
-            List<PortraitState> targets = states.Where(state => state != PortraitState.Normal && settings.IsStateEnabled(state)
-                && (selections == null || !selections.ContainsKey(state) || selections[state].Error == null))
+            List<PortraitState> targets = states.Where(state => state != PortraitState.Normal && settings.IsStateEnabled(state))
                 .Distinct().ToList();
-            if (targets.Count < 2 || !settings.EnableTagExtractor || !TagExtraction.IsConfigured(settings)
-                || !UsesInpaintSelection())
+            if (targets.Count < 2 || !settings.EnableTagExtractor || !UsesInpaintSelection())
             {
                 done(null);
                 yield break;
             }
-            if (settings.ExpressionProvider == AiProvider.LocalComfyUI)
+            var result = new Dictionary<PortraitState, ExtractedTags>();
+            if (!TagExtraction.IsConfigured(settings))
             {
-                bool usesTags = false;
-                try
-                {
-                    string workflow = File.ReadAllText(settings.ComfyExpressionWorkflowPath);
-                    usesTags = workflow.Contains("__RIM_EXTRACTED_TAG__");
-                }
-                catch (Exception) { }
-                if (!usesTags) { done(null); yield break; }
+                PortraitTagPreparation.ShowFailure(Localization.T("RimAIPortrait.TagExtractor.ConfigurationMissing"));
+                done(result);
+                yield break;
             }
-            if (source == null && selections != null)
-                source = selections.Values.Where(value => value != null && value.Error == null)
-                    .Select(value => value.Source).FirstOrDefault(value => value != null);
             if (source == null)
             {
                 try { source = File.ReadAllBytes(PortraitData.ExistingPathFor(pawn, PortraitState.Normal)); }
                 catch (Exception) { }
             }
-            var result = new Dictionary<PortraitState, ExtractedTags>();
             if (source != null && source.Length > 0 && source.Length <= 8 * 1024 * 1024)
             {
                 var prompts = new Dictionary<PortraitState, string>();
@@ -313,25 +324,46 @@ namespace RimAIPortrait
                     string expressionOverride;
                     if (overrides == null || !overrides.TryGetValue(state, out expressionOverride)) expressionOverride = null;
                     string prompt = PortraitPrompt.Build(pawn, state, settings, expressionOverride);
-                    InpaintSelection selection;
-                    if (settings.ExpressionProvider == AiProvider.NovelAI && selections != null
-                        && selections.TryGetValue(state, out selection) && !string.IsNullOrWhiteSpace(selection.ExtraTag))
-                        prompt += "\n\n" + selection.ExtraTag.Trim();
                     prompts[state] = prompt;
                 }
                 string tagError = null;
                 yield return TagExtraction.ExtractBatch(settings, source, prompts,
                     (value, error) => { result = value; tagError = error; });
-                if (tagError != null) ShowTagExtractionFailure(tagError);
+                if (tagError != null) PortraitTagPreparation.ShowFailure(tagError);
             }
-            else ShowTagExtractionFailure(Localization.T("RimAIPortrait.TagExtractor.ImageRequired"));
+            else PortraitTagPreparation.ShowFailure(Localization.T("RimAIPortrait.TagExtractor.ImageRequired"));
             done(result);
         }
 
-        private IEnumerator SelectInpaint(Pawn pawn, PortraitState state, byte[] source, Action<InpaintSelection> done)
+        private IEnumerator ExtractInpaintTags(PortraitSettings settings, byte[] source, string prompt,
+            Action<ExtractedTags> done)
+        {
+            if (!TagExtraction.IsConfigured(settings))
+            {
+                PortraitTagPreparation.ShowFailure(Localization.T("RimAIPortrait.TagExtractor.ConfigurationMissing"));
+                done(null);
+                yield break;
+            }
+            if (source == null || source.Length == 0 || source.Length > 8 * 1024 * 1024)
+            {
+                PortraitTagPreparation.ShowFailure(Localization.T("RimAIPortrait.TagExtractor.ImageRequired"));
+                done(null);
+                yield break;
+            }
+            ExtractedTags tags = null;
+            string error = null;
+            yield return TagExtraction.Extract(settings, source, prompt, true,
+                (value, failure) => { tags = value; error = failure; });
+            if (tags == null)
+                PortraitTagPreparation.ShowFailure(error ?? Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
+            done(tags);
+        }
+
+        private IEnumerator SelectInpaint(Pawn pawn, PortraitState state, byte[] source, Action<InpaintSelection> done,
+            AiProvider? selectedProvider = null, ExtractedTags extractedTags = null)
         {
             var settings = RimAIPortraitMod.Settings;
-            AiProvider providerId = settings.ExpressionProvider;
+            AiProvider providerId = selectedProvider ?? settings.ExpressionProvider;
             float defaultStrength = state == PortraitState.Sleep
                 ? settings.NovelAiSleepInpaintStrength : settings.NovelAiInpaintStrength;
             float strength = PortraitData.NovelAiInpaintStrength(pawn, state, defaultStrength);
@@ -340,9 +372,11 @@ namespace RimAIPortrait
             string extraTag = null;
             bool narrowFeather = false;
             bool finished = false;
+            string initialExtraTag = providerId == AiProvider.NovelAI ? PortraitData.NovelAiExtraTag(pawn)
+                : providerId == AiProvider.LocalComfyUI ? PortraitData.ComfyInpaintTag(pawn) : "";
+            if (extractedTags != null) initialExtraTag = extractedTags.PositiveText;
             Find.WindowStack.Add(new Dialog_NovelAiInpaint(source, state, providerId, strength,
-                providerId == AiProvider.NovelAI ? PortraitData.NovelAiExtraTag(pawn)
-                    : providerId == AiProvider.LocalComfyUI ? PortraitData.ComfyInpaintTag(pawn) : "",
+                initialExtraTag,
                 (value, expandedValue, selectedStrength, selectedAreas, selectedExtraTag) =>
             {
                 mask = value;
@@ -367,52 +401,35 @@ namespace RimAIPortrait
             done(selection);
         }
 
-        private IEnumerator Request(Pawn pawn, PortraitState state, byte[] reference, IEnumerable<string> extraReferences, Action<byte[], string> done, string expressionOverride = null, string referenceInstruction = null, PortraitImageUse imageUse = PortraitImageUse.Auto, InpaintSelection preparedInpaint = null, Dictionary<PortraitState, ExtractedTags> batchTags = null)
+        private IEnumerator Request(PortraitRequestOptions options, Action<byte[], string> done)
         {
             var s = RimAIPortraitMod.Settings;
-            bool expression = state != PortraitState.Normal;
-            AiProvider providerId = expression ? s.ExpressionProvider : s.Provider;
-            IPortraitGenerationProvider provider = PortraitProviderRegistry.Get(providerId);
-            string prompt = PortraitPrompt.Build(pawn, state, s, expressionOverride);
-            if (!referenceInstruction.NullOrEmpty()) prompt += "\n\n[Reference Image]\n" + referenceInstruction;
-            string styleFolder = expression ? s.ExpressionStyleFolder : s.StyleFolder;
-            string[] references = (extraReferences ?? Enumerable.Empty<string>()).ToArray();
-            if (preparedInpaint != null) reference = preparedInpaint.Source;
-            if (expression)
+            PreparedPortraitRequest prepared = PortraitRequestPreparation.Create(s, options);
+            if (prepared.Error != null)
             {
-                string basePath = PortraitData.ExistingPathFor(pawn, PortraitState.Normal);
-                if (reference == null)
-                {
-                    try
-                    {
-                        if (!File.Exists(basePath)) throw new FileNotFoundException();
-                        reference = File.ReadAllBytes(basePath);
-                    }
-                    catch (Exception)
-                    {
-                        done(null, Localization.T("RimAIPortrait.Gallery.BaseRequired"));
-                        yield break;
-                    }
-                }
-                references = references.Where(path => !string.Equals(path, basePath, StringComparison.OrdinalIgnoreCase)).ToArray();
-                imageUse = PortraitImageUse.Edit;
+                done(null, prepared.Error);
+                yield break;
             }
-            PortraitProviderConfiguration configuration = provider.CreateConfiguration(s, expression);
-            var request = new PortraitGenerationRequest {
-                State = state,
-                Prompt = prompt,
-                PrimaryImage = reference,
-                ImageUse = imageUse,
-                ReferencePaths = references,
-                StyleFolder = styleFolder,
-                Configuration = configuration
-            };
-            InpaintSelection selection = preparedInpaint;
-            if (expression && UsesInpaintSelection())
+            bool expression = prepared.Expression;
+            AiProvider providerId = prepared.ProviderId;
+            IPortraitGenerationProvider provider = prepared.Provider;
+            PortraitGenerationRequest request = prepared.Request;
+            InpaintSelection selection = options.PreparedInpaint;
+            if ((expression && UsesInpaintSelection()) || (options.Regenerate
+                && (providerId == AiProvider.NovelAI || providerId == AiProvider.LocalComfyUI)))
             {
                 if (selection == null)
                 {
-                    yield return SelectInpaint(pawn, state, reference, value => selection = value);
+                    ExtractedTags prefillTags = null;
+                    if (expression && options.BatchTags == null && s.EnableTagExtractor && UsesInpaintSelection())
+                        yield return ExtractInpaintTags(s, request.PrimaryImage, request.Prompt,
+                            value => prefillTags = value);
+                    yield return SelectInpaint(options.Pawn, options.State, request.PrimaryImage,
+                        value => selection = value, providerId, prefillTags);
+                    if (prefillTags != null)
+                        request.ExtractedTags = new ExtractedTags {
+                            positive = new string[0], negative = prefillTags.negative
+                        };
                 }
                 if (selection.Error != null)
                 {
@@ -425,71 +442,22 @@ namespace RimAIPortrait
                 if (providerId == AiProvider.NovelAI && !string.IsNullOrWhiteSpace(selection.ExtraTag))
                     request.Prompt += "\n\n" + selection.ExtraTag.Trim();
             }
-            request.StylePaths = provider.StyleReferences(request);
-            int styleCapacity = provider.StyleReferenceCapacity(request);
-            request.StylePaths = request.StylePaths.Take(styleCapacity).ToArray();
-            bool supportsTags = providerId == AiProvider.NovelAI || providerId == AiProvider.LocalComfyUI;
-            bool extractTags = s.EnableTagExtractor && TagExtraction.IsConfigured(s)
-                && supportsTags;
-            string tagStatus = !s.EnableTagExtractor ? "disabled"
-                : !TagExtraction.IsConfigured(s) ? "missing configuration" : "not requested";
-            if (extractTags && providerId == AiProvider.LocalComfyUI)
+            PortraitRequestPreparation.AddStyleReferences(prepared);
+            if (selection != null && options.BatchTags != null)
             {
-                extractTags = false;
-                try
-                {
-                    string workflow = File.ReadAllText(((ComfyUiProviderConfiguration)configuration).WorkflowPath);
-                    extractTags = workflow.Contains("__RIM_EXTRACTED_TAG__");
-                }
-                catch (Exception) { }
-                if (!extractTags) tagStatus = "workflow has no tag placeholder";
+                ExtractedTags tags;
+                if (options.BatchTags.TryGetValue(options.State, out tags) && tags != null)
+                    request.ExtractedTags = new ExtractedTags { positive = new string[0], negative = tags.negative };
             }
-            if (batchTags != null)
+            else if (selection == null)
+                yield return PortraitTagPreparation.Prepare(s, options, prepared);
+            if (selection != null && providerId == AiProvider.LocalComfyUI && request.ExtractedTags != null)
+                request.ExtractedTags.positive = string.IsNullOrWhiteSpace(selection.ExtraTag)
+                    ? new string[0] : new[] { selection.ExtraTag.Trim() };
+            if ((expression || options.Regenerate) && providerId == AiProvider.NovelAI)
             {
-                ExtractedTags preparedTags;
-                if (batchTags.TryGetValue(state, out preparedTags)) request.ExtractedTags = preparedTags;
-                tagStatus = request.ExtractedTags == null ? "batch result unavailable" : "batch result applied";
-            }
-            else if (extractTags)
-            {
-                byte[] tagImage = request.PrimaryImage;
-                if (state == PortraitState.Normal && imageUse != PortraitImageUse.Edit
-                    && (!s.IncludeSprite || tagImage == null))
-                {
-                    try { tagImage = PawnCapture.Capture(pawn); }
-                    catch (Exception) { tagImage = null; }
-                }
-                if (tagImage == null && references.Length > 0)
-                {
-                    try { tagImage = File.ReadAllBytes(references[0]); }
-                    catch (Exception) { tagImage = null; }
-                }
-                if (tagImage != null && tagImage.Length > 0 && tagImage.Length <= 8 * 1024 * 1024)
-                {
-                    ExtractedTags tags = null;
-                    string tagError = null;
-                    yield return TagExtraction.Extract(s, tagImage, request.Prompt,
-                        state != PortraitState.Normal, (value, error) => { tags = value; tagError = error; });
-                    request.ExtractedTags = tags;
-                    tagStatus = tags == null ? "failed: " + (tagError ?? "invalid response") : "applied";
-                    if (tags == null)
-                        ShowTagExtractionFailure(tagError ?? Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
-                }
-                else
-                {
-                    tagStatus = "source image unavailable or too large";
-                    ShowTagExtractionFailure(Localization.T("RimAIPortrait.TagExtractor.ImageRequired"));
-                }
-            }
-            if (s.DebugMode && supportsTags)
-                Log.Message("[Rim AI Expressive Portraits][Debug] TagExtractor " + tagStatus
-                    + ", kind=" + (expression ? "Expression" : "Base")
-                    + ", positive=" + (request.ExtractedTags?.positive?.Length ?? 0)
-                    + ", negative=" + (request.ExtractedTags?.negative?.Length ?? 0));
-            if (expression && providerId == AiProvider.NovelAI)
-            {
-                if (s.DebugMode) LogDebugRequest(state, expression, provider, request);
-                string debugDirectory = s.DebugMode ? Path.Combine(PortraitData.PawnFolder(pawn), "nai_debug") : null;
+                if (s.DebugMode) LogDebugRequest(options.State, expression, provider, request);
+                string debugDirectory = s.DebugMode ? Path.Combine(PortraitData.PawnFolder(options.Pawn), "nai_debug") : null;
                 yield return ((NovelAiPortraitProvider)provider).GenerateInpaint(request, request.InpaintMask,
                     selection.Strength, selection.NarrowFeather, debugDirectory, result =>
                 {
@@ -497,7 +465,7 @@ namespace RimAIPortrait
                 });
                 yield break;
             }
-            if (s.DebugMode) LogDebugRequest(state, expression, provider, request);
+            if (s.DebugMode) LogDebugRequest(options.State, expression, provider, request);
             yield return provider.Generate(request, result =>
             {
                 done(result.ImageData, result.Error);
@@ -531,12 +499,6 @@ namespace RimAIPortrait
             completed?.Invoke(succeeded, paths.Length - succeeded);
         }
         /// <summary>Describes the behavior of this type or member.</summary>
-        private static void ShowTagExtractionFailure(string explanation)
-        {
-            Messages.Message(Localization.T("RimAIPortrait.TagExtractor.Failed", explanation),
-                MessageTypeDefOf.RejectInput, false);
-        }
-
         private static void LogDebugRequest(PortraitState state, bool expression, IPortraitGenerationProvider provider, PortraitGenerationRequest request)
         {
             int styleCount = request.StylePaths.Count;

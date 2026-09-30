@@ -21,11 +21,7 @@ namespace RimAIPortrait
             ProviderOptionDefaults.Load(content);
             SettingsDefaults.Load(content);
             Settings = GetSettings<PortraitSettings>();
-            ApplyImagePromptDefault(content);
-            ApplyExpressionPromptDefault(content);
-            ApplyGeminiImagePromptDefault(content);
-            ApplyNovelAiDefaults(content);
-            ApplyEmotionPromptDefaults(content);
+            ApplyPromptDefaults(content);
             new Harmony("mint.rimaiportrait").PatchAll();
             LongEventHandler.ExecuteWhenFinished(PortraitRuntime.EnsureCreated);
         }

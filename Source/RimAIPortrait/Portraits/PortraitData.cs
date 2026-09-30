@@ -475,7 +475,7 @@ namespace RimAIPortrait
         {
             EnsureGameScope();
             string key = p.ThingID + state; if (Cache.TryGetValue(key, out var tex)) return tex;
-            if (MissingPortraits.Contains(key)) return state == PortraitState.Normal ? null : Get(p, PortraitState.Normal);
+            if (MissingPortraits.Contains(key)) return FallbackPortrait(p, state);
             string path = ExistingPathFor(p, state);
             tex = null;
             try
@@ -493,7 +493,14 @@ namespace RimAIPortrait
             catch (DirectoryNotFoundException) { MissingPortraits.Add(key); }
             catch (Exception e) { ReportLoadFailure(p, key, path, e); }
             finally { if (tex != null) UnityEngine.Object.Destroy(tex); }
-            return state == PortraitState.Normal ? null : Get(p, PortraitState.Normal);
+            return FallbackPortrait(p, state);
+        }
+
+        private static Texture2D FallbackPortrait(Pawn p, PortraitState state)
+        {
+            if (state == PortraitState.Normal) return null;
+            return Get(p, state == PortraitState.Angry || state == PortraitState.Distressed
+                ? PortraitState.Low : PortraitState.Normal);
         }
 
         private static void ReportLoadFailure(Pawn p, string key, string path, Exception error)

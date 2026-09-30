@@ -85,6 +85,14 @@ namespace RimAIPortrait
             {
                 Widgets.Label(new Rect(0f, 122f, rect.width, 24f), Localization.T("RimAIPortrait.Inpaint.ExtraTag"));
                 extraTag = Widgets.TextField(new Rect(0f, 148f, rect.width, 30f), extraTag);
+                if (string.IsNullOrEmpty(extraTag) && Event.current.type == EventType.Repaint)
+                {
+                    Color previousColor = GUI.color;
+                    GUI.color = new Color(.55f, .55f, .55f, 1f);
+                    Widgets.Label(new Rect(6f, 153f, rect.width - 12f, 24f),
+                        Localization.T("RimAIPortrait.Inpaint.ExtraTagPlaceholder"));
+                    GUI.color = previousColor;
+                }
                 TooltipHandler.TipRegion(new Rect(0f, 122f, rect.width, 56f),
                     Localization.T("RimAIPortrait.Inpaint.ExtraTagTip"));
             }

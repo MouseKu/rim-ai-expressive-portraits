@@ -1,0 +1,1 @@
+deeply distressed, panicked, anguished, despairing, tense brows, fearful eyes, unfocused gaze, trembling lips, overwhelmed expression,

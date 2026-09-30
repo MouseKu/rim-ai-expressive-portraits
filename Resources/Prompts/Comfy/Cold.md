@@ -1,0 +1,1 @@
+pale face, bluish complexion, blue lips, shivering, trembling lips, tense face, hypothermia, extreme cold,

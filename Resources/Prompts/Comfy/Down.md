@@ -1,0 +1,1 @@
+unconscious, eyes fully closed, pained expression, agony, tears streaming down face, strained brows, parted lips, collapsed expression,

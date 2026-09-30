@@ -1,0 +1,1 @@
+calm, neutral expression, relaxed brows, gently closed mouth,

@@ -16,15 +16,19 @@ namespace RimAIPortrait
         /// <param name="inRect">The inRect value.</param>
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            Rect view = new Rect(0, 0, inRect.width - 18f, 3750f);
+            Rect view = new Rect(0, 0, inRect.width - 18f, 4400f);
             Widgets.BeginScrollView(inRect, ref scroll, view);
             var l = new Listing_Standard(); l.Begin(view);
             ProviderSettingsUi.Draw(l, Settings, false, message => status = message);
+            l.GapLine();
+            ProviderSettingsUi.DrawRegenerate(l, Settings, message => status = message);
             l.GapLine();
             l.CheckboxLabeled(Localization.T("RimAIPortrait.TagExtractor.Enabled"), ref Settings.EnableTagExtractor);
             if (Settings.EnableTagExtractor)
             {
                 l.Label(Localization.T("RimAIPortrait.TagExtractor.Scope"));
+                if (!TagExtraction.IsConfigured(Settings))
+                    l.Label(Localization.T("RimAIPortrait.TagExtractor.SetupWarning"));
                 if (l.ButtonText(Localization.T("RimAIPortrait.TagExtractor.Model") + ": "
                     + Localization.T("RimAIPortrait.TagExtractor.Model." + Settings.TagExtractorBackend)))
                     Settings.TagExtractorBackend = (TagExtractorModel)(((int)Settings.TagExtractorBackend + 1) % 3);
@@ -107,6 +111,7 @@ namespace RimAIPortrait
             if (l.ButtonText(Localization.T("RimAIPortrait.Settings.ResetPortraitHelp")))
             {
                 Settings.PortraitHelpShown = false;
+                Settings.PortraitHelpAfterImageShown = false;
                 WriteSettings();
                 status = Localization.T("RimAIPortrait.Settings.PortraitHelpReset");
             }
@@ -116,11 +121,7 @@ namespace RimAIPortrait
         private void RestoreDefaults()
         {
             Settings.ResetToDefaults();
-            ApplyImagePromptDefault(ModPack);
-            ApplyExpressionPromptDefault(ModPack);
-            ApplyGeminiImagePromptDefault(ModPack);
-            ApplyNovelAiDefaults(ModPack);
-            ApplyEmotionPromptDefaults(ModPack);
+            ApplyPromptDefaults(ModPack);
             WriteSettings();
             status = Localization.T("RimAIPortrait.Settings.DefaultsRestored");
         }

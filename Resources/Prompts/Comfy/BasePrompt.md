@@ -12,4 +12,4 @@ matte natural colors,
 full head visible, upper body cropped by bottom edge,
 
 uniform flat warm brown background,
-simple background, no scenery
+simple background, no scenery,
