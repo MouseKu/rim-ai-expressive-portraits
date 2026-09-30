@@ -18,7 +18,7 @@ namespace RimAIPortrait
         private readonly Dictionary<PortraitState, bool> enabled = new Dictionary<PortraitState, bool>();
         private readonly Dictionary<PortraitState, string> prompts = new Dictionary<PortraitState, string>();
         private Vector2 scroll;
-        public override Vector2 InitialSize => new Vector2(780f, 760f);
+        public override Vector2 InitialSize => PortraitWindowSizing.Fit(780f, 760f);
 
         /// <summary>Describes the behavior of this type or member.</summary>
         public Dialog_EmotionGeneration(Pawn pawn, IEnumerable<string> references, Action onChanged)

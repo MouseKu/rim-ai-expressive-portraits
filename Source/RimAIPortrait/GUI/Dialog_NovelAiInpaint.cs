@@ -31,7 +31,7 @@ namespace RimAIPortrait
         private bool confirmed;
         private string error;
 
-        public override Vector2 InitialSize => new Vector2(880f, 900f);
+        public override Vector2 InitialSize => PortraitWindowSizing.Fit(880f, 900f);
 
         public Dialog_NovelAiInpaint(byte[] imageBytes, PortraitState state, AiProvider provider, float initialStrength, string initialExtraTag,
             Action<byte[], byte[], float, int, string> completed)

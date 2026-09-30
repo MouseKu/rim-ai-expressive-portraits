@@ -14,7 +14,7 @@ namespace RimAIPortrait
         private Texture2D texture;
         private string error;
 
-        public override Vector2 InitialSize => new Vector2(860f, 860f);
+        public override Vector2 InitialSize => PortraitWindowSizing.Fit(860f, 860f);
 
         /// <summary>Describes the behavior of this type or member.</summary>
         /// <param name="path">The path value.</param>

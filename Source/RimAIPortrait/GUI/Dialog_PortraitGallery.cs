@@ -34,7 +34,7 @@ namespace RimAIPortrait
         private bool checkedFirstHelp;
         private const string BasePromptControl = "RimAIPortrait.Gallery.BasePrompt";
         private const string ExtraFeaturesControl = "RimAIPortrait.Gallery.ExtraFeatures";
-        public override Vector2 InitialSize => new Vector2(900f, 980f);
+        public override Vector2 InitialSize => PortraitWindowSizing.Fit(900f, 980f);
         /// <summary>Describes the behavior of this type or member.</summary>
         public Dialog_PortraitGallery(Pawn pawn) { this.pawn = pawn; extraFeatures = PortraitData.ExtraFeatures(pawn); basePromptProvider = RimAIPortraitMod.Settings.Provider; LoadBasePrompt(); doCloseX = true; absorbInputAroundWindow = true; RefreshFiles(); }
 

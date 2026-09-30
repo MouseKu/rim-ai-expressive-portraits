@@ -13,7 +13,7 @@ namespace RimAIPortrait
         private string prompt = Localization.T("RimAIPortrait.Regenerate.PromptPrefix");
         private string error;
 
-        public override Vector2 InitialSize => new Vector2(760f, 840f);
+        public override Vector2 InitialSize => PortraitWindowSizing.Fit(760f, 840f);
 
         public Dialog_PortraitRegenerate(string imagePath, Action<string> confirmed)
         {

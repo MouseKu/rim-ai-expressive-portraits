@@ -32,7 +32,7 @@ namespace RimAIPortrait
         private readonly List<BackgroundRemovalStep> redoHistory = new List<BackgroundRemovalStep>();
         private string CurrentPath => paths[currentIndex];
 
-        public override Vector2 InitialSize => new Vector2(900f, 900f);
+        public override Vector2 InitialSize => PortraitWindowSizing.Fit(900f, 900f);
 
         public Dialog_BackgroundRemoval(IEnumerable<string> paths, Action<int, int> confirmed)
         {
