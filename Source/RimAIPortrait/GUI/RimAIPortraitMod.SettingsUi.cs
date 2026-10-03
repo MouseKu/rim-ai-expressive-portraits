@@ -10,6 +10,8 @@ namespace RimAIPortrait
     {
         private Vector2 scroll;
         private string status = "";
+        private string offsetXBuffer;
+        private string offsetYBuffer;
         private readonly PromptSettingsUi promptSettingsUi = new PromptSettingsUi();
 
         /// <summary>Describes the behavior of this type or member.</summary>
@@ -20,6 +22,7 @@ namespace RimAIPortrait
             Widgets.BeginScrollView(inRect, ref scroll, view);
             var l = new Listing_Standard(); l.Begin(view);
             ProviderSettingsUi.Draw(l, Settings, false, message => status = message);
+            promptSettingsUi.DrawMain(l, Settings, message => status = message);
             l.GapLine();
             ProviderSettingsUi.DrawRegenerate(l, Settings, message => status = message);
             l.GapLine();
@@ -49,7 +52,8 @@ namespace RimAIPortrait
                     Text(l, Localization.T("RimAIPortrait.Settings.ApiKey"), ref Settings.TagExtractorLocalKey);
                 }
             }
-            promptSettingsUi.Draw(l, Settings, WriteSettings, message => status = message);
+            l.GapLine();
+            promptSettingsUi.DrawDetails(l, Settings, WriteSettings, message => status = message);
             l.GapLine();
             Text(l, Localization.T("RimAIPortrait.Settings.PortraitRootFolder"), ref Settings.PortraitRootFolder);
             PortraitData.RecheckRoot();
@@ -77,50 +81,26 @@ namespace RimAIPortrait
             l.GapLine(); l.Label(Localization.T("RimAIPortrait.Settings.DisplayBehavior"));
             l.Label(Localization.T("RimAIPortrait.Settings.Width", Settings.Width.ToString("0"))); Settings.Width = l.Slider(Settings.Width, 64f, 600f);
             l.Label(Localization.T("RimAIPortrait.Settings.Scale", Settings.Scale.ToString("0.00"))); Settings.Scale = l.Slider(Settings.Scale, .25f, 3f);
-            l.Label(Localization.T("RimAIPortrait.Settings.RightOffset", Settings.OffsetX.ToString("0"))); Settings.OffsetX = l.Slider(Settings.OffsetX, -300f, 500f);
-            l.Label(Localization.T("RimAIPortrait.Settings.UpOffset", Settings.OffsetY.ToString("0"))); Settings.OffsetY = l.Slider(Settings.OffsetY, -300f, 500f);
-            l.GapLine();
-            l.CheckboxLabeled(Localization.T("RimAIPortrait.Settings.EnableFrame"), ref Settings.EnableFrame,
-                Localization.T("RimAIPortrait.Settings.EnableFrameTip"));
-            if (Settings.EnableFrame)
-            {
-                l.Label(Localization.T("RimAIPortrait.Settings.FrameScale", Settings.FrameScale.ToString("0.00")));
-                Settings.FrameScale = l.Slider(Settings.FrameScale, .5f, 1.5f);
-                Text(l, Localization.T("RimAIPortrait.Settings.FramePath"), ref Settings.FrameImagePath);
-                if (l.ButtonText(Localization.T("RimAIPortrait.Settings.OpenFrameFolder")))
-                {
-                    try
-                    {
-                        string folder = Path.GetDirectoryName(Settings.FrameImagePath);
-                        if (folder.NullOrEmpty() || !Directory.Exists(folder)) throw new DirectoryNotFoundException(Localization.T("RimAIPortrait.Error.FrameFolderMissing"));
-                        Process.Start(folder);
-                    }
-                    catch (Exception e) { status = Localization.T("RimAIPortrait.Error.OpenFrameFolder", e.Message); }
-                }
-            }
-            l.GapLine();
-            l.CheckboxLabeled(Localization.T("RimAIPortrait.Settings.DebugMode"), ref Settings.DebugMode,
-                Localization.T("RimAIPortrait.Settings.DebugModeTip"));
-            if (!status.NullOrEmpty()) l.Label(status);
+            DrawOffset(l, Localization.T("RimAIPortrait.Settings.RightOffset", Settings.OffsetX.ToString("0")),
+                ref Settings.OffsetX, ref offsetXBuffer, Mathf.Max(500f, UI.screenWidth));
+            DrawOffset(l, Localization.T("RimAIPortrait.Settings.UpOffset", Settings.OffsetY.ToString("0")),
+                ref Settings.OffsetY, ref offsetYBuffer, Mathf.Max(500f, UI.screenHeight));
             l.GapLine();
             if (l.ButtonText(Localization.T("RimAIPortrait.Settings.RestoreDefaults")))
-            {
-                Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(Localization.T("RimAIPortrait.Settings.ConfirmRestoreDefaults"), RestoreDefaults));
-            }
+                Find.WindowStack.Add(Dialog_MessageBox.CreateConfirmation(
+                    Localization.T("RimAIPortrait.Settings.ConfirmRestoreDefaults"), RestoreDefaults));
             l.Gap();
-            if (l.ButtonText(Localization.T("RimAIPortrait.Settings.ResetPortraitHelp")))
-            {
-                Settings.PortraitHelpShown = false;
-                Settings.PortraitHelpAfterImageShown = false;
-                WriteSettings();
-                status = Localization.T("RimAIPortrait.Settings.PortraitHelpReset");
-            }
+            if (l.ButtonText(Localization.T("RimAIPortrait.Settings.Advanced")))
+                Find.WindowStack.Add(new Dialog_AdvancedSettings(this));
+            if (!status.NullOrEmpty()) l.Label(status);
             l.End(); Widgets.EndScrollView();
         }
 
         private void RestoreDefaults()
         {
             Settings.ResetToDefaults();
+            offsetXBuffer = null;
+            offsetYBuffer = null;
             ApplyPromptDefaults(ModPack);
             WriteSettings();
             status = Localization.T("RimAIPortrait.Settings.DefaultsRestored");
@@ -128,5 +108,19 @@ namespace RimAIPortrait
 
         /// <summary>Describes the behavior of this type or member.</summary>
         private static void Text(Listing_Standard l, string label, ref string value) { l.Label(label); value = l.TextEntry(value ?? ""); }
+
+        private static void DrawOffset(Listing_Standard listing, string label, ref float value, ref string buffer, float maximum)
+        {
+            Rect row = listing.GetRect(30f);
+            Widgets.Label(new Rect(row.x, row.y, row.width - 100f, row.height), label);
+            Widgets.TextFieldNumeric<float>(new Rect(row.xMax - 90f, row.y, 90f, row.height),
+                ref value, ref buffer, -300f, maximum);
+            float sliderValue = listing.Slider(value, -300f, maximum);
+            if (!Mathf.Approximately(sliderValue, value))
+            {
+                value = sliderValue;
+                buffer = value.ToString("0");
+            }
+        }
     }
 }

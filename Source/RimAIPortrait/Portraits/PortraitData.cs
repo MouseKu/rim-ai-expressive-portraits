@@ -158,26 +158,32 @@ namespace RimAIPortrait
         public static string ExistingPathFor(Pawn p, PortraitState state)
         {
             string path = PathFor(p, state);
-            return state == PortraitState.Normal && !File.Exists(path) && File.Exists(LegacyNormalPath(p)) ? LegacyNormalPath(p) : path;
+            if (state == PortraitState.Base && !File.Exists(path))
+            {
+                string legacy = LegacyNormalPath(p);
+                if (File.Exists(legacy))
+                {
+                    try { File.Move(legacy, path); }
+                    catch (Exception e)
+                    {
+                        Log.Warning("[Rim AI Expressive Portraits] Could not migrate legacy Base portrait: " + e.Message);
+                        return legacy;
+                    }
+                }
+            }
+            return path;
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static string ExtraFeaturesPath(Pawn p) => Path.Combine(PawnFolder(p), "extra_features.txt");
+        public static string BaseTagsPath(Pawn p) => Path.Combine(PawnFolder(p), "base_tags.json");
+        public static string ExpressionTagsPath(Pawn p, PortraitState state) =>
+            Path.Combine(PawnFolder(p), "expression_tags_" + state.ToString().ToLowerInvariant() + ".json");
         public static string NovelAiExtraTagPath(Pawn p) => Path.Combine(PawnFolder(p), "novelai_extra_tag.txt");
         public static string ComfyInpaintTagPath(Pawn p) => Path.Combine(PawnFolder(p), "comfy_inpaint_tag.txt");
         public static string NovelAiInpaintStrengthPath(Pawn p) => Path.Combine(PawnFolder(p), "novelai_inpaint_strength.txt");
         public static string NovelAiInpaintStrengthPath(Pawn p, PortraitState state) =>
             Path.Combine(PawnFolder(p), "novelai_inpaint_strength_" + state.ToString().ToLowerInvariant() + ".txt");
         /// <summary>Describes the behavior of this type or member.</summary>
-        private static string LegacyBasePromptPath(Pawn p) => Path.Combine(PawnFolder(p), "base_prompt.txt");
-
-        public static string BasePromptPath(Pawn p, AiProvider provider)
-        {
-            string fileName = provider == AiProvider.Google ? "base_google.txt"
-                : provider == AiProvider.NovelAI ? "base_nai.txt"
-                : provider == AiProvider.LocalComfyUI ? "base_comfy.txt"
-                : "base_openai.txt";
-            return Path.Combine(PawnFolder(p), fileName);
-        }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static string ExtraFeatures(Pawn p)
         {
@@ -196,6 +202,48 @@ namespace RimAIPortrait
                 return true;
             }
             catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save Extra Features: " + e.Message); return false; }
+        }
+        internal static ExtractedTags BaseTags(Pawn p)
+        {
+            return ReadTags(BaseTagsPath(p));
+        }
+        internal static ExtractedTags ExpressionTags(Pawn p, PortraitState state)
+        {
+            return ReadTags(ExpressionTagsPath(p, state));
+        }
+        private static ExtractedTags ReadTags(string path)
+        {
+            try
+            {
+                return File.Exists(path) ? JsonUtility.FromJson<ExtractedTags>(File.ReadAllText(path)) : null;
+            }
+            catch (Exception e)
+            {
+                Log.Warning("[Rim AI Expressive Portraits] Could not read Base tags: " + e.Message);
+                return null;
+            }
+        }
+        internal static bool SaveBaseTags(Pawn p, ExtractedTags tags)
+        {
+            return WriteTags(BaseTagsPath(p), tags);
+        }
+        internal static bool SaveExpressionTags(Pawn p, PortraitState state, ExtractedTags tags)
+        {
+            return WriteTags(ExpressionTagsPath(p, state), tags);
+        }
+        private static bool WriteTags(string path, ExtractedTags tags)
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, JsonUtility.ToJson(tags));
+                return true;
+            }
+            catch (Exception e)
+            {
+                Log.Warning("[Rim AI Expressive Portraits] Could not save Base tags: " + e.Message);
+                return false;
+            }
         }
         public static string NovelAiExtraTag(Pawn p)
         {
@@ -276,42 +324,6 @@ namespace RimAIPortrait
             catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save NovelAI inpaint strength: " + e.Message); return false; }
         }
         /// <summary>Describes the behavior of this type or member.</summary>
-        public static string BasePrompt(Pawn p, AiProvider provider)
-        {
-            MigrateLegacyBasePrompt(p, provider);
-            string path = BasePromptPath(p, provider);
-            try { return File.Exists(path) ? File.ReadAllText(path) : ""; }
-            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not read Base Prompt override: " + e.Message); return ""; }
-        }
-        /// <summary>Describes the behavior of this type or member.</summary>
-        public static bool SaveBasePrompt(Pawn p, AiProvider provider, string value)
-        {
-            try
-            {
-                MigrateLegacyBasePrompt(p, provider);
-                string path = BasePromptPath(p, provider);
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-                File.WriteAllText(path, value ?? "");
-                return true;
-            }
-            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save Base Prompt override: " + e.Message); return false; }
-        }
-
-        private static void MigrateLegacyBasePrompt(Pawn p, AiProvider provider)
-        {
-            string legacyPath = LegacyBasePromptPath(p);
-            if (!File.Exists(legacyPath)) return;
-            foreach (AiProvider existingProvider in Enum.GetValues(typeof(AiProvider)))
-                if (File.Exists(BasePromptPath(p, existingProvider))) return;
-            try
-            {
-                File.Copy(legacyPath, BasePromptPath(p, provider), false);
-            }
-            catch (Exception e)
-            {
-                Log.Warning("[Rim AI Expressive Portraits] Could not migrate Base Prompt override: " + e.Message);
-            }
-        }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static string SafeId(Pawn p) => SafeName(p.ThingID);
         /// <summary>Describes the behavior of this type or member.</summary>
@@ -324,11 +336,12 @@ namespace RimAIPortrait
         /// <summary>Describes the behavior of this type or member.</summary>
         public static void Save(Pawn p, PortraitState state, byte[] png)
         {
+            if (state == PortraitState.Base) ExistingPathFor(p, state);
             string path = PathFor(p, state); Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllBytes(path, png);
             File.WriteAllBytes(Path.Combine(PawnFolder(p), PortraitStateNames.Display(state) + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss_fff") + ".png"), png);
             Invalidate(p, state);
-            if (state == PortraitState.Normal) SaveDeathPortrait(p, png);
+            if (state == PortraitState.Base) SaveDeathPortrait(p, png);
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static string[] Gallery(Pawn p)
@@ -336,12 +349,13 @@ namespace RimAIPortrait
             string folder = PawnFolder(p); Directory.CreateDirectory(folder);
             return Directory.GetFiles(folder)
                 .Where(path => new[] { ".png", ".jpg", ".jpeg", ".webp" }.Contains(Path.GetExtension(path).ToLowerInvariant()))
-                .Where(path => !Enum.GetNames(typeof(PortraitState)).Concat(new[] { "Base", "Death" }).Contains(Path.GetFileNameWithoutExtension(path)))
+                .Where(path => !Enum.GetNames(typeof(PortraitState)).Concat(new[] { "Death" }).Contains(Path.GetFileNameWithoutExtension(path)))
                 .OrderByDescending(File.GetLastWriteTimeUtc).ToArray();
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         public static void SetActive(Pawn p, PortraitState state, string source)
         {
+            if (state == PortraitState.Base) ExistingPathFor(p, state);
             string target = PathFor(p, state); Directory.CreateDirectory(Path.GetDirectoryName(target));
             var texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
             try
@@ -349,7 +363,7 @@ namespace RimAIPortrait
                 if (!texture.LoadImage(File.ReadAllBytes(source))) throw new InvalidDataException(Localization.T("RimAIPortrait.Preview.UnsupportedImage"));
                 byte[] png = texture.EncodeToPNG();
                 File.WriteAllBytes(target, png); Invalidate(p, state);
-                if (state == PortraitState.Normal) SaveDeathPortrait(p, png);
+                if (state == PortraitState.Base) SaveDeathPortrait(p, png);
             }
             finally { UnityEngine.Object.Destroy(texture); }
         }
@@ -382,7 +396,7 @@ namespace RimAIPortrait
             // Preserve the intended portrait behavior and compatibility.
             // Preserve the intended portrait behavior and compatibility.
             // Preserve the intended portrait behavior and compatibility.
-            if (state == PortraitState.Normal)
+            if (state == PortraitState.Base)
             {
                 foreach (PortraitState cachedState in Enum.GetValues(typeof(PortraitState)))
                     RemoveCachedTexture(p.ThingID + cachedState);
@@ -393,6 +407,13 @@ namespace RimAIPortrait
             }
 
             RemoveCachedTexture(p.ThingID + state);
+        }
+        public static void RefreshEditedPortrait(Pawn p, PortraitState state)
+        {
+            EnsureGameScope();
+            Invalidate(p, state);
+            if (state == PortraitState.Base)
+                SaveDeathPortrait(p, File.ReadAllBytes(ExistingPathFor(p, state)));
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         private static void RemoveCachedTexture(string key)
@@ -460,7 +481,7 @@ namespace RimAIPortrait
         {
             EnsureGameScope();
             if (GrayCache.TryGetValue(p.ThingID, out var cached)) return cached;
-            Texture2D source = Get(p, PortraitState.Normal); if (source == null) return null;
+            Texture2D source = Get(p, PortraitState.Base); if (source == null) return null;
             try
             {
                 var pixels = source.GetPixels32();
@@ -474,6 +495,7 @@ namespace RimAIPortrait
         public static Texture2D Get(Pawn p, PortraitState state)
         {
             EnsureGameScope();
+            if (state == PortraitState.Normal) ExistingPathFor(p, PortraitState.Base);
             string key = p.ThingID + state; if (Cache.TryGetValue(key, out var tex)) return tex;
             if (MissingPortraits.Contains(key)) return FallbackPortrait(p, state);
             string path = ExistingPathFor(p, state);
@@ -498,9 +520,13 @@ namespace RimAIPortrait
 
         private static Texture2D FallbackPortrait(Pawn p, PortraitState state)
         {
-            if (state == PortraitState.Normal) return null;
-            return Get(p, state == PortraitState.Angry || state == PortraitState.Distressed
-                ? PortraitState.Low : PortraitState.Normal);
+            if (state == PortraitState.Base) return null;
+            if (state == PortraitState.Angry || state == PortraitState.Distressed)
+            {
+                Texture2D low = Get(p, PortraitState.Low);
+                if (low != null) return low;
+            }
+            return Get(p, PortraitState.Base);
         }
 
         private static void ReportLoadFailure(Pawn p, string key, string path, Exception error)

@@ -16,15 +16,18 @@ namespace RimAIPortrait
     {
         private const int MaximumReferenceImages = 16;
         private const string InfillModel = "nai-diffusion-4-5-full-inpainting";
+        private const string V5FullInfillModel = "nai-diffusion-5-full-inpainting";
+        private const string V5CuratedInfillModel = "nai-diffusion-4-5-curated-inpainting";
 
         public AiProvider Id => AiProvider.NovelAI;
 
         public IReadOnlyList<string> StyleReferences(PortraitGenerationRequest request)
         {
+            NovelAiProviderConfiguration configuration = Require(request.Configuration);
+            if (IsV5Model(configuration.Model)) return new string[0];
             string[] configured = PortraitProviderUtilities.StyleFiles(request.StyleFolder)
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
-            NovelAiProviderConfiguration configuration = Require(request.Configuration);
-            bool preciseBase = request.State == PortraitState.Normal
+            bool preciseBase = request.State == PortraitState.Base
                 && request.ImageUse == PortraitImageUse.CharacterReference && SupportsPreciseReference(configuration.Model);
             return preciseBase && configured.Length == 0
                 && (PortraitProviderUtilities.UsesDefaultStyle(request.StyleFolder)
@@ -35,7 +38,8 @@ namespace RimAIPortrait
         public int StyleReferenceCapacity(PortraitGenerationRequest request)
         {
             NovelAiProviderConfiguration configuration = Require(request.Configuration);
-            bool preciseBase = request.State == PortraitState.Normal
+            if (IsV5Model(configuration.Model)) return 0;
+            bool preciseBase = request.State == PortraitState.Base
                 && request.ImageUse == PortraitImageUse.CharacterReference && SupportsPreciseReference(configuration.Model);
             if (preciseBase) return 1;
             return Math.Max(0, MaximumReferenceImages - request.ReferencePaths.Count);
@@ -103,11 +107,17 @@ namespace RimAIPortrait
                 SaveDebug(debugDirectory, "nai_debug_original_mask.png", mask);
                 SaveDebug(debugDirectory, "nai_debug_request_mask.png", generationMask);
             }
-            bool preciseBase = request.State == PortraitState.Normal
+            bool preciseBase = request.State == PortraitState.Base
                 && request.ImageUse == PortraitImageUse.CharacterReference && SupportsPreciseReference(configuration.Model);
             bool characterReference = preciseBase && request.PrimaryImage != null;
+            bool v5 = IsV5Model(configuration.Model);
             List<string> selectedReferences = (request.ReferencePaths ?? new string[0]).ToList();
             List<string> stylePaths = request.StylePaths.ToList();
+            if (v5 && selectedReferences.Count > 0)
+            {
+                done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.NovelAiV5ReferencesUnsupported")));
+                yield break;
+            }
             if (preciseBase && selectedReferences.Count > 0)
             {
                 done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.NovelAiPreciseVibeConflict")));
@@ -133,7 +143,7 @@ namespace RimAIPortrait
                     }
                 }
             }
-            List<string> referenceImages = selectedReferences
+            List<string> referenceImages = v5 ? new List<string>() : selectedReferences
                 .Concat(preciseBase ? Enumerable.Empty<string>() : stylePaths)
                 .Take(MaximumReferenceImages)
                 .Select(ReadReference)
@@ -168,9 +178,10 @@ namespace RimAIPortrait
                 out addOriginalImage);
             if (mask != null && debugDirectory != null)
                 Log.Message("[Rim AI Expressive Portraits][NAI Infill] source=" + sourceWidth + "x" + sourceHeight
-                    + ", mask=" + sourceWidth + "x" + sourceHeight + ", action=infill, model=" + InfillModel
+                    + ", mask=" + sourceWidth + "x" + sourceHeight + ", action=infill, model=" + InpaintModel(configuration.Model)
                     + ", add_original_image=" + addOriginalImage);
             byte[] body = Encoding.UTF8.GetBytes(json);
+            Dialog_DebugRequest.Trace trace = Dialog_DebugRequest.Show("NovelAI", "https://image.novelai.net/ai/generate-image", json);
 
             using (var webRequest = new UnityWebRequest("https://image.novelai.net/ai/generate-image", "POST"))
             {
@@ -181,6 +192,7 @@ namespace RimAIPortrait
                 webRequest.SetRequestHeader("Accept", "application/zip, application/octet-stream");
                 webRequest.SetRequestHeader("Authorization", "Bearer " + configuration.ApiKey);
                 yield return webRequest.SendWebRequest();
+                if (trace != null) trace.Respond(webRequest);
                 if (PortraitProviderUtilities.Failed(webRequest))
                 {
                     done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ProviderHttp", "NovelAI", webRequest.responseCode, webRequest.error, PortraitProviderUtilities.Short(webRequest.downloadHandler.text))));
@@ -227,6 +239,7 @@ namespace RimAIPortrait
             string json = "{\"image\":\"" + image + "\",\"model\":\""
                 + PortraitProviderUtilities.JsonEscape(configuration.Model) + "\",\"informationExtracted\":1}";
             byte[] body = Encoding.UTF8.GetBytes(json);
+            Dialog_DebugRequest.Trace trace = Dialog_DebugRequest.Show("NovelAI Vibe", "https://image.novelai.net/ai/encode-vibe", json);
             using (var webRequest = new UnityWebRequest("https://image.novelai.net/ai/encode-vibe", "POST"))
             {
                 webRequest.uploadHandler = new UploadHandlerRaw(body);
@@ -235,6 +248,7 @@ namespace RimAIPortrait
                 webRequest.SetRequestHeader("Content-Type", "application/json");
                 webRequest.SetRequestHeader("Authorization", "Bearer " + configuration.ApiKey);
                 yield return webRequest.SendWebRequest();
+                if (trace != null) trace.Respond(webRequest);
                 if (PortraitProviderUtilities.Failed(webRequest))
                 {
                     done(null, Localization.T("RimAIPortrait.Error.ProviderHttp", "NovelAI Vibe", webRequest.responseCode, webRequest.error, PortraitProviderUtilities.Short(webRequest.downloadHandler.text)));
@@ -252,8 +266,10 @@ namespace RimAIPortrait
             out string addOriginalImage)
         {
             bool characterReference = !characterImage.NullOrEmpty();
-            bool edit = request.PrimaryImage != null && !characterReference;
             bool inpaint = mask != null;
+            string model = inpaint ? InpaintModel(configuration.Model) : configuration.Model;
+            bool v5 = IsV5Model(model);
+            bool edit = request.PrimaryImage != null && !characterReference;
             var options = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
                 { "width", "832" }, { "height", characterReference ? "832" : "1216" }, { "steps", "23" }, { "scale", "5" },
                 { "sampler", "k_euler_ancestral" }, { "noise_schedule", "karras" }, { "n_samples", "1" },
@@ -269,8 +285,18 @@ namespace RimAIPortrait
                 if (option.Key.Equals("seed", StringComparison.OrdinalIgnoreCase)) continue;
                 options[option.Key] = option.Value;
             }
+            if (v5)
+            {
+                options["params_version"] = "4";
+                options.Remove("legacy_v3_extend");
+                options.Remove("qualityToggle");
+                options.Remove("ucPreset");
+                options.Remove("sm");
+                options.Remove("sm_dyn");
+            }
             if (inpaint)
             {
+                options["params_version"] = v5 ? "4" : "3";
                 options["width"] = sourceWidth.ToString(CultureInfo.InvariantCulture);
                 options["height"] = sourceHeight.ToString(CultureInfo.InvariantCulture);
                 options["image_format"] = "png";
@@ -313,7 +339,7 @@ namespace RimAIPortrait
                 parameters.Add("\"image\":\"" + Convert.ToBase64String(request.PrimaryImage) + "\"");
             if (inpaint)
                 parameters.Add("\"mask\":\"" + Convert.ToBase64String(mask) + "\"");
-            if (edit && (inpaint || configuration.Model.StartsWith("nai-diffusion-5", StringComparison.OrdinalIgnoreCase)))
+            if (edit && (inpaint || v5))
                 parameters.Add("\"img2img\":{\"strength\":" + JsonValue(options["strength"])
                     + ",\"noise\":" + JsonValue(options["noise"]) + "}");
             if (characterReference || styleImages.Count > 0)
@@ -343,7 +369,7 @@ namespace RimAIPortrait
                 parameters.Add("\"director_reference_information_extracted\":[" + string.Join(",", images.Select(value => "1.0").ToArray()) + "]");
                 parameters.Add("\"inpaintImg2ImgStrength\":1.0");
             }
-            if (UsesStructuredPrompt(inpaint ? InfillModel : configuration.Model))
+            if (UsesStructuredPrompt(model))
             {
                 string escapedPrompt = PortraitProviderUtilities.JsonEscape(prompt);
                 string negativePrompt = PortraitProviderUtilities.JsonEscape(options["negative_prompt"]);
@@ -364,7 +390,7 @@ namespace RimAIPortrait
                 string[] positiveTags = request.ExtractedTags?.positive ?? new string[0];
                 string[] negativeTags = request.ExtractedTags?.negative ?? new string[0];
                 Log.Message("[Rim AI Expressive Portraits][Debug] NAI effective request (image data and pawn prompt redacted)\n"
-                    + "model=" + (inpaint ? InfillModel : configuration.Model)
+                    + "model=" + model
                     + ", action=" + (inpaint ? "infill" : edit ? "img2img" : "generate")
                     + ", size=" + options["width"] + "x" + options["height"]
                     + ", steps=" + options["steps"] + ", scale=" + options["scale"]
@@ -389,7 +415,7 @@ namespace RimAIPortrait
                     + "extracted_negative=" + DebugTags(negativeTags));
             }
             return "{\"input\":\"" + PortraitProviderUtilities.JsonEscape(prompt) + "\",\"model\":\""
-                + PortraitProviderUtilities.JsonEscape(inpaint ? InfillModel : configuration.Model) + "\",\"action\":\""
+                + PortraitProviderUtilities.JsonEscape(model) + "\",\"action\":\""
                 + (inpaint ? "infill" : edit ? "img2img" : "generate") + "\",\"parameters\":{"
                 + string.Join(",", parameters.ToArray()) + "}}";
         }
@@ -446,6 +472,21 @@ namespace RimAIPortrait
         {
             return string.Equals(model, "nai-diffusion-4-5-full", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(model, "nai-diffusion-4-5-curated", StringComparison.OrdinalIgnoreCase);
+        }
+
+        internal static bool IsV5Model(string model)
+        {
+            return string.Equals(model, "nai-diffusion-5-full", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(model, "nai-diffusion-5-curated", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string InpaintModel(string model)
+        {
+            if (string.Equals(model, "nai-diffusion-5-full", StringComparison.OrdinalIgnoreCase))
+                return V5FullInfillModel;
+            if (string.Equals(model, "nai-diffusion-5-curated", StringComparison.OrdinalIgnoreCase))
+                return V5CuratedInfillModel;
+            return InfillModel;
         }
 
         private static bool UsesStructuredPrompt(string model)

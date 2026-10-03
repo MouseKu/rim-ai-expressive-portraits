@@ -120,6 +120,7 @@ namespace RimAIPortrait
 
             string body = BuildRequestJson(pieces, aspectRatio, imageSize);
             string url = "https://generativelanguage.googleapis.com/v1beta/models/" + UnityWebRequest.EscapeURL(configuration.Model) + ":generateContent";
+            Dialog_DebugRequest.Trace trace = Dialog_DebugRequest.Show("Google", url, body);
             using (var webRequest = new UnityWebRequest(url, "POST"))
             {
                 webRequest.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(body));
@@ -128,6 +129,7 @@ namespace RimAIPortrait
                 webRequest.SetRequestHeader("Content-Type", "application/json");
                 webRequest.SetRequestHeader("x-goog-api-key", configuration.ApiKey);
                 yield return webRequest.SendWebRequest();
+                if (trace != null) trace.Respond(webRequest);
                 if (PortraitProviderUtilities.Failed(webRequest))
                 {
                     done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ProviderHttp", "Google", webRequest.responseCode, webRequest.error, PortraitProviderUtilities.Short(webRequest.downloadHandler.text))));

@@ -19,28 +19,25 @@ namespace RimAIPortrait
         /// <param name="expressionOverride">The expressionOverride value.</param>
         /// <returns>The resulting value.</returns>
         public static string Build(Pawn p, PortraitState state, PortraitSettings s, string expressionOverride = null,
-            AiProvider? providerOverride = null)
+            AiProvider? providerOverride = null, bool omitPawnFeatures = false)
         {
-            AiProvider provider = providerOverride ?? (state == PortraitState.Normal ? s.Provider : s.ExpressionProvider);
-            if (state != PortraitState.Normal)
+            AiProvider provider = providerOverride ?? (state == PortraitState.Base ? s.Provider : s.ExpressionProvider);
+            if (state != PortraitState.Base)
             {
                 var expression = new StringBuilder(s.GetExpressionInstructions(provider) ?? "");
                 string customExpression = expressionOverride ?? StateOverride(s, provider, state);
                 Add(expression, true, "Expression", customExpression.NullOrEmpty() ? PromptLibrary.State[state] : customExpression);
                 return expression.ToString();
             }
-            string pawnBasePrompt = PortraitData.BasePrompt(p, provider);
-            var b = new StringBuilder(string.IsNullOrWhiteSpace(pawnBasePrompt) ? BaseInstructions(s, provider) : pawnBasePrompt.Trim());
+            var b = new StringBuilder(BaseInstructions(s, provider));
             if (!s.Prompt.NullOrEmpty()) b.AppendLine().AppendLine(s.Prompt);
-            string extraFeatures = PortraitData.ExtraFeatures(p);
-            Add(b, true, "Extra Features", string.IsNullOrWhiteSpace(extraFeatures) ? "None" : extraFeatures.Trim());
-            AppendPawnFeatures(b, p, s, false);
-            if (s.IncludeTraits && p.story?.traits != null) Add(b, true, "Traits", string.Join(", ", p.story.traits.allTraits.Select(x => x.LabelCap).ToArray()));
-            if (state != PortraitState.Normal || s.EnableEmotionChanges)
+            if (!omitPawnFeatures)
             {
-                string custom = expressionOverride ?? StateOverride(s, provider, state);
-                Add(b, true, "Expression", custom.NullOrEmpty() ? PromptLibrary.State[state] : custom);
+                string extraFeatures = PortraitData.ExtraFeatures(p);
+                Add(b, true, "Extra Features", string.IsNullOrWhiteSpace(extraFeatures) ? "None" : extraFeatures.Trim());
+                AppendPawnFeatures(b, p, s, false);
             }
+            if (s.IncludeTraits && p.story?.traits != null) Add(b, true, "Traits", string.Join(", ", p.story.traits.allTraits.Select(x => x.LabelCap).ToArray()));
             return b.ToString();
         }
 
@@ -60,7 +57,18 @@ namespace RimAIPortrait
             AddFeature(output, settings.IncludeGender, "Gender", pawn.gender.GetLabel(), compact);
             AddFeature(output, settings.IncludeRace, pawn.RaceProps.Animal ? "Animal species" : "Race", pawn.def.LabelCap, compact);
             if (pawn.RaceProps.Humanlike && ModsConfig.BiotechActive && pawn.genes != null)
+            {
                 AddFeature(output, settings.IncludeXenotype, "Xenotype", pawn.genes.XenotypeLabel, compact);
+                if (settings.IncludeGene)
+                {
+                    string genes = settings.OnlyAppearanceGenes
+                        ? AppearanceGeneFeatures(pawn)
+                        : string.Join(", ", pawn.genes.GenesListForReading
+                            .Where(gene => gene != null && gene.Active && gene.def != null)
+                            .Select(gene => gene.def.LabelCap).ToArray());
+                    AddFeature(output, true, "Genes", genes, compact);
+                }
+            }
             AddFeature(output, settings.IncludeAge, "Age", pawn.ageTracker.AgeBiologicalYears.ToString(), compact);
             if (pawn.story != null)
             {
@@ -74,6 +82,15 @@ namespace RimAIPortrait
                 AddFeature(output, true, "Apparel", string.Join(", ", pawn.apparel.WornApparel
                     .Select(item => item.LabelCap).ToArray()), compact);
             AddFeature(output, settings.IncludeHealth, "Health conditions", HealthConditions(pawn), compact);
+        }
+
+        private static string AppearanceGeneFeatures(Pawn pawn)
+        {
+            if (pawn.story == null) return null;
+            return "Body type: " + (pawn.story.bodyType?.label ?? "Unknown")
+                + ", Skin color: " + ColorUtility.ToHtmlStringRGB(pawn.story.SkinColor)
+                + ", Hair: " + (pawn.story.hairDef?.label ?? "Unknown") + ", "
+                + ColorUtility.ToHtmlStringRGB(pawn.story.HairColor);
         }
 
         private static void AddFeature(StringBuilder output, bool enabled, string name, string value, bool compact)

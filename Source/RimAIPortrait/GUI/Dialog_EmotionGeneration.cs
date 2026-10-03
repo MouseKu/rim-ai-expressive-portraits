@@ -26,7 +26,7 @@ namespace RimAIPortrait
             this.pawn = pawn; this.references = references.ToArray(); this.onChanged = onChanged; doCloseX = true; absorbInputAroundWindow = true;
             foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
             {
-                if (!RimAIPortraitMod.Settings.IsStateEnabled(state)) continue;
+                if (state == PortraitState.Base || !RimAIPortraitMod.Settings.IsStateEnabled(state)) continue;
                 enabled[state] = false;
                 string custom = PortraitPrompt.StateOverride(RimAIPortraitMod.Settings,
                     RimAIPortraitMod.Settings.ExpressionProvider, state);
@@ -38,12 +38,13 @@ namespace RimAIPortrait
         {
             Text.Font = GameFont.Medium; Widgets.Label(new Rect(0, 0, rect.width, 34), Localization.T("RimAIPortrait.Emotions.Title")); Text.Font = GameFont.Small;
             Widgets.Label(new Rect(0, 36, rect.width, 28), Localization.T("RimAIPortrait.Emotions.Description"));
-            int stateCount = Enum.GetValues(typeof(PortraitState)).Cast<PortraitState>().Count(RimAIPortraitMod.Settings.IsStateEnabled);
+            int stateCount = Enum.GetValues(typeof(PortraitState)).Cast<PortraitState>()
+                .Count(state => state != PortraitState.Base && RimAIPortraitMod.Settings.IsStateEnabled(state));
             Rect outer = new Rect(0, 70, rect.width, rect.height - 125); Rect view = new Rect(0, 0, outer.width - 18, stateCount * 74f);
             Widgets.BeginScrollView(outer, ref scroll, view); float y = 0;
             foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
             {
-                if (!RimAIPortraitMod.Settings.IsStateEnabled(state)) continue;
+                if (state == PortraitState.Base || !RimAIPortraitMod.Settings.IsStateEnabled(state)) continue;
                 bool value = enabled[state]; Widgets.CheckboxLabeled(new Rect(0, y, 155, 30), PortraitStateNames.Display(state), ref value); enabled[state] = value;
                 Widgets.Label(new Rect(165, y, 75, 30), Localization.T("RimAIPortrait.Common.Prompt")); prompts[state] = Widgets.TextArea(new Rect(240, y, view.width - 245, 62), prompts[state] ?? ""); y += 74;
             }

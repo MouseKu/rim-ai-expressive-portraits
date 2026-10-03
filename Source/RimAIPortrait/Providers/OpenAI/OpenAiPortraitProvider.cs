@@ -110,11 +110,13 @@ namespace RimAIPortrait
                 if (option.Key != "model" && option.Key != "prompt" && option.Key != "output_format" && option.Key != "mask")
                     parts.Add(new MultipartFormDataSection(option.Key, option.Key == "size" ? NormalizeSize(option.Value) : option.Value));
             parts.AddRange(imageParts);
+            Dialog_DebugRequest.Trace trace = Dialog_DebugRequest.ShowMultipart("OpenAI", "https://api.openai.com/v1/images/edits", parts);
             using (UnityWebRequest webRequest = UnityWebRequest.Post("https://api.openai.com/v1/images/edits", parts))
             {
                 webRequest.timeout = 300;
                 webRequest.SetRequestHeader("Authorization", "Bearer " + configuration.ApiKey);
                 yield return webRequest.SendWebRequest();
+                if (trace != null) trace.Respond(webRequest);
                 if (PortraitProviderUtilities.Failed(webRequest))
                 {
                     done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ProviderHttp", "OpenAI", webRequest.responseCode, webRequest.error, PortraitProviderUtilities.Short(webRequest.downloadHandler.text))));
@@ -139,8 +141,10 @@ namespace RimAIPortrait
                 {
                     using (UnityWebRequest imageRequest = UnityWebRequest.Get(imageUrl))
                     {
+                        Dialog_DebugRequest.Trace imageTrace = Dialog_DebugRequest.ShowGet("OpenAI image", imageUrl);
                         imageRequest.timeout = 120;
                         yield return imageRequest.SendWebRequest();
+                        if (imageTrace != null) imageTrace.Respond(imageRequest);
                         done(PortraitProviderUtilities.Failed(imageRequest)
                             ? PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ImageDownloadHttp", imageRequest.responseCode, imageRequest.error))
                             : PortraitGenerationResult.Succeeded(imageRequest.downloadHandler.data));

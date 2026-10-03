@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using RimWorld;
 using Verse;
 
 namespace RimAIPortrait
@@ -17,10 +18,13 @@ namespace RimAIPortrait
         private readonly byte[] imageBytes;
         private readonly PortraitState state;
         private readonly AiProvider provider;
-        private readonly Action<byte[], byte[], float, int, string> completed;
+        private readonly Action<byte[], byte[], float, int, string, ExtractedTags> completed;
+        private readonly Action<Action<ExtractedTags, string>> generateTags;
         private readonly List<MaskOperation> selections = new List<MaskOperation>();
         private float strength;
         private string extraTag;
+        private ExtractedTags extractedTags;
+        private bool generatingTags;
         private Texture2D preview;
         private Texture2D maskOverlay;
         private Vector2 dragStart;
@@ -33,14 +37,18 @@ namespace RimAIPortrait
 
         public override Vector2 InitialSize => PortraitWindowSizing.Fit(880f, 900f);
 
-        public Dialog_NovelAiInpaint(byte[] imageBytes, PortraitState state, AiProvider provider, float initialStrength, string initialExtraTag,
-            Action<byte[], byte[], float, int, string> completed)
+        public Dialog_NovelAiInpaint(byte[] imageBytes, PortraitState state, AiProvider provider, float initialStrength,
+            string initialExtraTag, ExtractedTags initialTags,
+            Action<Action<ExtractedTags, string>> generateTags,
+            Action<byte[], byte[], float, int, string, ExtractedTags> completed)
         {
             this.imageBytes = imageBytes;
             this.state = state;
             this.provider = provider;
             strength = Mathf.Clamp(initialStrength, .1f, 1f);
             extraTag = initialExtraTag ?? "";
+            extractedTags = initialTags;
+            this.generateTags = generateTags;
             this.completed = completed;
             doCloseX = true;
             absorbInputAroundWindow = true;
@@ -74,7 +82,7 @@ namespace RimAIPortrait
                 provider == AiProvider.LocalComfyUI ? "ComfyUI" : provider.ToString()));
             Text.Font = GameFont.Small;
             Widgets.Label(new Rect(0f, 38f, rect.width, 28f), Localization.T("RimAIPortrait.Inpaint.State", PortraitStateNames.Label(state)));
-            if (provider == AiProvider.NovelAI)
+            if (provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI)
             {
                 Widgets.Label(new Rect(0f, 66f, rect.width, 28f), Localization.T("RimAIPortrait.Inpaint.Strength", strength.ToString("0.00")));
                 strength = Widgets.HorizontalSlider(new Rect(0f, 94f, rect.width, 24f), strength, .1f, 1f);
@@ -95,11 +103,36 @@ namespace RimAIPortrait
                 }
                 TooltipHandler.TipRegion(new Rect(0f, 122f, rect.width, 56f),
                     Localization.T("RimAIPortrait.Inpaint.ExtraTagTip"));
+                Widgets.Label(new Rect(0f, 186f, 100f, 28f), Localization.T("RimAIPortrait.Gallery.TagLabel"));
+                Rect generateTagButton = new Rect(rect.width - 115f, 184f, 115f, 30f);
+                if (Widgets.ButtonText(generateTagButton,
+                    Localization.T("RimAIPortrait.Gallery.ExtractTag"), true, true,
+                    !generatingTags && generateTags != null))
+                {
+                    generatingTags = true;
+                    generateTags((tags, failure) =>
+                    {
+                        generatingTags = false;
+                        if (tags == null)
+                        {
+                            Messages.Message(Localization.T("RimAIPortrait.TagExtractor.Failed", failure ??
+                                Localization.T("RimAIPortrait.TagExtractor.InvalidResponse")),
+                                MessageTypeDefOf.RejectInput, false);
+                            return;
+                        }
+                        extractedTags = tags;
+                    });
+                }
+                TooltipHandler.TipRegion(generateTagButton, Localization.T("RimAIPortrait.Inpaint.ExtractTagTip"));
+                TagDisplay.Draw(new Rect(0f, 222f, 100f, 28f), new Rect(105f, 218f, rect.width - 105f, 30f),
+                    Localization.T("RimAIPortrait.Tag.Positive"), extractedTags?.PositiveText);
+                TagDisplay.Draw(new Rect(0f, 258f, 100f, 28f), new Rect(105f, 254f, rect.width - 105f, 30f),
+                    Localization.T("RimAIPortrait.Tag.Negative"), extractedTags?.NegativeText);
             }
-            Widgets.Label(new Rect(0f, 184f, rect.width, 44f), Localization.T(provider == AiProvider.LocalComfyUI
+            Widgets.Label(new Rect(0f, 292f, rect.width, 44f), Localization.T(provider == AiProvider.LocalComfyUI
                 ? "RimAIPortrait.Inpaint.ComfyInstructions"
                 : state == PortraitState.Sleep ? "RimAIPortrait.Inpaint.SleepInstructions" : "RimAIPortrait.Inpaint.Instructions"));
-            Rect area = new Rect(0f, 232f, rect.width, rect.height - 294f);
+            Rect area = new Rect(0f, 340f, rect.width, rect.height - 402f);
             Widgets.DrawMenuSection(area);
             if (preview == null)
                 Widgets.Label(area.ContractedBy(12f), error ?? Localization.T("RimAIPortrait.Inpaint.InvalidImage"));
@@ -133,7 +166,7 @@ namespace RimAIPortrait
                     requestMask = selections.Exists(selection => selection.Exclude)
                         ? BuildMask(true) : NovelAiInpaintComposite.ExpandMask(mask);
                 confirmed = true;
-                completed(mask, requestMask, strength, selections.Count, extraTag);
+                completed(mask, requestMask, strength, selections.Count, extraTag, extractedTags);
                 Close();
             }
         }
@@ -272,7 +305,7 @@ namespace RimAIPortrait
             if (maskOverlay != null) UnityEngine.Object.Destroy(maskOverlay);
             preview = null;
             maskOverlay = null;
-            if (!confirmed) completed(null, null, strength, 0, null);
+            if (!confirmed) completed(null, null, strength, 0, null, null);
             base.PostClose();
         }
     }

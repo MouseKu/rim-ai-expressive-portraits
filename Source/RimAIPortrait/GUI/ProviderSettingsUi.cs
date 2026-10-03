@@ -24,28 +24,51 @@ namespace RimAIPortrait
             }
 
             if (provider == AiProvider.OpenAI)
-                DrawOpenAi(listing, settings, expression);
+                DrawOpenAi(listing, settings, expression, report);
             else if (provider == AiProvider.Google)
-                DrawGoogle(listing, settings, expression);
+                DrawGoogle(listing, settings, expression, report);
             else if (provider == AiProvider.LocalComfyUI)
-                DrawComfyUi(listing, settings, expression);
+                DrawComfyUi(listing, settings, expression, report);
             else
-                DrawNovelAi(listing, settings, expression);
+                DrawNovelAi(listing, settings, expression, report);
 
             if (expression)
             {
-                string label = Localization.T("RimAIPortrait.Settings.ExpressionPrompt");
+                listing.Label(Localization.T("RimAIPortrait.Settings.ExpressionPrompt") + " (" + Label(provider) + ")");
+                Rect promptArea = listing.GetRect(130f);
                 if (provider == AiProvider.Google)
-                    TextArea(listing, label, ref settings.GoogleExpressionInstructions, 130f);
+                    settings.GoogleExpressionInstructions = Widgets.TextArea(promptArea, settings.GoogleExpressionInstructions ?? "");
                 else if (provider == AiProvider.LocalComfyUI)
-                    TextArea(listing, label, ref settings.ComfyExpressionInstructions, 130f);
+                    settings.ComfyExpressionInstructions = Widgets.TextArea(promptArea, settings.ComfyExpressionInstructions ?? "");
                 else if (provider == AiProvider.NovelAI)
-                    TextArea(listing, label, ref settings.NovelAiExpressionInstructions, 130f);
+                    settings.NovelAiExpressionInstructions = Widgets.TextArea(promptArea, settings.NovelAiExpressionInstructions ?? "");
                 else
-                    TextArea(listing, label, ref settings.ExpressionInstructions, 130f);
-                DrawStyleFolder(listing, ref settings.ExpressionStyleFolder, provider, true, settings, report);
+                    settings.ExpressionInstructions = Widgets.TextArea(promptArea, settings.ExpressionInstructions ?? "");
+                Rect saveRow = listing.GetRect(32f);
+                if (Widgets.ButtonText(new Rect(saveRow.xMax - 100f, saveRow.y, 100f, saveRow.height),
+                    Localization.T("RimAIPortrait.Common.Save")))
+                {
+                    RimAIPortraitMod.SaveSettings();
+                    report(Localization.T("RimAIPortrait.Settings.ExpressionPromptSaved", Label(provider)));
+                }
+                if (Widgets.ButtonText(new Rect(saveRow.xMax - 210f, saveRow.y, 100f, saveRow.height),
+                    Localization.T("RimAIPortrait.Common.Reset")))
+                {
+                    string original = RimAIPortraitMod.PackagedPrompt(provider, "ExpressionPrompt.md", false);
+                    if (original == null) report(Localization.T("RimAIPortrait.Settings.PromptDefaultMissing"));
+                    else
+                    {
+                        if (provider == AiProvider.Google) settings.GoogleExpressionInstructions = original;
+                        else if (provider == AiProvider.LocalComfyUI) settings.ComfyExpressionInstructions = original;
+                        else if (provider == AiProvider.NovelAI) settings.NovelAiExpressionInstructions = original;
+                        else settings.ExpressionInstructions = original;
+                        RimAIPortraitMod.SaveSettings();
+                        report(Localization.T("RimAIPortrait.Settings.PromptReset",
+                            Label(provider) + " / " + Localization.T("RimAIPortrait.Settings.ExpressionPrompt")));
+                    }
+                }
             }
-            else DrawStyleFolder(listing, ref settings.StyleFolder, provider, false, settings, report);
+            else DrawStyleFolder(listing, ref settings.StyleFolder, provider, settings, report);
         }
 
         public static void DrawRegenerate(Listing_Standard listing, PortraitSettings settings, Action<string> report)
@@ -73,19 +96,22 @@ namespace RimAIPortrait
                 Text(listing, Localization.T("RimAIPortrait.Settings.NovelAiApiKey"), ref settings.RegenerateNovelAiApiKey);
                 Text(listing, Localization.T("RimAIPortrait.Settings.Model"), ref settings.RegenerateNovelAiModel);
                 Text(listing, Localization.T("RimAIPortrait.Settings.OptionsJson"), ref settings.RegenerateNovelAiOptions);
+                if (NovelAiPortraitProvider.IsV5Model(settings.RegenerateNovelAiModel))
+                    listing.Label(Localization.T("RimAIPortrait.Settings.NovelAiV5Help"));
             }
             else
             {
                 Text(listing, Localization.T("RimAIPortrait.Settings.ComfyUrl"), ref settings.RegenerateComfyUrl);
                 Text(listing, Localization.T("RimAIPortrait.Settings.WorkflowPath"), ref settings.RegenerateComfyWorkflowPath);
-                TextArea(listing, Localization.T("RimAIPortrait.Settings.NegativePrompt"), ref settings.RegenerateComfyNegativePrompt, 62f);
+                PromptArea(listing, Localization.T("RimAIPortrait.Settings.NegativePrompt"),
+                    ref settings.RegenerateComfyNegativePrompt, 62f,
+                    SettingsDefaults.Values.RegenerateComfyNegativePrompt, report);
                 listing.Label(Localization.T("RimAIPortrait.Settings.ComfyTimeout", settings.ComfyTimeoutSeconds.ToString("0")));
                 settings.ComfyTimeoutSeconds = listing.Slider(settings.ComfyTimeoutSeconds, 60f, 3600f);
             }
-            DrawStyleFolder(listing, ref settings.RegenerateStyleFolder, provider, true, settings, report, true);
         }
 
-        private static void DrawOpenAi(Listing_Standard listing, PortraitSettings settings, bool expression)
+        private static void DrawOpenAi(Listing_Standard listing, PortraitSettings settings, bool expression, Action<string> report)
         {
             if (expression)
             {
@@ -97,12 +123,14 @@ namespace RimAIPortrait
             {
                 Text(listing, Localization.T("RimAIPortrait.Settings.ApiKey"), ref settings.ApiKey);
                 Text(listing, Localization.T("RimAIPortrait.Settings.Model"), ref settings.OpenAiModel);
-                TextArea(listing, Localization.T("RimAIPortrait.Settings.BasePrompt"), ref settings.BaseInstructions, 130f);
+                PromptArea(listing, Localization.T("RimAIPortrait.Settings.BasePrompt"),
+                    ref settings.BaseInstructions, 130f,
+                    RimAIPortraitMod.PackagedPrompt(AiProvider.OpenAI, "BasePrompt.md", false), report);
                 Text(listing, Localization.T("RimAIPortrait.Settings.OptionsJson"), ref settings.OpenAiOptions);
             }
         }
 
-        private static void DrawGoogle(Listing_Standard listing, PortraitSettings settings, bool expression)
+        private static void DrawGoogle(Listing_Standard listing, PortraitSettings settings, bool expression, Action<string> report)
         {
             if (expression)
             {
@@ -114,25 +142,33 @@ namespace RimAIPortrait
             {
                 Text(listing, Localization.T("RimAIPortrait.Settings.ApiKey"), ref settings.GoogleApiKey);
                 Text(listing, Localization.T("RimAIPortrait.Settings.Model"), ref settings.GoogleModel);
-                TextArea(listing, Localization.T("RimAIPortrait.Settings.BasePrompt"), ref settings.GeminiBaseInstructions, 130f);
+                PromptArea(listing, Localization.T("RimAIPortrait.Settings.BasePrompt"),
+                    ref settings.GeminiBaseInstructions, 130f,
+                    RimAIPortraitMod.PackagedPrompt(AiProvider.Google, "BasePrompt.md", false), report);
                 Text(listing, Localization.T("RimAIPortrait.Settings.OptionsJson"), ref settings.GoogleOptions);
             }
         }
 
-        private static void DrawComfyUi(Listing_Standard listing, PortraitSettings settings, bool expression)
+        private static void DrawComfyUi(Listing_Standard listing, PortraitSettings settings, bool expression, Action<string> report)
         {
             if (expression)
             {
                 Text(listing, Localization.T("RimAIPortrait.Settings.ComfyUrl"), ref settings.ComfyExpressionUrl);
                 Text(listing, Localization.T("RimAIPortrait.Settings.WorkflowPath"), ref settings.ComfyExpressionWorkflowPath);
-                TextArea(listing, Localization.T("RimAIPortrait.Settings.NegativePrompt"), ref settings.ComfyExpressionNegativePrompt, 62f);
+                PromptArea(listing, Localization.T("RimAIPortrait.Settings.NegativePrompt"),
+                    ref settings.ComfyExpressionNegativePrompt, 62f,
+                    SettingsDefaults.Values.ComfyExpressionNegativePrompt, report);
             }
             else
             {
                 Text(listing, Localization.T("RimAIPortrait.Settings.ComfyUrl"), ref settings.ComfyUrl);
                 Text(listing, Localization.T("RimAIPortrait.Settings.WorkflowPath"), ref settings.ComfyWorkflowPath);
-                TextArea(listing, Localization.T("RimAIPortrait.Settings.BasePrompt"), ref settings.ComfyBaseInstructions, 130f);
-                TextArea(listing, Localization.T("RimAIPortrait.Settings.NegativePrompt"), ref settings.ComfyNegativePrompt, 62f);
+                PromptArea(listing, Localization.T("RimAIPortrait.Settings.BasePrompt"),
+                    ref settings.ComfyBaseInstructions, 130f,
+                    RimAIPortraitMod.PackagedPrompt(AiProvider.LocalComfyUI, "BasePrompt.md", false), report);
+                PromptArea(listing, Localization.T("RimAIPortrait.Settings.NegativePrompt"),
+                    ref settings.ComfyNegativePrompt, 62f,
+                    SettingsDefaults.Values.ComfyNegativePrompt, report);
             }
             listing.Label(Localization.T("RimAIPortrait.Settings.ComfyTimeout", settings.ComfyTimeoutSeconds.ToString("0")));
             settings.ComfyTimeoutSeconds = listing.Slider(settings.ComfyTimeoutSeconds, 60f, 3600f);
@@ -140,36 +176,40 @@ namespace RimAIPortrait
             listing.Label(Localization.T("RimAIPortrait.Settings.ComfyWorkflowTokens"));
         }
 
-        private static void DrawNovelAi(Listing_Standard listing, PortraitSettings settings, bool expression)
+        private static void DrawNovelAi(Listing_Standard listing, PortraitSettings settings, bool expression, Action<string> report)
         {
             if (expression)
             {
                 Text(listing, Localization.T("RimAIPortrait.Settings.NovelAiApiKey"), ref settings.NovelAiExpressionApiKey);
                 Text(listing, Localization.T("RimAIPortrait.Settings.Model"), ref settings.NovelAiExpressionModel);
                 Text(listing, Localization.T("RimAIPortrait.Settings.OptionsJson"), ref settings.NovelAiExpressionOptions);
-                listing.Label(Localization.T("RimAIPortrait.Settings.NovelAiInpaintStrengthDefault", settings.NovelAiInpaintStrength.ToString("0.00")));
-                settings.NovelAiInpaintStrength = listing.Slider(settings.NovelAiInpaintStrength, .1f, 1f);
-                listing.Label(Localization.T("RimAIPortrait.Settings.NovelAiSleepInpaintStrengthDefault", settings.NovelAiSleepInpaintStrength.ToString("0.00")));
-                settings.NovelAiSleepInpaintStrength = listing.Slider(settings.NovelAiSleepInpaintStrength, .1f, 1f);
             }
             else
             {
                 Text(listing, Localization.T("RimAIPortrait.Settings.NovelAiApiKey"), ref settings.NovelAiApiKey);
                 Text(listing, Localization.T("RimAIPortrait.Settings.Model"), ref settings.NovelAiModel);
-                TextArea(listing, Localization.T("RimAIPortrait.Settings.BasePrompt"), ref settings.NovelAiBaseInstructions, 130f);
+                PromptArea(listing, Localization.T("RimAIPortrait.Settings.BasePrompt"),
+                    ref settings.NovelAiBaseInstructions, 130f,
+                    RimAIPortraitMod.PackagedPrompt(AiProvider.NovelAI, "BasePrompt.md", false), report);
                 Text(listing, Localization.T("RimAIPortrait.Settings.OptionsJson"), ref settings.NovelAiOptions);
             }
-            listing.Label(Localization.T("RimAIPortrait.Settings.NovelAiReferenceHelpV45"));
+            string model = expression ? settings.NovelAiExpressionModel : settings.NovelAiModel;
+            listing.Label(Localization.T(NovelAiPortraitProvider.IsV5Model(model)
+                ? "RimAIPortrait.Settings.NovelAiV5Help"
+                : "RimAIPortrait.Settings.NovelAiReferenceHelpV45"));
         }
 
         private static void DrawStyleFolder(Listing_Standard listing, ref string folder, AiProvider provider,
-            bool expression, PortraitSettings settings, Action<string> report, bool regenerate = false)
+            PortraitSettings settings, Action<string> report)
         {
             Text(listing, Localization.T("RimAIPortrait.Settings.StyleFolder"), ref folder);
             listing.Label(Localization.T(provider == AiProvider.OpenAI
                 ? "RimAIPortrait.Settings.OpenAiStyleFolderHint"
                 : "RimAIPortrait.Settings.StyleFolderHint"));
-            bool hasDefault = provider == AiProvider.Google || (provider == AiProvider.NovelAI && !expression);
+            string novelAiModel = settings.NovelAiModel;
+            if (provider == AiProvider.NovelAI && NovelAiPortraitProvider.IsV5Model(novelAiModel))
+                listing.Label(Localization.T("RimAIPortrait.Settings.NovelAiV5StyleVibe"));
+            bool hasDefault = provider == AiProvider.Google || provider == AiProvider.NovelAI;
             bool useDefault = PortraitProviderUtilities.UsesDefaultStyle(folder);
             if (provider == AiProvider.OpenAI && (useDefault || string.IsNullOrWhiteSpace(folder)))
             {
@@ -191,7 +231,7 @@ namespace RimAIPortrait
                 statusKey = "RimAIPortrait.Settings.StyleInvalidNoStyle";
             else if (!folderExists)
                 statusKey = "RimAIPortrait.Settings.StyleInvalidNoStyle";
-            else if (provider == AiProvider.NovelAI && !expression && configuredCount == 0)
+            else if (provider == AiProvider.NovelAI && configuredCount == 0)
                 statusKey = "RimAIPortrait.Settings.StyleDefault";
             else
                 statusKey = hasDefault ? "RimAIPortrait.Settings.StyleFolderWithDefault"
@@ -201,12 +241,11 @@ namespace RimAIPortrait
             {
                 IPortraitGenerationProvider selectedProvider = PortraitProviderRegistry.Get(provider);
                 var request = new PortraitGenerationRequest {
-                    State = expression ? PortraitState.High : PortraitState.Normal,
-                    ImageUse = expression ? PortraitImageUse.Edit : PortraitImageUse.CharacterReference,
-                    PrimaryImage = expression ? new byte[0] : null,
+                    State = PortraitState.Base,
+                    ImageUse = PortraitImageUse.CharacterReference,
+                    PrimaryImage = null,
                     ReferencePaths = new string[0],
-                    Configuration = regenerate ? settings.RegenerateConfiguration()
-                        : selectedProvider.CreateConfiguration(settings, expression)
+                    Configuration = selectedProvider.CreateConfiguration(settings, false)
                 };
                 int capacity = selectedProvider.StyleReferenceCapacity(request);
                 if (configuredCount > capacity)
@@ -240,6 +279,30 @@ namespace RimAIPortrait
         {
             listing.Label(label);
             value = Widgets.TextArea(listing.GetRect(height), value ?? "");
+        }
+
+        private static void PromptArea(Listing_Standard listing, string label, ref string value,
+            float height, string original, Action<string> report)
+        {
+            TextArea(listing, label, ref value, height);
+            Rect row = listing.GetRect(32f);
+            if (Widgets.ButtonText(new Rect(row.xMax - 210f, row.y, 100f, row.height),
+                Localization.T("RimAIPortrait.Common.Reset")))
+            {
+                if (original == null) report(Localization.T("RimAIPortrait.Settings.PromptDefaultMissing"));
+                else
+                {
+                    value = original;
+                    RimAIPortraitMod.SaveSettings();
+                    report(Localization.T("RimAIPortrait.Settings.PromptReset", label));
+                }
+            }
+            if (Widgets.ButtonText(new Rect(row.xMax - 100f, row.y, 100f, row.height),
+                Localization.T("RimAIPortrait.Common.Save")))
+            {
+                RimAIPortraitMod.SaveSettings();
+                report(Localization.T("RimAIPortrait.Settings.PromptSaved", label));
+            }
         }
     }
 }

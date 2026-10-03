@@ -14,14 +14,29 @@ namespace RimAIPortrait
         public string styleReference = "";
         public string priority = "";
 
-        private static readonly Lazy<PortraitImageCaptions> OpenAi =
-            new Lazy<PortraitImageCaptions>(() => Load("open-ai-img-caption.json"));
-        private static readonly Lazy<PortraitImageCaptions> Google =
-            new Lazy<PortraitImageCaptions>(() => Load("google-ai-img-caption.json"));
+        private static string openAiJson;
+        private static string googleJson;
+        private static PortraitImageCaptions openAi;
+        private static PortraitImageCaptions google;
 
         public static PortraitImageCaptions For(AiProvider provider)
         {
-            return provider == AiProvider.OpenAI ? OpenAi.Value : Google.Value;
+            string json = EffectiveJson(provider);
+            if (provider == AiProvider.OpenAI)
+            {
+                if (openAi == null || openAiJson != json)
+                {
+                    openAi = Parse(json, "open-ai-img-caption.json");
+                    openAiJson = json;
+                }
+                return openAi;
+            }
+            if (google == null || googleJson != json)
+            {
+                google = Parse(json, "google-ai-img-caption.json");
+                googleJson = json;
+            }
+            return google;
         }
 
         public string Primary(PortraitImageUse imageUse)
@@ -29,10 +44,21 @@ namespace RimAIPortrait
             return imageUse == PortraitImageUse.CharacterReference ? characterSprite : basePortrait;
         }
 
-        private static PortraitImageCaptions Load(string fileName)
+        internal static string EffectiveJson(AiProvider provider, PortraitSettings settings = null)
         {
-            string path = Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Json", fileName);
-            PortraitImageCaptions captions = JsonUtility.FromJson<PortraitImageCaptions>(File.ReadAllText(path));
+            if (settings == null) settings = RimAIPortraitMod.Settings;
+            string custom = provider == AiProvider.OpenAI
+                ? settings?.OpenAiImageCaptionsJson
+                : settings?.GoogleImageCaptionsJson;
+            if (!string.IsNullOrWhiteSpace(custom)) return custom;
+            string fileName = provider == AiProvider.OpenAI
+                ? "open-ai-img-caption.json" : "google-ai-img-caption.json";
+            return File.ReadAllText(Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Json", fileName));
+        }
+
+        internal static PortraitImageCaptions Parse(string json, string fileName)
+        {
+            PortraitImageCaptions captions = JsonUtility.FromJson<PortraitImageCaptions>(json);
             if (captions == null || string.IsNullOrWhiteSpace(captions.characterSprite)
                 || string.IsNullOrWhiteSpace(captions.basePortrait)
                 || string.IsNullOrWhiteSpace(captions.selectedReference)

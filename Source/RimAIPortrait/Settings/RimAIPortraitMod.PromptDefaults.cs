@@ -8,8 +8,14 @@ namespace RimAIPortrait
 {
     public sealed partial class RimAIPortraitMod
     {
+        private static readonly Dictionary<string, string> packagedPrompts = new Dictionary<string, string>();
+
         private static void ApplyPromptDefaults(ModContentPack content)
         {
+            if (Settings.TagExtractorBasePrompt.NullOrEmpty())
+                Settings.TagExtractorBasePrompt = ReadCommonPrompt(content, "TagExtractor.md");
+            if (Settings.TagExtractorInpaintBatchPrompt.NullOrEmpty())
+                Settings.TagExtractorInpaintBatchPrompt = ReadCommonPrompt(content, "TagExtractorInpaintBatch.md");
             var previousStateDefaults = new Dictionary<PortraitState, string>(PromptLibrary.State);
             string previousBase = Settings.BaseInstructions;
             string openAiBase = ReadPrompt(content, AiProvider.OpenAI, "BasePrompt.md", false);
@@ -62,6 +68,7 @@ namespace RimAIPortrait
 
                 foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
                 {
+                    if (state == PortraitState.Base) continue;
                     string prompt = ReadPrompt(content, provider, state + ".md", true);
                     if (prompt.NullOrEmpty()) continue;
                     string current = Settings.GetStatePrompt(provider, state);
@@ -73,6 +80,32 @@ namespace RimAIPortrait
                 }
             }
             Settings.ProviderPromptMigrationPending = false;
+        }
+
+        private static string ReadCommonPrompt(ModContentPack content, string name)
+        {
+            string relative = Path.Combine("Prompts", "Common", name);
+            try
+            {
+                return File.ReadAllText(Path.Combine(content.RootDir, relative)).Trim();
+            }
+            catch (Exception e)
+            {
+                Log.Warning("[Rim AI Expressive Portraits] Could not load " + relative + ": " + e.Message);
+                return "";
+            }
+        }
+
+        internal static string PackagedPrompt(AiProvider provider, string name, bool stripHeading)
+        {
+            string key = provider + "/" + name + "/" + stripHeading;
+            string value;
+            if (!packagedPrompts.TryGetValue(key, out value))
+            {
+                value = ReadPrompt(ModPack, provider, name, stripHeading);
+                packagedPrompts[key] = value;
+            }
+            return value;
         }
 
         private static string ReadPrompt(ModContentPack content, AiProvider provider, string name, bool stripHeading)

@@ -57,7 +57,7 @@ namespace RimAIPortrait
             if (!TryPreviewState(pawn, out state))
                 state = s.EnableEmotionChanges && !pawn.RaceProps.Animal
                     ? TimedState(pawn, s.SwapSeconds)
-                    : PortraitState.Normal;
+                    : PortraitState.Base;
             Texture2D portrait = PortraitData.Get(pawn, state);
             DrawPortraitTexture(portrait, s);
         }
@@ -181,7 +181,7 @@ namespace RimAIPortrait
                 return true;
             PreviewState.Remove(id);
             PreviewUntil.Remove(id);
-            state = PortraitState.Normal;
+            state = PortraitState.Base;
             return false;
         }
 

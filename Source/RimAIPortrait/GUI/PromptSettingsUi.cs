@@ -12,14 +12,28 @@ namespace RimAIPortrait
         private AiProvider editedProvider;
         private bool providerSelected;
 
-        public void Draw(Listing_Standard listing, PortraitSettings settings, Action saveSettings, Action<string> report)
+        public void DrawMain(Listing_Standard listing, PortraitSettings settings, Action<string> report)
         {
             listing.GapLine();
+            listing.CheckboxLabeled(Localization.T("RimAIPortrait.Settings.EmotionChanges"), ref settings.EnableEmotionChanges,
+                Localization.T("RimAIPortrait.Settings.EmotionChangesTip"));
+            if (settings.EnableEmotionChanges)
+            {
+                listing.Gap();
+                ProviderSettingsUi.Draw(listing, settings, true, report);
+            }
+        }
+
+        public void DrawDetails(Listing_Standard listing, PortraitSettings settings, Action saveSettings, Action<string> report)
+        {
             listing.Label(Localization.T("RimAIPortrait.Settings.PromptInformation"));
             Check(listing, Localization.T("RimAIPortrait.Settings.CharacterSprite"), ref settings.IncludeSprite);
             Check(listing, Localization.T("RimAIPortrait.Settings.Gender"), ref settings.IncludeGender);
             Check(listing, Localization.T("RimAIPortrait.Settings.Race"), ref settings.IncludeRace);
             Check(listing, Localization.T("RimAIPortrait.Settings.Xenotype"), ref settings.IncludeXenotype);
+            Check(listing, Localization.T("RimAIPortrait.Settings.Gene"), ref settings.IncludeGene);
+            if (settings.IncludeGene)
+                Check(listing, Localization.T("RimAIPortrait.Settings.AppearanceGenesOnly"), ref settings.OnlyAppearanceGenes);
             Check(listing, Localization.T("RimAIPortrait.Settings.Age"), ref settings.IncludeAge);
             Check(listing, Localization.T("RimAIPortrait.Settings.BodyType"), ref settings.IncludeBody);
             Check(listing, Localization.T("RimAIPortrait.Settings.SkinColor"), ref settings.IncludeSkin);
@@ -28,16 +42,16 @@ namespace RimAIPortrait
             Check(listing, Localization.T("RimAIPortrait.Settings.Apparel"), ref settings.IncludeApparel);
             Check(listing, Localization.T("RimAIPortrait.Settings.Health"), ref settings.IncludeHealth);
             Check(listing, Localization.T("RimAIPortrait.Settings.Traits"), ref settings.IncludeTraits);
+            listing.Gap();
+            if (listing.ButtonText(Localization.T("RimAIPortrait.PromptArchive.Open")))
+                Find.WindowStack.Add(new Dialog_PromptArchive(settings, saveSettings));
+            if (!settings.EnableEmotionChanges) return;
+            listing.GapLine();
             DrawEmotionSettings(listing, settings, saveSettings, report);
         }
 
         private void DrawEmotionSettings(Listing_Standard listing, PortraitSettings settings, Action saveSettings, Action<string> report)
         {
-            listing.GapLine();
-            listing.CheckboxLabeled(Localization.T("RimAIPortrait.Settings.EmotionChanges"), ref settings.EnableEmotionChanges,
-                Localization.T("RimAIPortrait.Settings.EmotionChangesTip"));
-            if (!settings.EnableEmotionChanges) return;
-
             listing.Label(Localization.T("RimAIPortrait.Settings.EnabledEmotions"));
             Check(listing, PortraitStateNames.Label(PortraitState.High), ref settings.EnableHigh);
             Check(listing, PortraitStateNames.Label(PortraitState.Low), ref settings.EnableLow);
@@ -48,8 +62,6 @@ namespace RimAIPortrait
             Check(listing, PortraitStateNames.Label(PortraitState.Cold), ref settings.EnableCold);
             Check(listing, PortraitStateNames.Label(PortraitState.Angry), ref settings.EnableAngry);
             Check(listing, PortraitStateNames.Label(PortraitState.Distressed), ref settings.EnableDistressed);
-            listing.Gap();
-            ProviderSettingsUi.Draw(listing, settings, true, report);
             listing.GapLine();
             DrawEditor(listing, settings, saveSettings, report);
             listing.Label(Localization.T("RimAIPortrait.Settings.SwapInterval", settings.SwapSeconds.ToString("0.0")));
@@ -81,12 +93,12 @@ namespace RimAIPortrait
                 Find.WindowStack.Add(new FloatMenu(providers));
             }
             Rect row = listing.GetRect(32f);
-            if (Widgets.ButtonText(new Rect(row.x, row.y, row.width - 110f, row.height), PortraitStateNames.Label(editedState) + " ▼"))
+            if (Widgets.ButtonText(new Rect(row.x, row.y, row.width - 220f, row.height), PortraitStateNames.Label(editedState) + " ▼"))
             {
                 var options = new List<FloatMenuOption>();
                 foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
                 {
-                    if (!settings.IsStateEnabled(state)) continue;
+                    if (state == PortraitState.Base || !settings.IsStateEnabled(state)) continue;
                     PortraitState captured = state;
                     options.Add(new FloatMenuOption(PortraitStateNames.Label(captured), () => editedState = captured));
                 }
@@ -97,6 +109,19 @@ namespace RimAIPortrait
                 saveSettings();
                 report(Localization.T("RimAIPortrait.Settings.PromptSaved",
                     ProviderSettingsUi.Label(editedProvider) + " / " + PortraitStateNames.Label(editedState)));
+            }
+            if (Widgets.ButtonText(new Rect(row.xMax - 210f, row.y, 100f, row.height),
+                Localization.T("RimAIPortrait.Common.Reset")))
+            {
+                string original = RimAIPortraitMod.PackagedPrompt(editedProvider, editedState + ".md", true);
+                if (original == null) report(Localization.T("RimAIPortrait.Settings.PromptDefaultMissing"));
+                else
+                {
+                    settings.SetStatePrompt(editedProvider, editedState, original);
+                    saveSettings();
+                    report(Localization.T("RimAIPortrait.Settings.PromptReset",
+                        ProviderSettingsUi.Label(editedProvider) + " / " + PortraitStateNames.Label(editedState)));
+                }
             }
             string prompt = PortraitPrompt.StateOverride(settings, editedProvider, editedState);
             settings.SetStatePrompt(editedProvider, editedState, Widgets.TextArea(listing.GetRect(100f), prompt ?? ""));

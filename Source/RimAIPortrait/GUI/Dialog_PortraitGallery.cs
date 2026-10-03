@@ -24,19 +24,32 @@ namespace RimAIPortrait
         private string[] files;
         private string galleryRoot;
         private string extraFeatures;
-        private string basePromptOverride;
+        private ExtractedTags baseTags;
+        private string positiveTagText;
+        private string negativeTagText;
+        private bool tagEdited;
+        private bool generatingTag;
+        private string basePrompt;
         private AiProvider basePromptProvider;
         private Texture2D debugSprite;
         private byte[] debugSpriteSource;
-        private PortraitState targetState = PortraitState.Normal;
+        private PortraitState targetState = PortraitState.Base;
         private bool showAll;
         private string status = Localization.T("RimAIPortrait.Gallery.InitialStatus");
         private bool checkedFirstHelp;
+        private bool hadBaseImage;
+        private bool v5HelpChecked;
+        private bool baseHelpChecked;
+        private bool expressionHelpChecked;
+        private bool helpOpen;
+        private bool galleryClosed;
         private const string BasePromptControl = "RimAIPortrait.Gallery.BasePrompt";
         private const string ExtraFeaturesControl = "RimAIPortrait.Gallery.ExtraFeatures";
+        private const string PositiveTagControl = "RimAIPortrait.Gallery.PositiveTag";
+        private const string NegativeTagControl = "RimAIPortrait.Gallery.NegativeTag";
         public override Vector2 InitialSize => PortraitWindowSizing.Fit(900f, 980f);
         /// <summary>Describes the behavior of this type or member.</summary>
-        public Dialog_PortraitGallery(Pawn pawn) { this.pawn = pawn; extraFeatures = PortraitData.ExtraFeatures(pawn); basePromptProvider = RimAIPortraitMod.Settings.Provider; LoadBasePrompt(); doCloseX = true; absorbInputAroundWindow = true; RefreshFiles(); }
+        public Dialog_PortraitGallery(Pawn pawn) { this.pawn = pawn; extraFeatures = PortraitData.ExtraFeatures(pawn); baseTags = PortraitData.BaseTags(pawn); positiveTagText = baseTags?.PositiveText ?? ""; negativeTagText = baseTags?.NegativeText ?? ""; basePromptProvider = RimAIPortraitMod.Settings.Provider; LoadBasePrompt(); doCloseX = true; absorbInputAroundWindow = true; RefreshFiles(); hadBaseImage = HasBaseImage(); }
 
         /// <summary>Describes the behavior of this type or member.</summary>
         public override void DoWindowContents(Rect rect)
@@ -50,19 +63,7 @@ namespace RimAIPortrait
             if (!checkedFirstHelp)
             {
                 checkedFirstHelp = true;
-                if (!RimAIPortraitMod.Settings.PortraitHelpShown)
-                {
-                    RimAIPortraitMod.Settings.PortraitHelpShown = true;
-                    RimAIPortraitMod.SaveSettings();
-                    Find.WindowStack.Add(new Dialog_PortraitHelp(0, 0));
-                }
-                else if (!RimAIPortraitMod.Settings.PortraitHelpAfterImageShown &&
-                    (files.Length > 0 || File.Exists(PortraitData.ExistingPathFor(pawn, PortraitState.Normal))))
-                {
-                    RimAIPortraitMod.Settings.PortraitHelpAfterImageShown = true;
-                    RimAIPortraitMod.SaveSettings();
-                    Find.WindowStack.Add(new Dialog_PortraitHelp(1, 2));
-                }
+                ShowNextHelp();
             }
             if (basePromptProvider != RimAIPortraitMod.Settings.Provider)
             {
@@ -70,10 +71,10 @@ namespace RimAIPortrait
                 LoadBasePrompt();
             }
             bool emotionChangesAvailable = RimAIPortraitMod.Settings.EnableEmotionChanges && !pawn.RaceProps.Animal;
-            if (targetState != PortraitState.Normal &&
+            if (targetState != PortraitState.Base &&
                 (!emotionChangesAvailable || !RimAIPortraitMod.Settings.IsStateEnabled(targetState)))
             {
-                targetState = PortraitState.Normal;
+                targetState = PortraitState.Base;
                 UpdateVisibleSelection();
             }
             HandleShortcuts(emotionChangesAvailable);
@@ -141,7 +142,7 @@ namespace RimAIPortrait
             if (Widgets.ButtonText(emotionRect, Localization.T("RimAIPortrait.Gallery.GenerateEmotionsFromBase"),
                 true, true, emotionChangesAvailable && PortraitRuntime.GenerationButtonReady))
             {
-                string basePath = PortraitData.ExistingPathFor(pawn, PortraitState.Normal);
+                string basePath = PortraitData.ExistingPathFor(pawn, PortraitState.Base);
                 if (!File.Exists(basePath)) status = Localization.T("RimAIPortrait.Gallery.BaseRequired");
                 else
                 {
@@ -158,14 +159,20 @@ namespace RimAIPortrait
             if (Widgets.ButtonText(removeBackgroundButton,
                 Localization.T("RimAIPortrait.Gallery.RemoveBackground")))
             {
-                if (selected.Count == 0)
+                bool editingAssignedPortrait = selected.Count == 0;
+                PortraitState editedState = targetState;
+                string[] editPaths = editingAssignedPortrait
+                    ? new[] { PortraitData.ExistingPathFor(pawn, editedState) }
+                    : selected.OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
+                if (editingAssignedPortrait && !File.Exists(editPaths[0]))
                     status = Localization.T("RimAIPortrait.Gallery.SelectImagesToRemoveBackground");
                 else
                 {
-                    string[] selectedPaths = selected.OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray();
-                    Find.WindowStack.Add(new Dialog_BackgroundRemoval(selectedPaths, (succeeded, failed) =>
+                    Find.WindowStack.Add(new Dialog_BackgroundRemoval(editPaths, (succeeded, failed) =>
                     {
-                        foreach (string path in selectedPaths) DropTexture(path);
+                        foreach (string path in editPaths) DropTexture(path);
+                        if (editingAssignedPortrait && succeeded > 0)
+                            PortraitData.RefreshEditedPortrait(pawn, editedState);
                         RefreshFiles();
                         status = Localization.T("RimAIPortrait.Gallery.BackgroundRemovalComplete", succeeded, failed);
                     }));
@@ -197,7 +204,7 @@ namespace RimAIPortrait
                     foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
                         DropTexture(PortraitData.PathFor(pawn, state));
                     PortraitData.ResetPortraits(pawn);
-                    InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Normal);
+                    InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Base);
                     status = Localization.T("RimAIPortrait.Gallery.PortraitsReset");
                 }));
             }
@@ -221,19 +228,14 @@ namespace RimAIPortrait
                 Localization.T("RimAIPortrait.Gallery.BaseProviderLabel", providerName));
             Rect baseArea = new Rect(90f, 128f, rect.width - 215f, 54f);
             GUI.SetNextControlName(BasePromptControl);
-            basePromptOverride = Widgets.TextArea(baseArea, basePromptOverride ?? "");
+            basePrompt = Widgets.TextArea(baseArea, basePrompt ?? "");
             TooltipHandler.TipRegion(baseArea, Localization.T("RimAIPortrait.Gallery.BasePromptTip"));
             Rect saveBaseButton = new Rect(rect.width - 115f, 128f, 115f, 26f);
             if (Widgets.ButtonText(saveBaseButton,
                 Localization.T("RimAIPortrait.Gallery.SaveBase")))
-                status = Localization.T(PortraitData.SaveBasePrompt(pawn, basePromptProvider, basePromptOverride)
+                status = Localization.T(SaveBasePrompt()
                     ? "RimAIPortrait.Gallery.BaseSaved" : "RimAIPortrait.Gallery.BaseSaveFailed");
             Tip(saveBaseButton, "SaveBase");
-            Rect resetBaseButton = new Rect(rect.width - 115f, 156f, 115f, 26f);
-            if (Widgets.ButtonText(resetBaseButton,
-                Localization.T("RimAIPortrait.Gallery.ResetBase")))
-                ResetBasePrompt();
-            Tip(resetBaseButton, "ResetBase");
 
             Widgets.Label(new Rect(0f, 200f, 85f, 28f), Localization.T("RimAIPortrait.Gallery.ExtraLabel"));
             Rect extraArea = new Rect(90f, 191f, rect.width - 215f, 54f);
@@ -247,8 +249,36 @@ namespace RimAIPortrait
                     ? "RimAIPortrait.Gallery.ExtraSaved" : "RimAIPortrait.Gallery.ExtraSaveFailed");
             Tip(saveExtraButton, "SaveExtra");
 
-            Widgets.Label(new Rect(0f, 256f, rect.width, 42f), status ?? "");
-            float panelTop = 302f;
+            if (basePromptProvider == AiProvider.NovelAI || basePromptProvider == AiProvider.LocalComfyUI)
+            {
+                Widgets.Label(new Rect(0f, 257f, 150f, 28f),
+                    Localization.T("RimAIPortrait.Gallery.TagExtractorLabel"));
+                if (Widgets.ButtonText(new Rect(155f, 252f, 80f, 32f),
+                    Localization.T("RimAIPortrait.Gallery.EditTagExtractorPrompt")))
+                    Find.WindowStack.Add(new Dialog_TagExtractorPrompt());
+                Rect saveTagButton = new Rect(rect.width - 240f, 252f, 115f, 32f);
+                if (Widgets.ButtonText(saveTagButton, Localization.T("RimAIPortrait.Common.Save")))
+                    status = Localization.T(SaveBaseTags()
+                        ? "RimAIPortrait.Gallery.TagSaved" : "RimAIPortrait.Gallery.TagSaveFailed");
+                Rect generateTagButton = new Rect(rect.width - 115f, 252f, 115f, 32f);
+                if (Widgets.ButtonText(generateTagButton, Localization.T("RimAIPortrait.Gallery.ExtractTag"),
+                    true, true, !generatingTag && RimAIPortraitMod.Settings.EnableTagExtractor))
+                    ExtractTag();
+                TooltipHandler.TipRegion(generateTagButton, Localization.T("RimAIPortrait.Gallery.ExtractTagTip"));
+                string placeholder = Localization.T("RimAIPortrait.Gallery.TagPlaceholder");
+                string positive = TagDisplay.DrawEditable(new Rect(0f, 288f, 85f, 28f),
+                    new Rect(90f, 284f, rect.width - 90f, 30f), Localization.T("RimAIPortrait.Tag.Positive"),
+                    positiveTagText, PositiveTagControl, placeholder);
+                string negative = TagDisplay.DrawEditable(new Rect(0f, 324f, 85f, 28f),
+                    new Rect(90f, 320f, rect.width - 90f, 30f), Localization.T("RimAIPortrait.Tag.Negative"),
+                    negativeTagText, NegativeTagControl, placeholder);
+                if (positive != positiveTagText || negative != negativeTagText) tagEdited = true;
+                positiveTagText = positive;
+                negativeTagText = negative;
+            }
+
+            Widgets.Label(new Rect(0f, 360f, rect.width, 34f), status ?? "");
+            float panelTop = 402f;
             float panelHeight = rect.height - panelTop;
             float assignedWidth = Mathf.Min(365f, rect.width * .42f);
             DrawAssignedState(new Rect(0f, panelTop, assignedWidth, panelHeight), emotionChangesAvailable);
@@ -262,7 +292,8 @@ namespace RimAIPortrait
             if (current.type != EventType.KeyDown || current.alt || current.control || current.command || current.shift)
                 return;
             string focusedControl = GUI.GetNameOfFocusedControl();
-            if (focusedControl == BasePromptControl || focusedControl == ExtraFeaturesControl)
+            if (focusedControl == BasePromptControl || focusedControl == ExtraFeaturesControl
+                || focusedControl == PositiveTagControl || focusedControl == NegativeTagControl)
                 return;
 
             switch (current.keyCode)
@@ -322,8 +353,9 @@ namespace RimAIPortrait
         {
             return emotionChangesAvailable
                 ? Enum.GetValues(typeof(PortraitState)).Cast<PortraitState>()
-                    .Where(RimAIPortraitMod.Settings.IsStateEnabled).ToArray()
-                : new[] { PortraitState.Normal };
+                    .Where(state => state == PortraitState.Base || RimAIPortraitMod.Settings.IsStateEnabled(state))
+                    .OrderBy(state => state == PortraitState.Base ? 0 : 1).ToArray()
+                : new[] { PortraitState.Base };
         }
 
         private void ChangeState(int direction, bool emotionChangesAvailable)
@@ -341,8 +373,7 @@ namespace RimAIPortrait
         {
             if (showAll) return true;
             string name = Path.GetFileNameWithoutExtension(path);
-            return name.StartsWith(PortraitStateNames.Display(targetState) + "_", StringComparison.OrdinalIgnoreCase)
-                || targetState == PortraitState.Normal && name.StartsWith("Normal_", StringComparison.OrdinalIgnoreCase);
+            return name.StartsWith(PortraitStateNames.Display(targetState) + "_", StringComparison.OrdinalIgnoreCase);
         }
 
         private void UpdateVisibleSelection()
@@ -534,36 +565,138 @@ namespace RimAIPortrait
         private void DropTexture(string path) { if (textures.TryGetValue(path, out var t)) UnityEngine.Object.Destroy(t); textures.Remove(path); textureUse.Remove(path); }
         /// <summary>Describes the behavior of this type or member.</summary>
         private bool SaveExtraFeatures() => PortraitData.SaveExtraFeatures(pawn, extraFeatures);
-        private void ResetBasePrompt()
+        private bool SaveBaseTags()
         {
-            AiProvider provider = basePromptProvider;
-            const string fileName = "BasePrompt.md";
+            if (!tagEdited) return true;
+            var tags = new ExtractedTags
+            {
+                positive = SplitTags(positiveTagText),
+                negative = SplitTags(negativeTagText)
+            };
+            if (!PortraitData.SaveBaseTags(pawn, tags)) return false;
+            baseTags = tags;
+            tagEdited = false;
+            return true;
+        }
+
+        private static string[] SplitTags(string text)
+        {
+            return (text ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(tag => tag.Trim()).Where(tag => tag.Length > 0).ToArray();
+        }
+
+        private void ExtractTag()
+        {
+            SaveExtraFeatures();
+            SaveBasePrompt();
+            generatingTag = true;
+            status = Localization.T("RimAIPortrait.Gallery.ExtractingTag");
+            string imagePath = selected.Count == 1 ? selected.First() : null;
+            if (imagePath == null)
+            {
+                string basePath = PortraitData.ExistingPathFor(pawn, PortraitState.Base);
+                if (File.Exists(basePath)) imagePath = basePath;
+            }
+            PortraitRuntime.EnsureCreated();
+            PortraitRuntime.Instance.GenerateBaseTags(pawn, imagePath, (tags, error) =>
+            {
+                generatingTag = false;
+                if (tags == null)
+                {
+                    status = Localization.T("RimAIPortrait.TagExtractor.Failed", error ??
+                        Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
+                    return;
+                }
+                if (PortraitData.SaveBaseTags(pawn, tags))
+                {
+                    baseTags = tags;
+                    positiveTagText = tags.PositiveText;
+                    negativeTagText = tags.NegativeText;
+                    tagEdited = false;
+                    status = Localization.T("RimAIPortrait.Gallery.TagSaved");
+                }
+                else status = Localization.T("RimAIPortrait.Gallery.TagSaveFailed");
+            });
+        }
+        private bool SaveBasePrompt()
+        {
             try
             {
-                string path = Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Prompts",
-                    PromptLibrary.ProviderFolder(provider), fileName);
-                string prompt = File.ReadAllText(path).Trim();
-                if (prompt.NullOrEmpty() && provider == AiProvider.LocalComfyUI)
-                    prompt = File.ReadAllText(Path.Combine(RimAIPortraitMod.ModPack.RootDir,
-                        "Prompts", "OpenAI", fileName)).Trim();
-                if (prompt.NullOrEmpty()) throw new InvalidDataException(fileName + " is empty.");
-                basePromptOverride = prompt;
-                status = Localization.T("RimAIPortrait.Gallery.BaseReset");
+                PortraitSettings settings = RimAIPortraitMod.Settings;
+                if (basePromptProvider == AiProvider.Google) settings.GeminiBaseInstructions = basePrompt;
+                else if (basePromptProvider == AiProvider.NovelAI) settings.NovelAiBaseInstructions = basePrompt;
+                else if (basePromptProvider == AiProvider.LocalComfyUI) settings.ComfyBaseInstructions = basePrompt;
+                else settings.BaseInstructions = basePrompt;
+                RimAIPortraitMod.SaveSettings();
+                return true;
             }
             catch (Exception exception)
             {
-                status = Localization.T("RimAIPortrait.Gallery.BaseResetFailed", exception.Message);
+                Log.Warning("[Rim AI Expressive Portraits] Could not save Base Prompt: " + exception.Message);
+                return false;
             }
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         private void LoadBasePrompt()
         {
-            basePromptOverride = PortraitData.BasePrompt(pawn, basePromptProvider);
-            if (basePromptOverride.NullOrEmpty())
-                basePromptOverride = PortraitPrompt.BaseInstructions(RimAIPortraitMod.Settings);
+            PortraitSettings settings = RimAIPortraitMod.Settings;
+            basePrompt = basePromptProvider == AiProvider.Google ? settings.GeminiBaseInstructions
+                : basePromptProvider == AiProvider.NovelAI ? settings.NovelAiBaseInstructions
+                : basePromptProvider == AiProvider.LocalComfyUI ? settings.ComfyBaseInstructions
+                : settings.BaseInstructions;
         }
 
-        private bool SaveRequestFields() => SaveExtraFeatures() && PortraitData.SaveBasePrompt(pawn, basePromptProvider, basePromptOverride);
+        private bool SaveRequestFields() => SaveExtraFeatures() && SaveBasePrompt() && SaveBaseTags();
+        private bool HasBaseImage()
+        {
+            return File.Exists(PortraitData.ExistingPathFor(pawn, PortraitState.Base));
+        }
+
+        private void ShowNextHelp()
+        {
+            if (helpOpen || galleryClosed) return;
+            PortraitSettings settings = RimAIPortraitMod.Settings;
+            bool showV5 = !v5HelpChecked && settings.Provider == AiProvider.NovelAI
+                && NovelAiPortraitProvider.IsV5Model(settings.NovelAiModel)
+                && !settings.NovelAiV5HelpDismissed;
+            if (showV5)
+            {
+                v5HelpChecked = true;
+                OpenHelp(new Dialog_PortraitHelp(Localization.T("RimAIPortrait.Help.NovelAiV5SpriteWarning"),
+                    dismissed => CloseHelp(dismissed, () => settings.NovelAiV5HelpDismissed = true)));
+                return;
+            }
+            if (!baseHelpChecked && !settings.PortraitHelpDismissed)
+            {
+                baseHelpChecked = true;
+                OpenHelp(new Dialog_PortraitHelp(0, 0, null,
+                    dismissed => CloseHelp(dismissed, () => settings.PortraitHelpDismissed = true)));
+                return;
+            }
+            if (!expressionHelpChecked && HasBaseImage() && !settings.PortraitHelpAfterImageDismissed)
+            {
+                expressionHelpChecked = true;
+                OpenHelp(new Dialog_PortraitHelp(1, 2, null,
+                    dismissed => CloseHelp(dismissed, () => settings.PortraitHelpAfterImageDismissed = true)));
+            }
+        }
+
+        private void OpenHelp(Dialog_PortraitHelp help)
+        {
+            helpOpen = true;
+            Find.WindowStack.Add(help);
+        }
+
+        private void CloseHelp(bool dismissed, Action dismiss)
+        {
+            if (dismissed)
+            {
+                dismiss();
+                RimAIPortraitMod.SaveSettings();
+            }
+            helpOpen = false;
+            ShowNextHelp();
+        }
         /// <summary>Describes the behavior of this type or member.</summary>
         private void RefreshFiles()
         {
@@ -578,12 +711,15 @@ namespace RimAIPortrait
             PortraitData.RefreshExternalFiles(pawn);
             if (clearTextures) { foreach (var texture in textures.Values) UnityEngine.Object.Destroy(texture); textures.Clear(); textureUse.Clear(); }
             files = PortraitData.Gallery(pawn);
+            bool hasBaseImage = HasBaseImage();
+            if (checkedFirstHelp && !hadBaseImage && hasBaseImage) ShowNextHelp();
+            hadBaseImage = hasBaseImage;
             selected.RemoveWhere(path => !File.Exists(path));
             if (selectionAnchor != null && Array.IndexOf(files, selectionAnchor) < 0)
                 selectionAnchor = null;
             UpdateVisibleSelection();
         }
         /// <summary>Describes the behavior of this type or member.</summary>
-        public override void PostClose() { SaveRequestFields(); foreach (var t in textures.Values) UnityEngine.Object.Destroy(t); if (debugSprite != null) UnityEngine.Object.Destroy(debugSprite); base.PostClose(); }
+        public override void PostClose() { galleryClosed = true; SaveRequestFields(); foreach (var t in textures.Values) UnityEngine.Object.Destroy(t); if (debugSprite != null) UnityEngine.Object.Destroy(debugSprite); base.PostClose(); }
     }
 }

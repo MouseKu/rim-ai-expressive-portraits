@@ -71,19 +71,19 @@ namespace RimAIPortrait
                 && !string.IsNullOrWhiteSpace(settings.TagExtractorOpenAiModel);
         }
 
-        public static IEnumerator Extract(PortraitSettings settings, byte[] image, string portraitPrompt, bool inpaint,
+        public static IEnumerator Extract(PortraitSettings settings, byte[] image, string portraitPrompt,
             Action<ExtractedTags, string> done, string features = null)
         {
             string response = null;
             string error = null;
-            yield return Send(settings, image, portraitPrompt, inpaint ? "TagExtractorInpaint.md" : "TagExtractor.md",
+            yield return Send(settings, image, portraitPrompt, "TagExtractor.md",
                 false, (value, failure) => { response = value; error = failure; }, features);
             if (response == null) { done(null, error); yield break; }
             try
             {
                 ExtractedTags tags = JsonUtility.FromJson<ExtractedTags>(response);
-                string issue = tags == null ? "JSON object missing" : tags.ValidationIssue(inpaint);
-                Debug(settings, "validation", "scope=" + (inpaint ? "inpaint" : "base")
+                string issue = tags == null ? "JSON object missing" : tags.ValidationIssue(false);
+                Debug(settings, "validation", "scope=base"
                     + ", positive=" + (tags?.positive?.Length ?? -1)
                     + ", negative=" + (tags?.negative?.Length ?? -1)
                     + ", result=" + (issue ?? "valid"));
@@ -92,10 +92,22 @@ namespace RimAIPortrait
             }
             catch (Exception exception)
             {
-                Debug(settings, "parse", "scope=" + (inpaint ? "inpaint" : "base")
+                Debug(settings, "parse", "scope=base"
                     + ", exception=" + exception.GetType().Name);
                 done(null, Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
             }
+        }
+
+        public static IEnumerator ExtractInpaint(PortraitSettings settings, byte[] image, PortraitState state,
+            string prompt, Action<ExtractedTags, string> done)
+        {
+            var prompts = new Dictionary<PortraitState, string> { { state, prompt } };
+            Dictionary<PortraitState, ExtractedTags> results = null;
+            string error = null;
+            yield return ExtractBatch(settings, image, prompts,
+                (value, failure) => { results = value; error = failure; });
+            ExtractedTags tags;
+            done(results != null && results.TryGetValue(state, out tags) ? tags : null, error);
         }
 
         public static IEnumerator ExtractBatch(PortraitSettings settings, byte[] image,
@@ -156,10 +168,12 @@ namespace RimAIPortrait
                 yield break;
             }
 
-            string instruction;
+            string instruction = batch ? settings.TagExtractorInpaintBatchPrompt : settings.TagExtractorBasePrompt;
             try
             {
-                instruction = File.ReadAllText(Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Prompts", "Common", promptFile)).Trim();
+                if (string.IsNullOrWhiteSpace(instruction))
+                    instruction = File.ReadAllText(Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Prompts", "Common", promptFile));
+                instruction = instruction.Trim();
                 if (instruction.Length == 0) throw new InvalidDataException();
             }
             catch (Exception)
@@ -208,6 +222,7 @@ namespace RimAIPortrait
                 : settings.TagExtractorBackend == TagExtractorModel.LocalModel
                     ? ChatBody(model, message, mime, encodedImage, batch)
                     : OpenAiBody(model, message, mime, encodedImage, batch);
+            Dialog_DebugRequest.Trace trace = Dialog_DebugRequest.Show("Tag Extractor / " + settings.TagExtractorBackend, url, body);
             using (var request = new UnityWebRequest(url, "POST"))
             {
                 request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(body));
@@ -219,6 +234,7 @@ namespace RimAIPortrait
                 else if (!string.IsNullOrWhiteSpace(key))
                     request.SetRequestHeader("Authorization", "Bearer " + key);
                 yield return request.SendWebRequest();
+                if (trace != null) trace.Respond(request);
                 Debug(settings, "HTTP", "model=" + SafeModel(model) + ", status=" + request.responseCode
                     + ", bytes=" + (request.downloadHandler?.data?.Length ?? 0));
                 if (PortraitProviderUtilities.Failed(request))
@@ -237,7 +253,9 @@ namespace RimAIPortrait
                 catch (Exception exception)
                 {
                     Debug(settings, "response parse", "exception=" + exception.GetType().Name);
-                    done(null, Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
+                    done(null, Localization.T(exception is LocalModelOutputLimitException
+                        ? "RimAIPortrait.TagExtractor.LocalOutputLimit"
+                        : "RimAIPortrait.TagExtractor.InvalidResponse"));
                 }
             }
         }
@@ -332,6 +350,7 @@ namespace RimAIPortrait
                 ? response.choices[0] : null;
             Debug(settings, "local response", "choices=" + (response?.choices?.Length ?? -1)
                 + ", finish_reason=" + SafeStatus(choice?.finish_reason));
+            if (choice?.finish_reason == "length") throw new LocalModelOutputLimitException();
             if (response == null || response.choices == null || response.choices.Length == 0
                 || response.choices[0].message == null || response.choices[0].finish_reason != "stop")
                 throw new InvalidDataException();
@@ -409,5 +428,6 @@ namespace RimAIPortrait
         [Serializable] private sealed class ChatMessage { public string content = null; }
         [Serializable] private sealed class ChatChoice { public string finish_reason = null; public ChatMessage message = null; }
         [Serializable] private sealed class ChatResponse { public ChatChoice[] choices = null; }
+        private sealed class LocalModelOutputLimitException : Exception { }
     }
 }

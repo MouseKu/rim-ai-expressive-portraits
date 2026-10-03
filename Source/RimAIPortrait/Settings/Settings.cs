@@ -27,10 +27,12 @@ namespace RimAIPortrait
         public string OpenAiExpressionModel;
         public string OpenAiOptions = ProviderOptionDefaults.OpenAiBase;
         public string OpenAiExpressionOptions = ProviderOptionDefaults.OpenAiExpression;
+        public string OpenAiImageCaptionsJson;
         public string GoogleModel;
         public string GoogleExpressionModel;
         public string GoogleOptions = ProviderOptionDefaults.GoogleBase;
         public string GoogleExpressionOptions = ProviderOptionDefaults.GoogleExpression;
+        public string GoogleImageCaptionsJson;
         public string RegenerateOpenAiApiKey;
         public string RegenerateOpenAiModel;
         public string RegenerateOpenAiOptions = ProviderOptionDefaults.OpenAiBase;
@@ -52,6 +54,14 @@ namespace RimAIPortrait
         public string NovelAiExpressionOptions = ProviderOptionDefaults.NovelAiExpression;
         public float NovelAiInpaintStrength;
         public float NovelAiSleepInpaintStrength;
+        public float InpaintHighStrength;
+        public float InpaintLowStrength;
+        public float InpaintPainStrength;
+        public float InpaintDownStrength;
+        public float InpaintHotStrength;
+        public float InpaintColdStrength;
+        public float InpaintAngryStrength;
+        public float InpaintDistressedStrength;
         public string ComfyUrl;
         public string ComfyExpressionUrl;
         public string ComfyWorkflowPath;
@@ -68,6 +78,8 @@ namespace RimAIPortrait
         public string TagExtractorLocalUrl;
         public string TagExtractorLocalModel;
         public string TagExtractorLocalKey;
+        public string TagExtractorBasePrompt;
+        public string TagExtractorInpaintBatchPrompt;
         public string Prompt;
         public string PortraitRootFolder;
         public string StyleFolder;
@@ -92,10 +104,14 @@ namespace RimAIPortrait
         public bool EnableEmotionChanges;
         public bool PortraitHelpShown;
         public bool PortraitHelpAfterImageShown;
+        public bool PortraitHelpDismissed;
+        public bool PortraitHelpAfterImageDismissed;
+        public bool NovelAiV5HelpDismissed;
         public bool EnableHigh, EnableLow, EnableSleep,
             EnablePain, EnableDown, EnableHot,
             EnableCold, EnableAngry, EnableDistressed;
         public bool DebugMode;
+        public bool ShowApiRequest;
         public bool EnableFrame;
         public float FrameScale;
         public string FrameImagePath;
@@ -106,7 +122,7 @@ namespace RimAIPortrait
         public float EnclosedCleanup;
         public bool BackgroundAlignBottom;
         public bool IncludeSprite, IncludeGender, IncludeRace,
-            IncludeXenotype, IncludeAge, IncludeBody,
+            IncludeXenotype, IncludeGene, OnlyAppearanceGenes, IncludeAge, IncludeBody,
             IncludeSkin, IncludeHair, IncludeEyes,
             IncludeApparel, IncludeApparelQuality,
             IncludeHealth, IncludeTraits, IncludeBackstory;
@@ -141,6 +157,9 @@ namespace RimAIPortrait
         {
             bool portraitHelpShown = PortraitHelpShown;
             bool portraitHelpAfterImageShown = PortraitHelpAfterImageShown;
+            bool portraitHelpDismissed = PortraitHelpDismissed;
+            bool portraitHelpAfterImageDismissed = PortraitHelpAfterImageDismissed;
+            bool novelAiV5HelpDismissed = NovelAiV5HelpDismissed;
             var defaults = new PortraitSettings();
             foreach (FieldInfo field in typeof(PortraitSettings).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -148,6 +167,9 @@ namespace RimAIPortrait
             }
             PortraitHelpShown = portraitHelpShown;
             PortraitHelpAfterImageShown = portraitHelpAfterImageShown;
+            PortraitHelpDismissed = portraitHelpDismissed;
+            PortraitHelpAfterImageDismissed = portraitHelpAfterImageDismissed;
+            NovelAiV5HelpDismissed = novelAiV5HelpDismissed;
             RegenerateSettingsMigrated = true;
         }
 
@@ -182,10 +204,12 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref OpenAiExpressionModel, "openAiExpressionModel", defaults.OpenAiExpressionModel);
             Scribe_Values.Look(ref OpenAiOptions, "openAiOptions", ProviderOptionDefaults.OpenAiBase);
             Scribe_Values.Look(ref OpenAiExpressionOptions, "openAiExpressionOptions", ProviderOptionDefaults.OpenAiExpression);
+            Scribe_Values.Look(ref OpenAiImageCaptionsJson, "openAiImageCaptionsJson");
             Scribe_Values.Look(ref GoogleModel, "googleModel", defaults.GoogleModel);
             Scribe_Values.Look(ref GoogleExpressionModel, "googleExpressionModel", defaults.GoogleExpressionModel);
             Scribe_Values.Look(ref GoogleOptions, "googleOptions", ProviderOptionDefaults.GoogleBase);
             Scribe_Values.Look(ref GoogleExpressionOptions, "googleExpressionOptions", ProviderOptionDefaults.GoogleExpression);
+            Scribe_Values.Look(ref GoogleImageCaptionsJson, "googleImageCaptionsJson");
             Scribe_Values.Look(ref NovelAiApiKey, "novelAiApiKey", defaults.NovelAiApiKey);
             Scribe_Values.Look(ref NovelAiExpressionApiKey, "novelAiExpressionApiKey", defaults.NovelAiExpressionApiKey);
             Scribe_Values.Look(ref NovelAiModel, "novelAiModel", defaults.NovelAiModel);
@@ -194,6 +218,14 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref NovelAiExpressionOptions, "novelAiExpressionOptions", ProviderOptionDefaults.NovelAiExpression);
             Scribe_Values.Look(ref NovelAiInpaintStrength, "novelAiInpaintStrength", defaults.NovelAiInpaintStrength);
             Scribe_Values.Look(ref NovelAiSleepInpaintStrength, "novelAiSleepInpaintStrength", defaults.NovelAiSleepInpaintStrength);
+            Scribe_Values.Look(ref InpaintHighStrength, "inpaintHighStrength", NovelAiInpaintStrength);
+            Scribe_Values.Look(ref InpaintLowStrength, "inpaintLowStrength", NovelAiInpaintStrength);
+            Scribe_Values.Look(ref InpaintPainStrength, "inpaintPainStrength", NovelAiInpaintStrength);
+            Scribe_Values.Look(ref InpaintDownStrength, "inpaintDownStrength", NovelAiInpaintStrength);
+            Scribe_Values.Look(ref InpaintHotStrength, "inpaintHotStrength", NovelAiInpaintStrength);
+            Scribe_Values.Look(ref InpaintColdStrength, "inpaintColdStrength", NovelAiInpaintStrength);
+            Scribe_Values.Look(ref InpaintAngryStrength, "inpaintAngryStrength", NovelAiInpaintStrength);
+            Scribe_Values.Look(ref InpaintDistressedStrength, "inpaintDistressedStrength", NovelAiInpaintStrength);
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
                 Scribe_Values.Look(ref legacyCharacterStrength, "novelAiCharacterReferenceStrength", .55f);
@@ -215,6 +247,8 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref TagExtractorLocalUrl, "tagExtractorLocalUrl", defaults.TagExtractorLocalUrl);
             Scribe_Values.Look(ref TagExtractorLocalModel, "tagExtractorLocalModel", defaults.TagExtractorLocalModel);
             Scribe_Values.Look(ref TagExtractorLocalKey, "tagExtractorLocalKey", defaults.TagExtractorLocalKey);
+            Scribe_Values.Look(ref TagExtractorBasePrompt, "tagExtractorBasePrompt");
+            Scribe_Values.Look(ref TagExtractorInpaintBatchPrompt, "tagExtractorInpaintBatchPrompt");
             Scribe_Values.Look(ref Prompt, "prompt", defaults.Prompt);
             Scribe_Values.Look(ref PortraitRootFolder, "portraitRootFolder", "");
             Scribe_Values.Look(ref StyleFolder, "styleFolder", "");
@@ -236,12 +270,16 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref EnableEmotionChanges, "enableEmotionChanges", defaults.EnableEmotionChanges);
             Scribe_Values.Look(ref PortraitHelpShown, "portraitHelpShown", false);
             Scribe_Values.Look(ref PortraitHelpAfterImageShown, "portraitHelpAfterImageShown", PortraitHelpShown);
+            Scribe_Values.Look(ref PortraitHelpDismissed, "portraitHelpDismissed", false);
+            Scribe_Values.Look(ref PortraitHelpAfterImageDismissed, "portraitHelpAfterImageDismissed", false);
+            Scribe_Values.Look(ref NovelAiV5HelpDismissed, "novelAiV5HelpDismissed", false);
             Scribe_Values.Look(ref EnableHigh, "enableHigh", defaults.EnableHigh); Scribe_Values.Look(ref EnableLow, "enableLow", defaults.EnableLow);
             Scribe_Values.Look(ref EnableSleep, "enableSleep", defaults.EnableSleep); Scribe_Values.Look(ref EnablePain, "enablePain", defaults.EnablePain);
             Scribe_Values.Look(ref EnableDown, "enableDown", defaults.EnableDown); Scribe_Values.Look(ref EnableHot, "enableHot", defaults.EnableHot);
             Scribe_Values.Look(ref EnableCold, "enableCold", defaults.EnableCold); Scribe_Values.Look(ref EnableAngry, "enableAngry", defaults.EnableAngry);
             Scribe_Values.Look(ref EnableDistressed, "enableDistressed", defaults.EnableDistressed);
             Scribe_Values.Look(ref DebugMode, "debugMode", defaults.DebugMode);
+            Scribe_Values.Look(ref ShowApiRequest, "showApiRequest", false);
             Scribe_Values.Look(ref EnableFrame, "enableFrame", defaults.EnableFrame);
             Scribe_Values.Look(ref FrameScale, "frameScale", defaults.FrameScale);
             Scribe_Values.Look(ref FrameImagePath, "frameImagePath", defaults.FrameImagePath);
@@ -253,6 +291,8 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref BackgroundAlignBottom, "backgroundAlignBottom", defaults.BackgroundAlignBottom);
             Scribe_Values.Look(ref IncludeSprite, "includeSprite", defaults.IncludeSprite); Scribe_Values.Look(ref IncludeGender, "includeGender", defaults.IncludeGender);
             Scribe_Values.Look(ref IncludeRace, "includeRace", defaults.IncludeRace); Scribe_Values.Look(ref IncludeXenotype, "includeXenotype", defaults.IncludeXenotype);
+            Scribe_Values.Look(ref IncludeGene, "includeGene", defaults.IncludeGene);
+            Scribe_Values.Look(ref OnlyAppearanceGenes, "onlyAppearanceGenes", defaults.OnlyAppearanceGenes);
             Scribe_Values.Look(ref IncludeAge, "includeAge", defaults.IncludeAge); Scribe_Values.Look(ref IncludeBody, "includeBody", defaults.IncludeBody);
             Scribe_Values.Look(ref IncludeSkin, "includeSkin", defaults.IncludeSkin); Scribe_Values.Look(ref IncludeHair, "includeHair", defaults.IncludeHair);
             Scribe_Values.Look(ref IncludeEyes, "includeEyes", defaults.IncludeEyes); Scribe_Values.Look(ref IncludeApparel, "includeApparel", defaults.IncludeApparel);
@@ -314,7 +354,7 @@ namespace RimAIPortrait
         {
             var prompts = new ProviderStatePrompts();
             foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
-                prompts.Set(state, LegacyStatePrompt(state));
+                if (state != PortraitState.Base) prompts.Set(state, LegacyStatePrompt(state));
             return prompts;
         }
 
@@ -386,6 +426,7 @@ namespace RimAIPortrait
         /// <returns>The resulting value.</returns>
         public bool IsStateEnabled(PortraitState state)
         {
+            if (state == PortraitState.Base) return true;
             if (state == PortraitState.Normal) return true;
             if (state == PortraitState.High) return EnableHigh;
             if (state == PortraitState.Low) return EnableLow;
@@ -396,6 +437,40 @@ namespace RimAIPortrait
             if (state == PortraitState.Cold) return EnableCold;
             if (state == PortraitState.Angry) return EnableAngry;
             return EnableDistressed;
+        }
+
+        public float GetInpaintStrength(PortraitState state)
+        {
+            switch (state)
+            {
+                case PortraitState.High: return InpaintHighStrength;
+                case PortraitState.Low: return InpaintLowStrength;
+                case PortraitState.Sleep: return NovelAiSleepInpaintStrength;
+                case PortraitState.Pain: return InpaintPainStrength;
+                case PortraitState.Down: return InpaintDownStrength;
+                case PortraitState.Hot: return InpaintHotStrength;
+                case PortraitState.Cold: return InpaintColdStrength;
+                case PortraitState.Angry: return InpaintAngryStrength;
+                case PortraitState.Distressed: return InpaintDistressedStrength;
+                default: return NovelAiInpaintStrength;
+            }
+        }
+
+        public void SetInpaintStrength(PortraitState state, float strength)
+        {
+            switch (state)
+            {
+                case PortraitState.High: InpaintHighStrength = strength; break;
+                case PortraitState.Low: InpaintLowStrength = strength; break;
+                case PortraitState.Sleep: NovelAiSleepInpaintStrength = strength; break;
+                case PortraitState.Pain: InpaintPainStrength = strength; break;
+                case PortraitState.Down: InpaintDownStrength = strength; break;
+                case PortraitState.Hot: InpaintHotStrength = strength; break;
+                case PortraitState.Cold: InpaintColdStrength = strength; break;
+                case PortraitState.Angry: InpaintAngryStrength = strength; break;
+                case PortraitState.Distressed: InpaintDistressedStrength = strength; break;
+                default: NovelAiInpaintStrength = strength; break;
+            }
         }
 
         /// <summary>Describes the behavior of this type or member.</summary>

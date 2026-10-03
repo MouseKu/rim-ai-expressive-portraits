@@ -122,6 +122,8 @@ namespace RimAIPortrait
                 .Replace("__RIM_NEGATIVE_PROMPT__", PortraitProviderUtilities.JsonEscape(configuration.NegativePrompt ?? ""))
                 .Replace("__RIM_INPAINT_TAG__", PortraitProviderUtilities.JsonEscape(request.InpaintTag ?? ""))
                 .Replace("__RIM_SEED__", new System.Random().Next(1, int.MaxValue).ToString());
+            workflow = workflow.Replace("__RIM_INPAINT_STRENGTH__",
+                request.InpaintStrength.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
             if (workflow.Contains("__RIM_EXTRACTED_TAG__"))
             {
                 string positiveTags = request.ExtractedTags == null ? "" : request.ExtractedTags.PositiveText;
@@ -150,9 +152,11 @@ namespace RimAIPortrait
 
             string promptId;
             string body = "{\"prompt\":" + workflow + ",\"client_id\":\"rim-ai-portrait-" + Guid.NewGuid().ToString("N") + "\"}";
+            Dialog_DebugRequest.Trace trace = Dialog_DebugRequest.Show("ComfyUI", baseUrl + "/prompt", body);
             using (UnityWebRequest webRequest = JsonRequest(baseUrl + "/prompt", "POST", body, Mathf.CeilToInt(configuration.TimeoutSeconds)))
             {
                 yield return webRequest.SendWebRequest();
+                if (trace != null) trace.Respond(webRequest);
                 if (PortraitProviderUtilities.Failed(webRequest))
                 {
                     done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ComfySubmitHttp", webRequest.responseCode, webRequest.error, PortraitProviderUtilities.Short(webRequest.downloadHandler.text))));
@@ -172,8 +176,10 @@ namespace RimAIPortrait
                 yield return new WaitForSecondsRealtime(1f);
                 using (UnityWebRequest history = UnityWebRequest.Get(baseUrl + "/history/" + UnityWebRequest.EscapeURL(promptId)))
                 {
+                    Dialog_DebugRequest.Trace historyTrace = Dialog_DebugRequest.ShowGet("ComfyUI history", history.url);
                     history.timeout = 30;
                     yield return history.SendWebRequest();
+                    if (historyTrace != null) historyTrace.Respond(history);
                     if (PortraitProviderUtilities.Failed(history))
                     {
                         done(PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ComfyHistoryHttp", history.responseCode, history.error)));
@@ -200,8 +206,10 @@ namespace RimAIPortrait
                         + "&type=" + UnityWebRequest.EscapeURL(output.Groups[3].Value);
                     using (UnityWebRequest imageRequest = UnityWebRequest.Get(url))
                     {
+                        Dialog_DebugRequest.Trace imageTrace = Dialog_DebugRequest.ShowGet("ComfyUI image", url);
                         imageRequest.timeout = 120;
                         yield return imageRequest.SendWebRequest();
+                        if (imageTrace != null) imageTrace.Respond(imageRequest);
                         done(PortraitProviderUtilities.Failed(imageRequest)
                             ? PortraitGenerationResult.Failed(Localization.T("RimAIPortrait.Error.ComfyImageHttp", imageRequest.responseCode, imageRequest.error))
                             : PortraitGenerationResult.Succeeded(imageRequest.downloadHandler.data));
@@ -219,10 +227,12 @@ namespace RimAIPortrait
                 new MultipartFormDataSection("type", "input"),
                 new MultipartFormDataSection("overwrite", "true")
             };
+            Dialog_DebugRequest.Trace trace = Dialog_DebugRequest.ShowMultipart("ComfyUI upload", baseUrl + "/upload/image", parts);
             using (UnityWebRequest request = UnityWebRequest.Post(baseUrl + "/upload/image", parts))
             {
                 request.timeout = 120;
                 yield return request.SendWebRequest();
+                if (trace != null) trace.Respond(request);
                 if (PortraitProviderUtilities.Failed(request))
                     done(null, Localization.T("RimAIPortrait.Error.ComfyUploadHttp", request.responseCode, request.error, PortraitProviderUtilities.Short(request.downloadHandler.text)));
                 else

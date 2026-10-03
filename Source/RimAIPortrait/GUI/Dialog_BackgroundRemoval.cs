@@ -22,6 +22,7 @@ namespace RimAIPortrait
         private int erosionPixels;
         private bool previewCurrent;
         private bool alignBottom;
+        private bool flipHorizontal;
         private bool removeEnclosed;
         private float enclosedCleanup;
         private bool saving;
@@ -94,6 +95,7 @@ namespace RimAIPortrait
             bool previousRemoveEnclosed = removeEnclosed;
             float previousEnclosedCleanup = enclosedCleanup;
             bool previousAlignBottom = alignBottom;
+            bool previousFlipHorizontal = flipHorizontal;
             colorHex = Widgets.TextField(new Rect(130f, 72f, 140f, 32f), colorHex ?? "");
             TooltipHandler.TipRegion(new Rect(0f, 72f, 270f, 32f),
                 Localization.T("RimAIPortrait.BackgroundRemoval.Tip.Color"));
@@ -131,12 +133,18 @@ namespace RimAIPortrait
                 historyChanged = true;
             }
             TooltipHandler.TipRegion(redoButton, Localization.T("RimAIPortrait.BackgroundRemoval.Tip.Redo"));
-            Rect alignRect = new Rect(640f, 112f, rect.width - 640f, 34f);
+            float editButtonWidth = (rect.width - 650f) / 2f;
+            Rect alignRect = new Rect(640f, 112f, editButtonWidth, 34f);
             if (Widgets.ButtonText(alignRect, (alignBottom ? "[x] " : "[ ] ") + Localization.T("RimAIPortrait.BackgroundRemoval.Align")))
             {
                 alignBottom = !alignBottom;
             }
             TooltipHandler.TipRegion(alignRect, Localization.T("RimAIPortrait.BackgroundRemoval.AlignTip"));
+            Rect flipRect = new Rect(650f + editButtonWidth, 112f, editButtonWidth, 34f);
+            if (Widgets.ButtonText(flipRect, (flipHorizontal ? "[x] " : "[ ] ")
+                + Localization.T("RimAIPortrait.BackgroundRemoval.Flip")))
+                flipHorizontal = !flipHorizontal;
+            TooltipHandler.TipRegion(flipRect, Localization.T("RimAIPortrait.BackgroundRemoval.FlipTip"));
 
             Rect removeEnclosedRect = new Rect(0f, 157f, 245f, 28f);
             Widgets.CheckboxLabeled(removeEnclosedRect,
@@ -154,13 +162,12 @@ namespace RimAIPortrait
             if (!historyChanged && (previousColorHex != colorHex || !Mathf.Approximately(previousSensitivity, sensitivity)
                 || previousErosionPixels != erosionPixels || previousRemoveEnclosed != removeEnclosed
                 || !Mathf.Approximately(previousEnclosedCleanup, enclosedCleanup)
-                || previousAlignBottom != alignBottom))
+                || previousAlignBottom != alignBottom || previousFlipHorizontal != flipHorizontal))
             {
-                if (steps.Count > 0)
-                {
-                    UpdateLastStep();
+                if (steps.Count > 0) UpdateLastStep();
+                if (steps.Count > 0 || previousAlignBottom != alignBottom
+                    || previousFlipHorizontal != flipHorizontal)
                     RefreshPreview();
-                }
             }
             validColor = BackgroundRemoval.TryParseHex(colorHex, out color);
             Widgets.Label(new Rect(0f, 200f, rect.width, 28f), status ?? "");
@@ -177,7 +184,8 @@ namespace RimAIPortrait
                 saving = true;
                 status = Localization.T("RimAIPortrait.BackgroundRemoval.Saving");
                 PortraitRuntime.EnsureCreated();
-                PortraitRuntime.Instance.RemoveBackgroundFromGallery(paths, steps.ToArray(), alignBottom, OnSaveCompleted);
+                PortraitRuntime.Instance.RemoveBackgroundFromGallery(paths, steps.ToArray(), alignBottom,
+                    flipHorizontal, OnSaveCompleted);
                 PortraitSettings settings = RimAIPortraitMod.Settings;
                 if (settings != null)
                 {
@@ -272,9 +280,9 @@ namespace RimAIPortrait
             previewData = steps.Count == 0 ? originalData
                 : BackgroundRemoval.ApplySteps(originalData, steps, CurrentPath);
             RenderPreview();
-            status = Localization.T(steps.Count == 0
-                ? "RimAIPortrait.BackgroundRemoval.OriginalPreview"
-                : "RimAIPortrait.BackgroundRemoval.PreviewReady");
+            status = Localization.T(previewCurrent
+                ? "RimAIPortrait.BackgroundRemoval.PreviewReady"
+                : "RimAIPortrait.BackgroundRemoval.OriginalPreview");
         }
 
         private void RenderPreview()
@@ -288,9 +296,11 @@ namespace RimAIPortrait
                 throw new InvalidDataException(Localization.T("RimAIPortrait.Preview.UnsupportedImage"));
             }
             workingTexture.wrapMode = TextureWrapMode.Clamp;
-            alignmentOffset = steps.Count > 0 && alignBottom ? BottomAlignmentOffset(workingTexture) : 0;
-            LoadPreviewTexture(alignmentOffset > 0 ? BackgroundRemoval.AlignBottom(previewData) : previewData);
-            previewCurrent = steps.Count > 0;
+            alignmentOffset = alignBottom ? BottomAlignmentOffset(workingTexture) : 0;
+            byte[] displayedData = alignmentOffset > 0 ? BackgroundRemoval.AlignBottom(previewData) : previewData;
+            if (flipHorizontal) displayedData = BackgroundRemoval.FlipHorizontal(displayedData);
+            LoadPreviewTexture(displayedData);
+            previewCurrent = steps.Count > 0 || alignBottom || flipHorizontal;
         }
 
         private void HandleImageClick(Rect bounds)
@@ -316,6 +326,7 @@ namespace RimAIPortrait
             float normalizedX = Mathf.Clamp01((Event.current.mousePosition.x - drawnRect.x) / drawnRect.width);
             float normalizedY = 1f - Mathf.Clamp01((Event.current.mousePosition.y - drawnRect.y) / drawnRect.height);
             int pixelX = Mathf.Clamp(Mathf.FloorToInt(normalizedX * workingTexture.width), 0, workingTexture.width - 1);
+            if (flipHorizontal) pixelX = workingTexture.width - 1 - pixelX;
             int pixelY = Mathf.Clamp(Mathf.FloorToInt(normalizedY * workingTexture.height) + alignmentOffset,
                 0, workingTexture.height - 1);
             Color sampled = workingTexture.GetPixel(pixelX, pixelY);
@@ -389,11 +400,7 @@ namespace RimAIPortrait
 
         private static int BottomAlignmentOffset(Texture2D texture)
         {
-            Color32[] pixels = texture.GetPixels32();
-            for (int y = 0; y < texture.height; y++)
-                for (int x = 0; x < texture.width; x++)
-                    if (pixels[y * texture.width + x].a != 0) return y;
-            return 0;
+            return BackgroundRemoval.BottomAlignmentOffset(texture.GetPixels32(), texture.width, texture.height);
         }
 
         private static Rect ScaleToFitRect(Rect bounds, int textureWidth, int textureHeight)

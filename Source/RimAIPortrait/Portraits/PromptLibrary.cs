@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace RimAIPortrait
 {
     /// <summary>Describes the behavior of this type or member.</summary>
-    public enum PortraitState { Normal, High, Low, Sleep, Pain, Down, Hot, Cold, Angry, Distressed }
+    public enum PortraitState { Normal, High, Low, Sleep, Pain, Down, Hot, Cold, Angry, Distressed, Base }
 
     /// <summary>Describes the behavior of this type or member.</summary>
     public static class PortraitStateNames
@@ -13,7 +13,7 @@ namespace RimAIPortrait
         /// <summary>Describes the behavior of this type or member.</summary>
         /// <param name="state">The state value.</param>
         /// <returns>The resulting value.</returns>
-        public static string Display(PortraitState state) => state == PortraitState.Normal ? "Base" : state.ToString();
+        public static string Display(PortraitState state) => state.ToString();
         /// <summary>Describes the behavior of this type or member.</summary>
         /// <param name="state">The state value.</param>
         /// <returns>The resulting value.</returns>

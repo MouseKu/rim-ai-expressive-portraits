@@ -14,6 +14,7 @@ namespace RimAIPortrait
         public float Strength;
         public bool NarrowFeather;
         public string ExtraTag;
+        public ExtractedTags Tags;
         public string Error;
     }
 
@@ -26,7 +27,6 @@ namespace RimAIPortrait
         public string ExpressionOverride;
         public PortraitImageUse ImageUse = PortraitImageUse.Auto;
         public InpaintSelection PreparedInpaint;
-        public Dictionary<PortraitState, ExtractedTags> BatchTags;
         public bool Regenerate;
         public string RegeneratePrompt;
     }
@@ -44,20 +44,24 @@ namespace RimAIPortrait
     {
         public static PreparedPortraitRequest Create(PortraitSettings settings, PortraitRequestOptions options)
         {
-            bool expression = options.State != PortraitState.Normal;
+            bool expression = options.State != PortraitState.Base;
             AiProvider providerId = options.Regenerate ? settings.RegenerateProvider
                 : expression ? settings.ExpressionProvider : settings.Provider;
             IPortraitGenerationProvider provider = PortraitProviderRegistry.Get(providerId);
+            ExtractedTags baseTags = !options.Regenerate && !expression ? PortraitData.BaseTags(options.Pawn) : null;
+            bool useExtractedFeatures = baseTags != null && baseTags.positive != null && baseTags.positive.Length > 0
+                && (providerId == AiProvider.NovelAI || providerId == AiProvider.LocalComfyUI
+                    && WorkflowUsesExtractedTags(settings.ComfyWorkflowPath));
             string prompt = options.Regenerate && (providerId == AiProvider.OpenAI || providerId == AiProvider.Google)
                 ? options.RegeneratePrompt : PortraitPrompt.Build(options.Pawn, options.State, settings,
-                    options.ExpressionOverride, options.Regenerate ? (AiProvider?)providerId : null);
+                    options.ExpressionOverride, options.Regenerate ? (AiProvider?)providerId : null, useExtractedFeatures);
             byte[] primaryImage = options.PreparedInpaint == null
                 ? options.PrimaryImage : options.PreparedInpaint.Source;
             string[] references = (options.ReferencePaths ?? Enumerable.Empty<string>()).ToArray();
             PortraitImageUse imageUse = options.ImageUse;
             if (expression)
             {
-                string basePath = PortraitData.ExistingPathFor(options.Pawn, PortraitState.Normal);
+                string basePath = PortraitData.ExistingPathFor(options.Pawn, PortraitState.Base);
                 if (primaryImage == null)
                 {
                     try
@@ -79,8 +83,7 @@ namespace RimAIPortrait
 
             PortraitProviderConfiguration configuration = options.Regenerate
                 ? settings.RegenerateConfiguration() : provider.CreateConfiguration(settings, expression);
-            string styleFolder = options.Regenerate ? settings.RegenerateStyleFolder
-                : expression ? settings.ExpressionStyleFolder : settings.StyleFolder;
+            string styleFolder = expression || options.Regenerate ? "" : settings.StyleFolder;
             return new PreparedPortraitRequest {
                 ProviderId = providerId,
                 Provider = provider,
@@ -91,10 +94,17 @@ namespace RimAIPortrait
                     PrimaryImage = primaryImage,
                     ImageUse = imageUse,
                     ReferencePaths = references,
+                    InpaintStrength = settings.GetInpaintStrength(options.State),
                     StyleFolder = styleFolder,
                     Configuration = configuration
                 }
             };
+        }
+
+        private static bool WorkflowUsesExtractedTags(string path)
+        {
+            try { return File.ReadAllText(path).Contains("__RIM_EXTRACTED_TAG__"); }
+            catch (Exception) { return false; }
         }
 
         public static void AddStyleReferences(PreparedPortraitRequest prepared)

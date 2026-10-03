@@ -20,6 +20,9 @@ namespace RimAIPortrait
     /// <summary>Removes edge-connected pixels that resemble a configured background color.</summary>
     internal static class BackgroundRemoval
     {
+        // PNGs can contain nearly invisible alpha noise across the canvas.
+        private const byte AlignmentAlphaThreshold = 8;
+
         public static byte[] ApplyStep(byte[] imageData, BackgroundRemovalStep step, string path)
         {
             bool pickedImage = string.Equals(path, step.PickedPath, StringComparison.OrdinalIgnoreCase);
@@ -119,20 +122,9 @@ namespace RimAIPortrait
                 int width = texture.width;
                 int height = texture.height;
                 Color32[] pixels = texture.GetPixels32();
-                int lowestVisibleRow = height;
+                int lowestVisibleRow = BottomAlignmentOffset(pixels, width, height);
 
-                for (int y = 0; y < height && lowestVisibleRow == height; y++)
-                {
-                    int rowStart = y * width;
-                    for (int x = 0; x < width; x++)
-                    {
-                        if (pixels[rowStart + x].a == 0) continue;
-                        lowestVisibleRow = y;
-                        break;
-                    }
-                }
-
-                if (lowestVisibleRow <= 0 || lowestVisibleRow == height) return imageData;
+                if (lowestVisibleRow <= 0) return imageData;
 
                 var aligned = new Color32[pixels.Length];
                 int rowsToCopy = height - lowestVisibleRow;
@@ -145,6 +137,51 @@ namespace RimAIPortrait
             {
                 Log.Warning("[Rim AI Expressive Portraits] Portrait alignment failed: " + exception.Message);
                 return imageData;
+            }
+            finally
+            {
+                UnityEngine.Object.Destroy(texture);
+            }
+        }
+
+        public static int BottomAlignmentOffset(Color32[] pixels, int width, int height)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                int rowStart = y * width;
+                for (int x = 0; x < width; x++)
+                    if (pixels[rowStart + x].a >= AlignmentAlphaThreshold) return y;
+            }
+            return 0;
+        }
+
+        /// <summary>Mirrors the image horizontally without changing its dimensions or alpha.</summary>
+        public static byte[] FlipHorizontal(byte[] imageData)
+        {
+            if (imageData == null) return null;
+
+            var texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
+            try
+            {
+                if (!texture.LoadImage(imageData)) return imageData;
+                int width = texture.width;
+                int height = texture.height;
+                Color32[] pixels = texture.GetPixels32();
+                for (int y = 0; y < height; y++)
+                {
+                    int row = y * width;
+                    for (int x = 0; x < width / 2; x++)
+                    {
+                        int left = row + x;
+                        int right = row + width - 1 - x;
+                        Color32 pixel = pixels[left];
+                        pixels[left] = pixels[right];
+                        pixels[right] = pixel;
+                    }
+                }
+                texture.SetPixels32(pixels);
+                texture.Apply(false, false);
+                return texture.EncodeToPNG();
             }
             finally
             {
