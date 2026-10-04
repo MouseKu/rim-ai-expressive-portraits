@@ -125,14 +125,12 @@ namespace RimAIPortrait
                     report(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(item.Key), selection.Error));
                     continue;
                 }
-                byte[] image = null; string error = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(item.Key)));
-                yield return Request(new PortraitRequestOptions {
+                string error = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(item.Key)));
+                yield return RequestAndSave(new PortraitRequestOptions {
                     Pawn = pawn, State = item.Key, ReferencePaths = references,
                     ExpressionOverride = item.Value, PreparedInpaint = selection
-                }, (data, err) => { image = data; error = err; });
-                if (image == null) { Fail(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(item.Key), error), report); continue; }
-                PortraitData.Save(pawn, item.Key, image);
-                if (item.Key == PortraitState.Base) InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Base);
+                }, value => error = value);
+                if (error != null) { Fail(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(item.Key), error), report); continue; }
                 report(Localization.T("RimAIPortrait.Status.StateSaved", PortraitStateNames.Label(item.Key)));
             }
             report(Localization.T("RimAIPortrait.Status.SelectedEmotionsComplete"));
@@ -140,29 +138,25 @@ namespace RimAIPortrait
         /// <summary>Describes the behavior of this type or member.</summary>
         private IEnumerator GenerateEmotionRoutine(Pawn pawn, PortraitState state, string[] references, Action<string> report)
         {
-            byte[] image = null; string error = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(state)));
-            yield return Request(new PortraitRequestOptions {
+            string error = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(state)));
+            yield return RequestAndSave(new PortraitRequestOptions {
                 Pawn = pawn, State = state, ReferencePaths = references
-            }, (data, err) => { image = data; error = err; });
-            if (image == null) { Fail(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(state), error), report); yield break; }
-            PortraitData.Save(pawn, state, image);
-            if (state == PortraitState.Base) InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Base);
+            }, value => error = value);
+            if (error != null) { Fail(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(state), error), report); yield break; }
             report(Localization.T("RimAIPortrait.Status.StatePortraitSaved", PortraitStateNames.Label(state)));
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         private IEnumerator GenerateNormalRoutine(Pawn pawn, Action<string> report)
         {
             Log.Message("[Rim AI Expressive Portraits] Starting normal portrait for " + pawn.LabelShort);
-            byte[] sprite = RimAIPortraitMod.Settings.IncludeSprite ? PawnCapture.Capture(pawn) : null; byte[] image = null; string error = null;
+            byte[] sprite = RimAIPortraitMod.Settings.IncludeSprite ? PawnCapture.Capture(pawn) : null; string error = null;
             if (RimAIPortraitMod.Settings.IncludeSprite && sprite == null)
                 Log.Warning("[Rim AI Expressive Portraits] Pawn capture returned no image; continuing without a source image.");
-            yield return Request(new PortraitRequestOptions {
+            yield return RequestAndSave(new PortraitRequestOptions {
                 Pawn = pawn, State = PortraitState.Base, PrimaryImage = sprite,
                 ImageUse = PortraitImageUse.CharacterReference
-            }, (data, err) => { image = data; error = err; });
-            if (image == null) { Fail(Localization.T("RimAIPortrait.Status.GenerationFailed", error), report); yield break; }
-            PortraitData.Save(pawn, PortraitState.Base, image);
-            InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Base);
+            }, value => error = value);
+            if (error != null) { Fail(Localization.T("RimAIPortrait.Status.GenerationFailed", error), report); yield break; }
             report(Localization.T("RimAIPortrait.Status.BaseSaved"));
             Messages.Message(Localization.T("RimAIPortrait.Status.PortraitSavedFor", pawn.LabelShort), MessageTypeDefOf.PositiveEvent, false);
         }
@@ -172,15 +166,13 @@ namespace RimAIPortrait
             byte[] reference;
             try { reference = File.ReadAllBytes(referencePath); }
             catch (Exception e) { Fail(Localization.T("RimAIPortrait.Status.ReferenceReadFailed", e.Message), report); yield break; }
-            byte[] image = null; string error = null;
+            string error = null;
             Log.Message("[Rim AI Expressive Portraits] Starting referenced normal portrait for " + pawn.LabelShort);
-            yield return Request(new PortraitRequestOptions {
+            yield return RequestAndSave(new PortraitRequestOptions {
                 Pawn = pawn, State = PortraitState.Base, PrimaryImage = reference,
                 ImageUse = PortraitImageUse.Edit, Regenerate = true, RegeneratePrompt = prompt
-            }, (data, err) => { image = data; error = err; });
-            if (image == null) { Fail(Localization.T("RimAIPortrait.Status.GenerationFailed", error), report); yield break; }
-            PortraitData.Save(pawn, PortraitState.Base, image);
-            InspectPanePatch.ShowStateImmediately(pawn, PortraitState.Base);
+            }, value => error = value);
+            if (error != null) { Fail(Localization.T("RimAIPortrait.Status.GenerationFailed", error), report); yield break; }
             report(Localization.T("RimAIPortrait.Status.ReferenceBaseSaved"));
             Messages.Message(Localization.T("RimAIPortrait.Status.PortraitSavedFor", pawn.LabelShort), MessageTypeDefOf.PositiveEvent, false);
         }
@@ -200,13 +192,12 @@ namespace RimAIPortrait
                     report(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(state), selection.Error));
                     continue;
                 }
-                if (state == PortraitState.Base || !RimAIPortraitMod.Settings.IsStateEnabled(state)) continue; byte[] image = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(state)));
-                yield return Request(new PortraitRequestOptions {
+                if (state == PortraitState.Base || !RimAIPortraitMod.Settings.IsStateEnabled(state)) continue; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(state)));
+                yield return RequestAndSave(new PortraitRequestOptions {
                     Pawn = pawn, State = state, ReferencePaths = references,
                     PreparedInpaint = selection
-                }, (data, err) => { image = data; error = err; });
-                if (image == null) { Fail(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(state), error), report); continue; }
-                PortraitData.Save(pawn, state, image);
+                }, value => error = value);
+                if (error != null) { Fail(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(state), error), report); continue; }
             }
             report(Localization.T("RimAIPortrait.Status.EmotionsComplete"));
             Messages.Message(Localization.T("RimAIPortrait.Status.EmotionsCompleteFor", pawn.LabelShort), MessageTypeDefOf.PositiveEvent, false);
@@ -265,13 +256,12 @@ namespace RimAIPortrait
                         report(Localization.T("RimAIPortrait.Status.StateFailed", PortraitStateNames.Label(state), selection.Error));
                         continue;
                     }
-                    byte[] image = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(state)));
-                    yield return Request(new PortraitRequestOptions {
+                    string stateError = null; report(Localization.T("RimAIPortrait.Status.GeneratingState", PortraitStateNames.Label(state)));
+                    yield return RequestAndSave(new PortraitRequestOptions {
                         Pawn = pawn, State = state, PrimaryImage = normal,
                         ImageUse = PortraitImageUse.Edit, PreparedInpaint = selection
-                    }, (data, err) => { image = data; error = err; });
-                    if (image == null) { Log.Warning("[Rim AI Expressive Portraits] " + state + " failed: " + error); continue; }
-                    PortraitData.Save(pawn, state, image);
+                    }, value => stateError = value);
+                    if (stateError != null) { Log.Warning("[Rim AI Expressive Portraits] " + state + " failed: " + stateError); continue; }
                 }
             }
             report(Localization.T("RimAIPortrait.Status.AllComplete"));
@@ -310,7 +300,8 @@ namespace RimAIPortrait
         private static bool UsesInpaintSelection()
         {
             AiProvider provider = RimAIPortraitMod.Settings.ExpressionProvider;
-            return provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI;
+            return provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI
+                || provider == AiProvider.LocalOpenAI;
         }
 
         private IEnumerator ExtractInpaintTags(PortraitSettings settings, byte[] source, PortraitState state, string prompt,
@@ -333,37 +324,10 @@ namespace RimAIPortrait
             done(tags, error);
         }
 
-        private IEnumerator ExtractSelectionTags(Pawn pawn, PortraitSettings settings, byte[] source,
+        private IEnumerator ExtractSelectionTags(PortraitSettings settings, byte[] source,
             PortraitState state, string prompt, Action<ExtractedTags, string> done)
         {
-            ExtractedTags tags = null;
-            string error = null;
-            if (state == PortraitState.Base)
-            {
-                if (!TagExtraction.IsConfigured(settings))
-                {
-                    done(null, Localization.T("RimAIPortrait.TagExtractor.ConfigurationMissing"));
-                    yield break;
-                }
-                if (source == null || source.Length == 0 || source.Length > 8 * 1024 * 1024)
-                {
-                    done(null, Localization.T("RimAIPortrait.TagExtractor.ImageRequired"));
-                    yield break;
-                }
-                yield return TagExtraction.Extract(settings, source, prompt,
-                    (value, failure) => { tags = value; error = failure; },
-                    PortraitPrompt.TagExtractorFeatures(pawn, settings));
-            }
-            else
-                yield return ExtractInpaintTags(settings, source, state, prompt,
-                    (value, failure) => { tags = value; error = failure; });
-            if (tags != null && !(state == PortraitState.Base
-                ? PortraitData.SaveBaseTags(pawn, tags) : PortraitData.SaveExpressionTags(pawn, state, tags)))
-            {
-                done(null, Localization.T("RimAIPortrait.Gallery.TagSaveFailed"));
-                yield break;
-            }
-            done(tags, error);
+            yield return ExtractInpaintTags(settings, source, state, prompt, done);
         }
 
         private IEnumerator SelectInpaint(Pawn pawn, PortraitState state, byte[] source, Action<InpaintSelection> done,
@@ -376,41 +340,68 @@ namespace RimAIPortrait
                 ? PortraitData.NovelAiInpaintStrength(pawn, state, defaultStrength) : defaultStrength;
             byte[] mask = null;
             byte[] requestMask = null;
-            string extraTag = null;
             ExtractedTags tags = state == PortraitState.Base
                 ? PortraitData.BaseTags(pawn) : PortraitData.ExpressionTags(pawn, state);
             bool narrowFeather = false;
             bool finished = false;
             string initialExtraTag = providerId == AiProvider.NovelAI ? PortraitData.NovelAiExtraTag(pawn)
                 : providerId == AiProvider.LocalComfyUI ? PortraitData.ComfyInpaintTag(pawn) : "";
+            bool importLegacyTag = !string.IsNullOrWhiteSpace(initialExtraTag)
+                && !PortraitData.LegacyInpaintTagImported(pawn, state, providerId);
+            if (importLegacyTag)
+            {
+                string[] legacyTags = initialExtraTag.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(value => value.Trim()).Where(value => value.Length > 0).ToArray();
+                tags = new ExtractedTags {
+                    positive = (tags?.positive ?? new string[0]).Concat(legacyTags)
+                        .Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
+                    negative = tags?.negative ?? new string[0]
+                };
+            }
             Find.WindowStack.Add(new Dialog_NovelAiInpaint(source, state, providerId, strength,
-                initialExtraTag, tags,
-                settings.EnableTagExtractor ? (Action<Action<ExtractedTags, string>>)(callback =>
-                    StartCoroutine(ExtractSelectionTags(pawn, settings, source, state,
-                        prompt ?? PortraitPrompt.Build(pawn, state, settings), callback))) : null,
-                (value, expandedValue, selectedStrength, selectedAreas, selectedExtraTag, selectedTags) =>
+                tags,
+                (Action<Action<ExtractedTags, string>>)(callback =>
+                    StartCoroutine(ExtractSelectionTags(settings, source, state,
+                        prompt ?? PortraitPrompt.Build(pawn, state, settings), callback))),
+                (value, expandedValue, selectedStrength, selectedAreas, selectedTags) =>
             {
                 mask = value;
                 requestMask = expandedValue;
                 strength = selectedStrength;
                 narrowFeather = selectedAreas > 1;
-                extraTag = selectedExtraTag;
                 tags = selectedTags;
                 finished = true;
             }));
             while (!finished) yield return null;
             var selection = new InpaintSelection {
                 Source = source, Mask = mask, RequestMask = requestMask, Strength = strength,
-                NarrowFeather = narrowFeather, ExtraTag = extraTag, Tags = tags
+                NarrowFeather = narrowFeather, Tags = tags
             };
-            if (mask == null && extraTag == null) selection.Error = Localization.T("RimAIPortrait.Inpaint.Cancelled");
-            else if (providerId == AiProvider.NovelAI && !PortraitData.SaveNovelAiExtraTag(pawn, extraTag))
-                selection.Error = Localization.T("RimAIPortrait.Inpaint.ExtraTagSaveFailed");
-            else if (providerId == AiProvider.LocalComfyUI && !PortraitData.SaveComfyInpaintTag(pawn, extraTag))
-                selection.Error = Localization.T("RimAIPortrait.Inpaint.ExtraTagSaveFailed");
+            if (mask == null && tags == null) selection.Error = Localization.T("RimAIPortrait.Inpaint.Cancelled");
+            else if (!(state == PortraitState.Base
+                ? PortraitData.SaveBaseTags(pawn, tags) : PortraitData.SaveExpressionTags(pawn, state, tags)))
+                selection.Error = Localization.T("RimAIPortrait.Inpaint.TagSaveFailed");
+            else if (importLegacyTag && !PortraitData.MarkLegacyInpaintTagImported(pawn, state, providerId))
+                selection.Error = Localization.T("RimAIPortrait.Inpaint.TagSaveFailed");
             else if (providerId == AiProvider.NovelAI && !PortraitData.SaveNovelAiInpaintStrength(pawn, state, strength))
                 selection.Error = Localization.T("RimAIPortrait.Inpaint.StrengthSaveFailed");
             done(selection);
+        }
+
+        private IEnumerator RequestAndSave(PortraitRequestOptions options, Action<string> done)
+        {
+            byte[] image = null;
+            string error = null;
+            yield return Request(options, (data, failure) => { image = data; error = failure; });
+            if (image == null)
+            {
+                done(error ?? "");
+                yield break;
+            }
+            PortraitData.Save(options.Pawn, options.State, image);
+            if (options.State == PortraitState.Base)
+                InspectPanePatch.ShowStateImmediately(options.Pawn, PortraitState.Base);
+            done(null);
         }
 
         private IEnumerator Request(PortraitRequestOptions options, Action<byte[], string> done)
@@ -424,7 +415,8 @@ namespace RimAIPortrait
             }
             bool expression = prepared.Expression;
             AiProvider providerId = prepared.ProviderId;
-            bool supportsTags = providerId == AiProvider.NovelAI || providerId == AiProvider.LocalComfyUI;
+            bool supportsTags = providerId == AiProvider.NovelAI || providerId == AiProvider.LocalComfyUI
+                || providerId == AiProvider.LocalOpenAI;
             IPortraitGenerationProvider provider = prepared.Provider;
             PortraitGenerationRequest request = prepared.Request;
             InpaintSelection selection = options.PreparedInpaint;
@@ -442,11 +434,9 @@ namespace RimAIPortrait
                 }
                 request.InpaintMask = selection.Mask;
                 request.InpaintRequestMask = selection.RequestMask;
-                request.InpaintTag = selection.ExtraTag;
+                request.InpaintTag = selection.Tags?.PositiveText;
                 request.InpaintStrength = selection.Strength;
                 request.ExtractedTags = selection.Tags;
-                if (providerId == AiProvider.NovelAI && !string.IsNullOrWhiteSpace(selection.ExtraTag))
-                    request.Prompt += "\n\n" + selection.ExtraTag.Trim();
             }
             PortraitRequestPreparation.AddStyleReferences(prepared);
             if (selection == null && supportsTags)

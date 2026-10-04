@@ -1,0 +1,18 @@
+{
+  "entries": [
+    { "key": "Baseliner", "value": "human, natural human appearance" },
+    { "key": "Dirtmole", "value": "human, pale gray skin, gray eyes, dark hair, stocky build" },
+    { "key": "Genie", "value": "human, pale skin, bald, thin build, delicate features" },
+    { "key": "Hussar", "value": "human, red eyes, muscular build, imposing appearance" },
+    { "key": "Sanguophage", "value": "human, pale skin, red eyes, elongated fangs, pointed ears, elegant features" },
+    { "key": "Neanderthal", "value": "human, robust build, broad face, heavy brow ridge, rugged features" },
+    { "key": "Pigskin", "value": "pig humanoid, pig ears, pig snout, pink skin, stocky build" },
+    { "key": "Impid", "value": "human, red skin, small horns, pointed ears, slender build" },
+    { "key": "Waster", "value": "human, grayish skin, gaunt face, sickly appearance" },
+    { "key": "Yttakin", "value": "furry humanoid, animal ears, large build, rugged features" },
+    { "key": "Highmate", "value": "human, blue skin, attractive face, delicate features" },
+    { "key": "Starjack", "value": "human, sheer white skin, bald, prominent facial ridges" },
+    { "key": "RK_XenoType_Ratkin", "value": "small, cute, humanoid, mouse ears" },
+    { "key": "MonolynXenotype", "value": "extremely pale skin, monochrome appearance, black and white color scheme" }
+  ]
+}

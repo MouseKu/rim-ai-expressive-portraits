@@ -49,6 +49,8 @@ namespace RimAIPortrait
         public string Model { get; set; }
         public string ApiKey { get; set; }
         public string OptionsJson { get; set; }
+        public string BaseUrl { get; set; }
+        public float TimeoutSeconds { get; set; }
     }
 
     internal sealed class GoogleProviderConfiguration : PortraitProviderConfiguration
@@ -92,6 +94,7 @@ namespace RimAIPortrait
         static PortraitProviderRegistry()
         {
             Register(new OpenAiPortraitProvider());
+            Register(new OpenAiPortraitProvider(AiProvider.LocalOpenAI));
             Register(new GooglePortraitProvider());
             Register(new ComfyUiPortraitProvider());
             Register(new NovelAiPortraitProvider());

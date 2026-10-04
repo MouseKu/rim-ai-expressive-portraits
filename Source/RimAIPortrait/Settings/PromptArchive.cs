@@ -147,6 +147,7 @@ namespace RimAIPortrait
             RequirePrompt(data, "TagExtractorInpaintBatchPrompt");
             foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
             {
+                if (provider == AiProvider.LocalOpenAI) continue;
                 string prefix = provider + "/";
                 RequirePrompt(data, prefix + "Base");
                 RequirePrompt(data, prefix + "Expression");
@@ -168,9 +169,10 @@ namespace RimAIPortrait
         {
             settings.Prompt = data.Prompts["Prompt"];
             settings.TagExtractorBasePrompt = data.Prompts["TagExtractorBasePrompt"];
-            settings.TagExtractorInpaintBatchPrompt = data.Prompts["TagExtractorInpaintBatchPrompt"];
+            settings.TagExtractorInpaintPrompt = InpaintPromptDefault();
             foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
             {
+                if (provider == AiProvider.LocalOpenAI) continue;
                 string prefix = provider + "/";
                 SetBasePrompt(settings, provider, data.Prompts[prefix + "Base"]);
                 SetExpressionPrompt(settings, provider, data.Prompts[prefix + "Expression"]);
@@ -186,7 +188,14 @@ namespace RimAIPortrait
             return provider == AiProvider.Google ? settings.GeminiBaseInstructions
                 : provider == AiProvider.LocalComfyUI ? settings.ComfyBaseInstructions
                 : provider == AiProvider.NovelAI ? settings.NovelAiBaseInstructions
+                : provider == AiProvider.LocalOpenAI ? settings.LocalOpenAiBaseInstructions
                 : settings.BaseInstructions;
+        }
+
+        internal static string InpaintPromptDefault()
+        {
+            return File.ReadAllText(Path.Combine(RimAIPortraitMod.ModPack.RootDir,
+                "Prompts", "Common", "TagExtractorInpaint.md"));
         }
 
         internal static void SetBasePrompt(PortraitSettings settings, AiProvider provider, string value)
@@ -194,6 +203,7 @@ namespace RimAIPortrait
             if (provider == AiProvider.Google) settings.GeminiBaseInstructions = value;
             else if (provider == AiProvider.LocalComfyUI) settings.ComfyBaseInstructions = value;
             else if (provider == AiProvider.NovelAI) settings.NovelAiBaseInstructions = value;
+            else if (provider == AiProvider.LocalOpenAI) settings.LocalOpenAiBaseInstructions = value;
             else settings.BaseInstructions = value;
         }
 
@@ -202,6 +212,7 @@ namespace RimAIPortrait
             if (provider == AiProvider.Google) settings.GoogleExpressionInstructions = value;
             else if (provider == AiProvider.LocalComfyUI) settings.ComfyExpressionInstructions = value;
             else if (provider == AiProvider.NovelAI) settings.NovelAiExpressionInstructions = value;
+            else if (provider == AiProvider.LocalOpenAI) settings.LocalOpenAiExpressionInstructions = value;
             else settings.ExpressionInstructions = value;
         }
     }

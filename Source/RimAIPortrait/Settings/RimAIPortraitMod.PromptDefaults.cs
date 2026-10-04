@@ -14,14 +14,20 @@ namespace RimAIPortrait
         {
             if (Settings.TagExtractorBasePrompt.NullOrEmpty())
                 Settings.TagExtractorBasePrompt = ReadCommonPrompt(content, "TagExtractor.md");
-            if (Settings.TagExtractorInpaintBatchPrompt.NullOrEmpty())
-                Settings.TagExtractorInpaintBatchPrompt = ReadCommonPrompt(content, "TagExtractorInpaintBatch.md");
+            if (Settings.TagExtractorInpaintPrompt.NullOrEmpty())
+                Settings.TagExtractorInpaintPrompt = ReadCommonPrompt(content, "TagExtractorInpaint.md");
             var previousStateDefaults = new Dictionary<PortraitState, string>(PromptLibrary.State);
             string previousBase = Settings.BaseInstructions;
             string openAiBase = ReadPrompt(content, AiProvider.OpenAI, "BasePrompt.md", false);
             if (!openAiBase.NullOrEmpty()
                 && (Settings.BaseInstructions.NullOrEmpty() || Settings.BaseInstructions == PromptLibrary.DefaultBase))
                 Settings.BaseInstructions = openAiBase;
+
+            string localBase = ReadPrompt(content, AiProvider.LocalOpenAI, "BasePrompt.md", false);
+            if (Settings.LocalOpenAiBaseInstructions.NullOrEmpty())
+                Settings.LocalOpenAiBaseInstructions = !previousBase.NullOrEmpty()
+                    && previousBase != PromptLibrary.DefaultBase && previousBase != openAiBase
+                    ? previousBase : localBase;
 
             string googleBase = ReadPrompt(content, AiProvider.Google, "BasePrompt.md", false);
             if (Settings.GeminiBaseInstructions.NullOrEmpty() && !googleBase.NullOrEmpty())
@@ -47,6 +53,11 @@ namespace RimAIPortrait
                 Settings.NovelAiOptions = currentOptions;
 
             string openAiExpression = ReadPrompt(content, AiProvider.OpenAI, "ExpressionPrompt.md", false);
+            if (Settings.LocalOpenAiExpressionInstructions.NullOrEmpty()
+                && !Settings.ExpressionInstructions.NullOrEmpty()
+                && Settings.ExpressionInstructions != PromptLibrary.DefaultExpression
+                && Settings.ExpressionInstructions != openAiExpression)
+                Settings.LocalOpenAiExpressionInstructions = Settings.ExpressionInstructions;
             foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
             {
                 string expression = ReadPrompt(content, provider, "ExpressionPrompt.md", false);
@@ -63,6 +74,7 @@ namespace RimAIPortrait
                 {
                     if (provider == AiProvider.Google) Settings.GoogleExpressionInstructions = expression;
                     else if (provider == AiProvider.LocalComfyUI) Settings.ComfyExpressionInstructions = expression;
+                    else if (provider == AiProvider.LocalOpenAI) Settings.LocalOpenAiExpressionInstructions = expression;
                     else Settings.NovelAiExpressionInstructions = expression;
                 }
 
@@ -72,6 +84,17 @@ namespace RimAIPortrait
                     string prompt = ReadPrompt(content, provider, state + ".md", true);
                     if (prompt.NullOrEmpty()) continue;
                     string current = Settings.GetStatePrompt(provider, state);
+                    if (provider == AiProvider.LocalOpenAI && current.NullOrEmpty())
+                    {
+                        string sharedPrompt = Settings.GetStatePrompt(AiProvider.OpenAI, state);
+                        string openAiState = ReadPrompt(content, AiProvider.OpenAI, state + ".md", true);
+                        if (!sharedPrompt.NullOrEmpty() && sharedPrompt != openAiState
+                            && sharedPrompt != previousStateDefaults[state])
+                        {
+                            current = sharedPrompt;
+                            Settings.SetStatePrompt(provider, state, current);
+                        }
+                    }
                     if (current.NullOrEmpty() || current == previousStateDefaults[state]
                         || (Settings.ProviderPromptMigrationPending && provider != AiProvider.OpenAI
                             && current == PromptLibrary.State[state]))

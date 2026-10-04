@@ -20,7 +20,16 @@ namespace RimAIPortrait
         }
 
         private const string ValuesPath = "options/values.json";
-        private const int Version = 3;
+        private const int Version = 8;
+        private const int PreviousVersion = 7;
+        private const int LocalProviderVersion = 6;
+        private const int LocalOptionsVersion = 5;
+        private const int TagOptionsVersion = 7;
+        private const int LegacyModelFieldCount = 12;
+        private const int LegacyOptionFileCount = 8;
+        private const string InpaintPromptPath = "Prompt/Common/TagExtractorInpaint.txt";
+        private const string LegacyInpaintPromptPath = "Prompt/Common/TagExtractorInpaintBatch.txt";
+        private const string XenotypePath = "options/xenotype-provider.json";
         private const int MaximumEntryBytes = 2 * 1024 * 1024;
         private const int MaximumTotalBytes = 8 * 1024 * 1024;
 
@@ -30,13 +39,19 @@ namespace RimAIPortrait
             nameof(PortraitSettings.NovelAiModel), nameof(PortraitSettings.NovelAiExpressionModel),
             nameof(PortraitSettings.RegenerateOpenAiModel), nameof(PortraitSettings.RegenerateGoogleModel),
             nameof(PortraitSettings.RegenerateNovelAiModel), nameof(PortraitSettings.TagExtractorOpenAiModel),
-            nameof(PortraitSettings.TagExtractorGoogleModel), nameof(PortraitSettings.TagExtractorLocalModel)
+            nameof(PortraitSettings.TagExtractorGoogleModel), nameof(PortraitSettings.TagExtractorLocalModel),
+            nameof(PortraitSettings.LocalOpenAiModel), nameof(PortraitSettings.LocalOpenAiExpressionModel),
+            nameof(PortraitSettings.RegenerateLocalOpenAiModel)
         };
 
         private static readonly string[] OptionFiles = {
             "google-ai-img-caption.json", "google-base-options.json", "google-expression-options.json",
             "nai-base-options.json", "nai-expression-options.json", "open-ai-img-caption.json",
-            "openai-base-options.json", "openai-expression-options.json"
+            "openai-base-options.json", "openai-expression-options.json",
+            "local-openai-base-options.json", "local-openai-expression-options.json",
+            "local-openai-regenerate-options.json", "local-ai-img-caption.json",
+            "tag-extractor-openai-options.json", "tag-extractor-google-options.json",
+            "tag-extractor-local-options.json"
         };
 
         [DataContract]
@@ -47,7 +62,6 @@ namespace RimAIPortrait
             [DataMember] public string expressionProvider;
             [DataMember] public string regenerateProvider;
             [DataMember] public Dictionary<string, string> models;
-            [DataMember] public bool enableTagExtractor;
             [DataMember] public string tagExtractorBackend;
             [DataMember] public Dictionary<string, bool> inclusion;
             [DataMember] public float novelAiInpaintStrength;
@@ -60,6 +74,21 @@ namespace RimAIPortrait
             public ValuesData Values;
             public Dictionary<string, string> Prompts;
             public Dictionary<string, string> Options;
+            public XenotypeData Xenotypes;
+        }
+
+        [DataContract]
+        private sealed class XenotypeData
+        {
+            [DataMember] public List<XenotypeEntryData> entries;
+        }
+
+        [DataContract]
+        private sealed class XenotypeEntryData
+        {
+            [DataMember] public string key;
+            [DataMember] public string value;
+            [DataMember] public bool enabled;
         }
 
         public static bool IsBundle(string path)
@@ -82,6 +111,11 @@ namespace RimAIPortrait
             {
                 ValuesSerializer().WriteObject(stream, data.Values);
                 entries[ValuesPath] = Encoding.UTF8.GetString(stream.ToArray());
+            }
+            using (var stream = new MemoryStream())
+            {
+                XenotypeSerializer().WriteObject(stream, data.Xenotypes);
+                entries[XenotypePath] = Encoding.UTF8.GetString(stream.ToArray());
             }
 
             var encoded = new Dictionary<string, byte[]>(StringComparer.Ordinal);
@@ -122,13 +156,28 @@ namespace RimAIPortrait
             using (var archive = new ZipArchive(file, ZipArchiveMode.Read))
             {
                 int totalBytes = 0;
-                foreach (string name in PromptNames())
-                    data.Prompts[name] = ReadText(archive, name, ref totalBytes);
-                foreach (string fileName in OptionFiles)
-                    data.Options[fileName] = ReadText(archive, "options/" + fileName, ref totalBytes);
                 using (var stream = new MemoryStream(ReadBytes(archive, ValuesPath, ref totalBytes)))
                     data.Values = (ValuesData)ValuesSerializer().ReadObject(stream);
-                if (archive.Entries.Count != data.Prompts.Count + data.Options.Count + 1)
+                if (data.Values == null || (data.Values.version != Version
+                    && data.Values.version != PreviousVersion && data.Values.version != 6 && data.Values.version != 5
+                    && data.Values.version != 4 && data.Values.version != 3))
+                    throw new InvalidDataException("Unsupported prompt archive version.");
+                foreach (string name in PromptNames(data.Values.version))
+                {
+                    string archiveName = data.Values.version == 3 && name == InpaintPromptPath
+                        ? LegacyInpaintPromptPath : name;
+                    data.Prompts[name] = ReadText(archive, archiveName, ref totalBytes);
+                }
+                int optionCount = OptionCount(data.Values.version);
+                for (int index = 0; index < optionCount; index++)
+                    data.Options[OptionFiles[index]] = ReadText(archive, "options/" + OptionFiles[index], ref totalBytes);
+                if (data.Values.version == Version)
+                {
+                    using (var stream = new MemoryStream(ReadBytes(archive, XenotypePath, ref totalBytes)))
+                        data.Xenotypes = (XenotypeData)XenotypeSerializer().ReadObject(stream);
+                }
+                if (archive.Entries.Count != data.Prompts.Count + data.Options.Count
+                    + (data.Values.version == Version ? 2 : 1))
                     throw new InvalidDataException("Prompt archive contains unexpected files.");
             }
             Validate(data);
@@ -146,17 +195,37 @@ namespace RimAIPortrait
                     expressionProvider = settings.ExpressionProvider.ToString(),
                     regenerateProvider = settings.RegenerateProvider.ToString(),
                     models = new Dictionary<string, string>(StringComparer.Ordinal),
-                    enableTagExtractor = settings.EnableTagExtractor,
                     tagExtractorBackend = settings.TagExtractorBackend.ToString(),
                     inclusion = new Dictionary<string, bool>(StringComparer.Ordinal),
                     novelAiInpaintStrength = settings.NovelAiInpaintStrength,
                     novelAiSleepInpaintStrength = settings.NovelAiSleepInpaintStrength,
                     inpaintStrengths = new Dictionary<string, float>(StringComparer.Ordinal)
-                }
+                },
+                Xenotypes = new XenotypeData { entries = new List<XenotypeEntryData>() }
             };
+            if (settings.XenotypePromptEntries != null)
+            {
+                foreach (XenotypePromptEntry entry in settings.XenotypePromptEntries)
+                {
+                    if (entry == null) continue;
+                    data.Xenotypes.entries.Add(new XenotypeEntryData {
+                        key = entry.DefName, value = entry.Value, enabled = entry.Enabled
+                    });
+                }
+            }
+            var savedKeys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (XenotypeEntryData entry in data.Xenotypes.entries)
+                if (entry.key != null) savedKeys.Add(entry.key);
+            foreach (XenotypePromptEntry entry in XenotypePromptDefaults.PackagedEntries())
+            {
+                if (!savedKeys.Add(entry.DefName)) continue;
+                data.Xenotypes.entries.Add(new XenotypeEntryData {
+                    key = entry.DefName, value = entry.Value, enabled = entry.Enabled
+                });
+            }
             data.Prompts["Prompt/Additional.txt"] = settings.Prompt;
             data.Prompts["Prompt/Common/TagExtractorBase.txt"] = settings.TagExtractorBasePrompt;
-            data.Prompts["Prompt/Common/TagExtractorInpaintBatch.txt"] = settings.TagExtractorInpaintBatchPrompt;
+            data.Prompts[InpaintPromptPath] = settings.TagExtractorInpaintPrompt;
             foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
             {
                 string folder = "Prompt/" + PromptLibrary.ProviderFolder(provider) + "/";
@@ -173,6 +242,13 @@ namespace RimAIPortrait
             data.Options["open-ai-img-caption.json"] = PortraitImageCaptions.EffectiveJson(AiProvider.OpenAI, settings);
             data.Options["openai-base-options.json"] = settings.OpenAiOptions ?? ProviderOptionDefaults.OpenAiBase;
             data.Options["openai-expression-options.json"] = settings.OpenAiExpressionOptions ?? ProviderOptionDefaults.OpenAiExpression;
+            data.Options["local-openai-base-options.json"] = settings.LocalOpenAiOptions ?? ProviderOptionDefaults.LocalBase;
+            data.Options["local-openai-expression-options.json"] = settings.LocalOpenAiExpressionOptions ?? ProviderOptionDefaults.LocalExpression;
+            data.Options["local-openai-regenerate-options.json"] = settings.RegenerateLocalOpenAiOptions ?? ProviderOptionDefaults.LocalBase;
+            data.Options["local-ai-img-caption.json"] = PortraitImageCaptions.EffectiveJson(AiProvider.LocalOpenAI, settings);
+            data.Options["tag-extractor-openai-options.json"] = settings.TagExtractorOpenAiOptions ?? ProviderOptionDefaults.TagExtractorOpenAi;
+            data.Options["tag-extractor-google-options.json"] = settings.TagExtractorGoogleOptions ?? ProviderOptionDefaults.TagExtractorGoogle;
+            data.Options["tag-extractor-local-options.json"] = settings.TagExtractorLocalOptions ?? ProviderOptionDefaults.TagExtractorLocal;
             foreach (string name in ModelFields)
                 data.Values.models[name] = (string)typeof(PortraitSettings).GetField(name).GetValue(settings);
             foreach (string name in PromptArchive.InclusionFields)
@@ -182,13 +258,14 @@ namespace RimAIPortrait
             return data;
         }
 
-        private static IEnumerable<string> PromptNames()
+        private static IEnumerable<string> PromptNames(int version)
         {
             yield return "Prompt/Additional.txt";
             yield return "Prompt/Common/TagExtractorBase.txt";
-            yield return "Prompt/Common/TagExtractorInpaintBatch.txt";
+            yield return InpaintPromptPath;
             foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
             {
+                if (provider == AiProvider.LocalOpenAI && version < LocalProviderVersion) continue;
                 string folder = "Prompt/" + PromptLibrary.ProviderFolder(provider) + "/";
                 yield return folder + "Base.txt";
                 yield return folder + "Expression.txt";
@@ -204,7 +281,12 @@ namespace RimAIPortrait
             AiProvider expressionProvider;
             AiProvider regenerateProvider;
             TagExtractorModel backend;
-            if (values == null || values.version != Version || data.Prompts == null || data.Options == null
+            int expectedModels = values != null && values.version >= LocalOptionsVersion ? ModelFields.Length : LegacyModelFieldCount;
+            int expectedOptions = values != null ? OptionCount(values.version) : LegacyOptionFileCount;
+            if (values == null || (values.version != Version && values.version != PreviousVersion
+                && values.version != 6 && values.version != 5
+                && values.version != 4 && values.version != 3)
+                || data.Prompts == null || data.Options == null
                 || !Enum.TryParse(values.provider, out provider) || !Enum.IsDefined(typeof(AiProvider), provider)
                 || !Enum.TryParse(values.expressionProvider, out expressionProvider)
                 || !Enum.IsDefined(typeof(AiProvider), expressionProvider)
@@ -212,15 +294,16 @@ namespace RimAIPortrait
                 || !Enum.IsDefined(typeof(AiProvider), regenerateProvider)
                 || !Enum.TryParse(values.tagExtractorBackend, out backend)
                 || !Enum.IsDefined(typeof(TagExtractorModel), backend)
-                || values.models == null || values.models.Count != ModelFields.Length
+                || values.models == null || values.models.Count != expectedModels
                 || values.inclusion == null || values.inclusion.Count != PromptArchive.InclusionFields.Length
                 || float.IsNaN(values.novelAiInpaintStrength) || float.IsInfinity(values.novelAiInpaintStrength)
                 || values.novelAiInpaintStrength < .1f || values.novelAiInpaintStrength > 1f
                 || float.IsNaN(values.novelAiSleepInpaintStrength) || float.IsInfinity(values.novelAiSleepInpaintStrength)
                 || values.novelAiSleepInpaintStrength < .1f || values.novelAiSleepInpaintStrength > 1f)
                 throw new InvalidDataException("Invalid prompt archive values.json.");
-            foreach (string name in ModelFields)
-                if (!values.models.ContainsKey(name)) throw new InvalidDataException("Missing model: " + name);
+            for (int index = 0; index < expectedModels; index++)
+                if (!values.models.ContainsKey(ModelFields[index]))
+                    throw new InvalidDataException("Missing model: " + ModelFields[index]);
             foreach (string name in PromptArchive.InclusionFields)
                 if (!values.inclusion.ContainsKey(name)) throw new InvalidDataException("Missing prompt choice: " + name);
             if (values.inpaintStrengths != null)
@@ -237,20 +320,33 @@ namespace RimAIPortrait
                 }
             }
             int promptCount = 0;
-            foreach (string name in PromptNames())
+            foreach (string name in PromptNames(values.version))
             {
                 if (!data.Prompts.ContainsKey(name)) throw new InvalidDataException("Missing prompt: " + name);
                 promptCount++;
             }
-            if (data.Prompts.Count != promptCount || data.Options.Count != OptionFiles.Length)
+            if (data.Prompts.Count != promptCount || data.Options.Count != expectedOptions)
                 throw new InvalidDataException("Prompt archive is incomplete.");
-            foreach (string name in OptionFiles)
+            for (int index = 0; index < expectedOptions; index++)
             {
+                string name = OptionFiles[index];
                 string json;
                 if (!data.Options.TryGetValue(name, out json)) throw new InvalidDataException("Missing options: " + name);
-                if (name == "open-ai-img-caption.json" || name == "google-ai-img-caption.json")
+                if (name == "open-ai-img-caption.json" || name == "google-ai-img-caption.json"
+                    || name == "local-ai-img-caption.json")
                     PortraitImageCaptions.Parse(json, name);
                 else PromptArchive.ValidateOptions(json);
+            }
+            if (values.version == Version)
+            {
+                if (data.Xenotypes == null || data.Xenotypes.entries == null)
+                    throw new InvalidDataException("Missing xenotype-provider.json entries.");
+                var keys = new HashSet<string>(StringComparer.Ordinal);
+                foreach (XenotypeEntryData entry in data.Xenotypes.entries)
+                {
+                    if (entry == null || string.IsNullOrWhiteSpace(entry.key) || !keys.Add(entry.key))
+                        throw new InvalidDataException("Invalid xenotype-provider.json entry.");
+                }
             }
         }
 
@@ -260,7 +356,6 @@ namespace RimAIPortrait
             settings.Provider = (AiProvider)Enum.Parse(typeof(AiProvider), values.provider);
             settings.ExpressionProvider = (AiProvider)Enum.Parse(typeof(AiProvider), values.expressionProvider);
             settings.RegenerateProvider = (AiProvider)Enum.Parse(typeof(AiProvider), values.regenerateProvider);
-            settings.EnableTagExtractor = values.enableTagExtractor;
             settings.TagExtractorBackend = (TagExtractorModel)Enum.Parse(typeof(TagExtractorModel), values.tagExtractorBackend);
             settings.NovelAiInpaintStrength = values.novelAiInpaintStrength;
             settings.NovelAiSleepInpaintStrength = values.novelAiSleepInpaintStrength;
@@ -271,15 +366,18 @@ namespace RimAIPortrait
                     : values.inpaintStrengths[state.ToString()];
                 settings.SetInpaintStrength(state, strength);
             }
-            foreach (string name in ModelFields)
-                typeof(PortraitSettings).GetField(name).SetValue(settings, values.models[name]);
+            int modelCount = values.version >= LocalOptionsVersion ? ModelFields.Length : LegacyModelFieldCount;
+            for (int index = 0; index < modelCount; index++)
+                typeof(PortraitSettings).GetField(ModelFields[index]).SetValue(settings, values.models[ModelFields[index]]);
             foreach (string name in PromptArchive.InclusionFields)
                 typeof(PortraitSettings).GetField(name).SetValue(settings, values.inclusion[name]);
             settings.Prompt = data.Prompts["Prompt/Additional.txt"];
             settings.TagExtractorBasePrompt = data.Prompts["Prompt/Common/TagExtractorBase.txt"];
-            settings.TagExtractorInpaintBatchPrompt = data.Prompts["Prompt/Common/TagExtractorInpaintBatch.txt"];
+            settings.TagExtractorInpaintPrompt = values.version == 3
+                ? PromptArchive.InpaintPromptDefault() : data.Prompts[InpaintPromptPath];
             foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
             {
+                if (provider == AiProvider.LocalOpenAI && values.version < LocalProviderVersion) continue;
                 string folder = "Prompt/" + PromptLibrary.ProviderFolder(provider) + "/";
                 PromptArchive.SetBasePrompt(settings, provider, data.Prompts[folder + "Base.txt"]);
                 PromptArchive.SetExpressionPrompt(settings, provider, data.Prompts[folder + "Expression.txt"]);
@@ -292,8 +390,43 @@ namespace RimAIPortrait
             settings.NovelAiExpressionOptions = data.Options["nai-expression-options.json"];
             settings.OpenAiOptions = data.Options["openai-base-options.json"];
             settings.OpenAiExpressionOptions = data.Options["openai-expression-options.json"];
+            if (values.version >= LocalOptionsVersion)
+            {
+                settings.LocalOpenAiOptions = data.Options["local-openai-base-options.json"];
+                settings.LocalOpenAiExpressionOptions = data.Options["local-openai-expression-options.json"];
+                settings.RegenerateLocalOpenAiOptions = data.Options["local-openai-regenerate-options.json"];
+            }
             settings.GoogleImageCaptionsJson = data.Options["google-ai-img-caption.json"];
             settings.OpenAiImageCaptionsJson = data.Options["open-ai-img-caption.json"];
+            if (values.version >= LocalProviderVersion)
+                settings.LocalOpenAiImageCaptionsJson = data.Options["local-ai-img-caption.json"];
+            if (values.version >= TagOptionsVersion)
+            {
+                settings.TagExtractorOpenAiOptions = data.Options["tag-extractor-openai-options.json"];
+                settings.TagExtractorGoogleOptions = data.Options["tag-extractor-google-options.json"];
+                settings.TagExtractorLocalOptions = data.Options["tag-extractor-local-options.json"];
+            }
+            if (values.version == Version)
+            {
+                var entries = new List<XenotypePromptEntry>(data.Xenotypes.entries.Count);
+                foreach (XenotypeEntryData entry in data.Xenotypes.entries)
+                    entries.Add(new XenotypePromptEntry {
+                        DefName = entry.key, Value = entry.value, Enabled = entry.enabled
+                    });
+                settings.XenotypePromptEntries = entries;
+            }
+        }
+
+        private static int OptionCount(int version)
+        {
+            return version >= TagOptionsVersion ? OptionFiles.Length
+                : version == LocalProviderVersion ? OptionFiles.Length - 3
+                : version == LocalOptionsVersion ? OptionFiles.Length - 4 : LegacyOptionFileCount;
+        }
+
+        private static DataContractJsonSerializer XenotypeSerializer()
+        {
+            return new DataContractJsonSerializer(typeof(XenotypeData));
         }
 
         private static DataContractJsonSerializer ValuesSerializer()

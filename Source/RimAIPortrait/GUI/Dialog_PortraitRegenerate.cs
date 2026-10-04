@@ -20,6 +20,7 @@ namespace RimAIPortrait
             this.imagePath = imagePath;
             this.confirmed = confirmed;
             doCloseX = true;
+            closeOnCancel = true;
             absorbInputAroundWindow = true;
         }
 
@@ -42,6 +43,20 @@ namespace RimAIPortrait
 
         public override void DoWindowContents(Rect rect)
         {
+            Event current = Event.current;
+            if (current.type == EventType.KeyDown && current.keyCode == KeyCode.Escape)
+            {
+                current.Use();
+                Close();
+                return;
+            }
+            if (current.type == EventType.KeyDown &&
+                (current.keyCode == KeyCode.Return || current.keyCode == KeyCode.KeypadEnter))
+            {
+                current.Use();
+                if (CanConfirm()) Confirm();
+                return;
+            }
             Text.Font = GameFont.Medium;
             Widgets.Label(new Rect(0f, 0f, rect.width, 34f), Localization.T("RimAIPortrait.Regenerate.Title"));
             Text.Font = GameFont.Small;
@@ -60,13 +75,27 @@ namespace RimAIPortrait
             Widgets.Label(new Rect(0f, rect.height - 170f, rect.width, 26f),
                 Localization.T("RimAIPortrait.Common.Prompt"));
             prompt = Widgets.TextArea(new Rect(0f, rect.height - 142f, rect.width, 90f), prompt ?? "");
+            if (Widgets.ButtonText(new Rect(rect.width - 260f, rect.height - 42f, 125f, 38f),
+                Localization.T("RimAIPortrait.Common.Cancel")))
+            {
+                Close();
+                return;
+            }
             if (Widgets.ButtonText(new Rect(rect.width - 125f, rect.height - 42f, 125f, 38f),
                 Localization.T("RimAIPortrait.Inpaint.Confirm"), true, true,
-                preview != null && !string.IsNullOrWhiteSpace(prompt) && PortraitRuntime.GenerationButtonReady))
-            {
-                confirmed(prompt);
-                Close();
-            }
+                CanConfirm())) Confirm();
+        }
+
+        private bool CanConfirm()
+        {
+            return preview != null && !string.IsNullOrWhiteSpace(prompt)
+                && PortraitRuntime.GenerationButtonReady;
+        }
+
+        private void Confirm()
+        {
+            confirmed(prompt);
+            Close();
         }
 
         public override void PostClose()

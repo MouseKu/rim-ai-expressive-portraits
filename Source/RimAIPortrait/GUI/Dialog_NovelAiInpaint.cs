@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using RimWorld;
 using Verse;
@@ -18,12 +19,12 @@ namespace RimAIPortrait
         private readonly byte[] imageBytes;
         private readonly PortraitState state;
         private readonly AiProvider provider;
-        private readonly Action<byte[], byte[], float, int, string, ExtractedTags> completed;
+        private readonly Action<byte[], byte[], float, int, ExtractedTags> completed;
         private readonly Action<Action<ExtractedTags, string>> generateTags;
         private readonly List<MaskOperation> selections = new List<MaskOperation>();
         private float strength;
-        private string extraTag;
-        private ExtractedTags extractedTags;
+        private string positiveTagText;
+        private string negativeTagText;
         private bool generatingTags;
         private Texture2D preview;
         private Texture2D maskOverlay;
@@ -33,21 +34,22 @@ namespace RimAIPortrait
         private int dragButton;
         private bool hasSelectedPixels;
         private bool confirmed;
+        private bool checkedHelp;
         private string error;
 
         public override Vector2 InitialSize => PortraitWindowSizing.Fit(880f, 900f);
 
         public Dialog_NovelAiInpaint(byte[] imageBytes, PortraitState state, AiProvider provider, float initialStrength,
-            string initialExtraTag, ExtractedTags initialTags,
+            ExtractedTags initialTags,
             Action<Action<ExtractedTags, string>> generateTags,
-            Action<byte[], byte[], float, int, string, ExtractedTags> completed)
+            Action<byte[], byte[], float, int, ExtractedTags> completed)
         {
             this.imageBytes = imageBytes;
             this.state = state;
             this.provider = provider;
             strength = Mathf.Clamp(initialStrength, .1f, 1f);
-            extraTag = initialExtraTag ?? "";
-            extractedTags = initialTags;
+            positiveTagText = initialTags?.PositiveText ?? "";
+            negativeTagText = initialTags?.NegativeText ?? "";
             this.generateTags = generateTags;
             this.completed = completed;
             doCloseX = true;
@@ -77,9 +79,20 @@ namespace RimAIPortrait
 
         public override void DoWindowContents(Rect rect)
         {
+            if (!checkedHelp)
+            {
+                checkedHelp = true;
+                PortraitSettings settings = RimAIPortraitMod.Settings;
+                if (!settings.InpaintHelpDismissed)
+                    Find.WindowStack.Add(new Dialog_PortraitHelp(5, 5, null, dismissed =>
+                    {
+                        if (!dismissed) return;
+                        settings.InpaintHelpDismissed = true;
+                        RimAIPortraitMod.SaveSettings();
+                    }));
+            }
             Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(0f, 0f, rect.width, 34f), Localization.T("RimAIPortrait.Inpaint.Title",
-                provider == AiProvider.LocalComfyUI ? "ComfyUI" : provider.ToString()));
+            Widgets.Label(new Rect(0f, 0f, rect.width, 34f), Localization.T("RimAIPortrait.Inpaint.Title"));
             Text.Font = GameFont.Small;
             Widgets.Label(new Rect(0f, 38f, rect.width, 28f), Localization.T("RimAIPortrait.Inpaint.State", PortraitStateNames.Label(state)));
             if (provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI)
@@ -89,22 +102,15 @@ namespace RimAIPortrait
                 TooltipHandler.TipRegion(new Rect(0f, 66f, rect.width, 52f),
                     Localization.T("RimAIPortrait.Inpaint.StrengthTip"));
             }
-            if (provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI)
+            if (provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI
+                || provider == AiProvider.LocalOpenAI)
             {
-                Widgets.Label(new Rect(0f, 122f, rect.width, 24f), Localization.T("RimAIPortrait.Inpaint.ExtraTag"));
-                extraTag = Widgets.TextField(new Rect(0f, 148f, rect.width, 30f), extraTag);
-                if (string.IsNullOrEmpty(extraTag) && Event.current.type == EventType.Repaint)
-                {
-                    Color previousColor = GUI.color;
-                    GUI.color = new Color(.55f, .55f, .55f, 1f);
-                    Widgets.Label(new Rect(6f, 153f, rect.width - 12f, 24f),
-                        Localization.T("RimAIPortrait.Inpaint.ExtraTagPlaceholder"));
-                    GUI.color = previousColor;
-                }
-                TooltipHandler.TipRegion(new Rect(0f, 122f, rect.width, 56f),
-                    Localization.T("RimAIPortrait.Inpaint.ExtraTagTip"));
-                Widgets.Label(new Rect(0f, 186f, 100f, 28f), Localization.T("RimAIPortrait.Gallery.TagLabel"));
-                Rect generateTagButton = new Rect(rect.width - 115f, 184f, 115f, 30f);
+                Widgets.Label(new Rect(0f, 124f, 100f, 28f), Localization.T("RimAIPortrait.Gallery.TagLabel"));
+                Rect editTagButton = new Rect(rect.width - 205f, 122f, 80f, 30f);
+                if (Widgets.ButtonText(editTagButton,
+                    Localization.T("RimAIPortrait.Gallery.EditTagExtractorPrompt")))
+                    Find.WindowStack.Add(new Dialog_TagExtractorPrompt(true));
+                Rect generateTagButton = new Rect(rect.width - 115f, 122f, 115f, 30f);
                 if (Widgets.ButtonText(generateTagButton,
                     Localization.T("RimAIPortrait.Gallery.ExtractTag"), true, true,
                     !generatingTags && generateTags != null))
@@ -120,19 +126,23 @@ namespace RimAIPortrait
                                 MessageTypeDefOf.RejectInput, false);
                             return;
                         }
-                        extractedTags = tags;
+                        positiveTagText = tags.PositiveText;
+                        negativeTagText = tags.NegativeText;
                     });
                 }
                 TooltipHandler.TipRegion(generateTagButton, Localization.T("RimAIPortrait.Inpaint.ExtractTagTip"));
-                TagDisplay.Draw(new Rect(0f, 222f, 100f, 28f), new Rect(105f, 218f, rect.width - 105f, 30f),
-                    Localization.T("RimAIPortrait.Tag.Positive"), extractedTags?.PositiveText);
-                TagDisplay.Draw(new Rect(0f, 258f, 100f, 28f), new Rect(105f, 254f, rect.width - 105f, 30f),
-                    Localization.T("RimAIPortrait.Tag.Negative"), extractedTags?.NegativeText);
+                string placeholder = Localization.T("RimAIPortrait.Gallery.TagPlaceholder");
+                positiveTagText = TagDisplay.DrawEditable(new Rect(0f, 160f, 100f, 28f),
+                    new Rect(105f, 156f, rect.width - 105f, 30f), Localization.T("RimAIPortrait.Tag.Positive"),
+                    positiveTagText, "RimAIPortrait.Inpaint.PositiveTag", placeholder);
+                negativeTagText = TagDisplay.DrawEditable(new Rect(0f, 196f, 100f, 28f),
+                    new Rect(105f, 192f, rect.width - 105f, 30f), Localization.T("RimAIPortrait.Tag.Negative"),
+                    negativeTagText, "RimAIPortrait.Inpaint.NegativeTag", placeholder);
             }
-            Widgets.Label(new Rect(0f, 292f, rect.width, 44f), Localization.T(provider == AiProvider.LocalComfyUI
+            Widgets.Label(new Rect(0f, 230f, rect.width, 44f), Localization.T(provider == AiProvider.LocalComfyUI
                 ? "RimAIPortrait.Inpaint.ComfyInstructions"
                 : state == PortraitState.Sleep ? "RimAIPortrait.Inpaint.SleepInstructions" : "RimAIPortrait.Inpaint.Instructions"));
-            Rect area = new Rect(0f, 340f, rect.width, rect.height - 402f);
+            Rect area = new Rect(0f, 278f, rect.width, rect.height - 340f);
             Widgets.DrawMenuSection(area);
             if (preview == null)
                 Widgets.Label(area.ContractedBy(12f), error ?? Localization.T("RimAIPortrait.Inpaint.InvalidImage"));
@@ -158,7 +168,8 @@ namespace RimAIPortrait
                 RefreshSelection();
             }
             if (Widgets.ButtonText(new Rect(rect.width - 125f, buttonY, 125f, 38f), Localization.T("RimAIPortrait.Inpaint.Confirm"), true, true,
-                preview != null && (hasSelectedPixels || provider == AiProvider.LocalComfyUI)))
+                preview != null && (hasSelectedPixels || provider == AiProvider.LocalComfyUI
+                    || provider == AiProvider.LocalOpenAI)))
             {
                 byte[] mask = hasSelectedPixels ? BuildMask() : null;
                 byte[] requestMask = null;
@@ -166,9 +177,18 @@ namespace RimAIPortrait
                     requestMask = selections.Exists(selection => selection.Exclude)
                         ? BuildMask(true) : NovelAiInpaintComposite.ExpandMask(mask);
                 confirmed = true;
-                completed(mask, requestMask, strength, selections.Count, extraTag, extractedTags);
+                var tags = new ExtractedTags {
+                    positive = SplitTags(positiveTagText), negative = SplitTags(negativeTagText)
+                };
+                completed(mask, requestMask, strength, selections.Count, tags);
                 Close();
             }
+        }
+
+        private static string[] SplitTags(string value)
+        {
+            return (value ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(tag => tag.Trim()).Where(tag => tag.Length > 0).ToArray();
         }
 
         private void HandleDrag(Rect imageRect)
@@ -305,7 +325,7 @@ namespace RimAIPortrait
             if (maskOverlay != null) UnityEngine.Object.Destroy(maskOverlay);
             preview = null;
             maskOverlay = null;
-            if (!confirmed) completed(null, null, strength, 0, null, null);
+            if (!confirmed) completed(null, null, strength, 0, null);
             base.PostClose();
         }
     }

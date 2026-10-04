@@ -9,19 +9,29 @@ namespace RimAIPortrait
     {
         public static string OpenAiBase = "{}";
         public static string OpenAiExpression = "{}";
+        public static string LocalBase = "{}";
+        public static string LocalExpression = "{}";
         public static string GoogleBase = "{}";
         public static string GoogleExpression = "{}";
         public static string NovelAiBase = "{}";
         public static string NovelAiExpression = "{}";
+        public static string TagExtractorOpenAi = "{}";
+        public static string TagExtractorGoogle = "{}";
+        public static string TagExtractorLocal = "{}";
 
         public static void Load(ModContentPack content)
         {
             OpenAiBase = Read(content, "openai-base-options.json");
             OpenAiExpression = Read(content, "openai-expression-options.json");
+            LocalBase = Read(content, "local-base-options.json");
+            LocalExpression = Read(content, "local-expression-options.json");
             GoogleBase = Read(content, "google-base-options.json");
             GoogleExpression = Read(content, "google-expression-options.json");
             NovelAiBase = Read(content, "nai-base-options.json");
             NovelAiExpression = Read(content, "nai-expression-options.json");
+            TagExtractorOpenAi = Read(content, "tag-extractor-openai-options.json");
+            TagExtractorGoogle = Read(content, "tag-extractor-google-options.json");
+            TagExtractorLocal = Read(content, "tag-extractor-local-options.json");
         }
 
         private static string Read(ModContentPack content, string fileName)

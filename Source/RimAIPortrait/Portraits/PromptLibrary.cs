@@ -31,7 +31,8 @@ namespace RimAIPortrait
         {
             return provider == AiProvider.Google ? "Google"
                 : provider == AiProvider.LocalComfyUI ? "Comfy"
-                : provider == AiProvider.NovelAI ? "NAI" : "OpenAI";
+                : provider == AiProvider.NovelAI ? "NAI"
+                : provider == AiProvider.LocalOpenAI ? "Local" : "OpenAI";
         }
 
         public const string DefaultExpression = "Edit the first attached portrait to show the requested expression clearly. Keep the same character, facial features, hair, clothing, pose, framing, colors, art style, and background. Change the eyebrows, eyes, and mouth as needed so the expression is easy to read at small size. Preserve everything else.";

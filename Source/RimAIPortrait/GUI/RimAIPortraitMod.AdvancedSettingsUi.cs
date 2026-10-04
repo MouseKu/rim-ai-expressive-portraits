@@ -14,13 +14,39 @@ namespace RimAIPortrait
         private bool captionLoaded;
         private string captionEditorText;
         private bool inpaintStrengthsExpanded;
+        private bool tagLimitsExpanded;
 
         private void DrawAdvancedSettings(Listing_Standard l)
         {
+            DrawPortraitStorageSettings(l);
+            l.GapLine();
+            if (l.ButtonText(Localization.T("RimAIPortrait.Settings.XenotypeProvider")))
+                Find.WindowStack.Add(new Dialog_XenotypeProvider(Settings, WriteSettings));
+            l.GapLine();
+            if (l.ButtonText(Localization.T("RimAIPortrait.Settings.TagLimits")
+                + (tagLimitsExpanded ? " ▲" : " ▼")))
+                tagLimitsExpanded = !tagLimitsExpanded;
+            if (tagLimitsExpanded)
+            {
+                l.Label(Localization.T("RimAIPortrait.Settings.TagLimitsHelp"));
+                Settings.TagExtractorBasePositiveLimit = Mathf.RoundToInt(SettingsTooltips.Slider(l,
+                    Localization.T("RimAIPortrait.Settings.BasePositiveLimit", Settings.TagExtractorBasePositiveLimit),
+                    Settings.TagExtractorBasePositiveLimit, 1f, 50f, "RimAIPortrait.Settings.TagLimitsTip"));
+                Settings.TagExtractorBaseNegativeLimit = Mathf.RoundToInt(SettingsTooltips.Slider(l,
+                    Localization.T("RimAIPortrait.Settings.BaseNegativeLimit", Settings.TagExtractorBaseNegativeLimit),
+                    Settings.TagExtractorBaseNegativeLimit, 0f, 50f, "RimAIPortrait.Settings.TagLimitsTip"));
+                Settings.TagExtractorInpaintPositiveLimit = Mathf.RoundToInt(SettingsTooltips.Slider(l,
+                    Localization.T("RimAIPortrait.Settings.InpaintPositiveLimit", Settings.TagExtractorInpaintPositiveLimit),
+                    Settings.TagExtractorInpaintPositiveLimit, 1f, 50f, "RimAIPortrait.Settings.TagLimitsTip"));
+                Settings.TagExtractorInpaintNegativeLimit = Mathf.RoundToInt(SettingsTooltips.Slider(l,
+                    Localization.T("RimAIPortrait.Settings.InpaintNegativeLimit", Settings.TagExtractorInpaintNegativeLimit),
+                    Settings.TagExtractorInpaintNegativeLimit, 0f, 50f, "RimAIPortrait.Settings.TagLimitsTip"));
+            }
+            l.GapLine();
             DrawTagExtractorPrompt(l, Localization.T("RimAIPortrait.TagExtractor.BasePrompt"),
                 ref Settings.TagExtractorBasePrompt, "TagExtractor.md");
-            DrawTagExtractorPrompt(l, Localization.T("RimAIPortrait.TagExtractor.InpaintBatchPrompt"),
-                ref Settings.TagExtractorInpaintBatchPrompt, "TagExtractorInpaintBatch.md");
+            DrawTagExtractorPrompt(l, Localization.T("RimAIPortrait.TagExtractor.InpaintPrompt"),
+                ref Settings.TagExtractorInpaintPrompt, "TagExtractorInpaint.md");
             l.GapLine();
             DrawImageCaptionSettings(l);
             l.GapLine();
@@ -34,9 +60,10 @@ namespace RimAIPortrait
                 {
                     if (state == PortraitState.Base) continue;
                     float strength = Settings.GetInpaintStrength(state);
-                    l.Label(Localization.T("RimAIPortrait.Settings.InpaintStrengthState",
-                        PortraitStateNames.Label(state), strength.ToString("0.00")));
-                    Settings.SetInpaintStrength(state, l.Slider(strength, .1f, 1f));
+                    Settings.SetInpaintStrength(state, SettingsTooltips.Slider(l,
+                        Localization.T("RimAIPortrait.Settings.InpaintStrengthState",
+                            PortraitStateNames.Label(state), strength.ToString("0.00")),
+                        strength, .1f, 1f, "RimAIPortrait.Settings.InpaintStrengthStateTip"));
                 }
             }
             l.GapLine();
@@ -44,8 +71,9 @@ namespace RimAIPortrait
                 Localization.T("RimAIPortrait.Settings.EnableFrameTip"));
             if (Settings.EnableFrame)
             {
-                l.Label(Localization.T("RimAIPortrait.Settings.FrameScale", Settings.FrameScale.ToString("0.00")));
-                Settings.FrameScale = l.Slider(Settings.FrameScale, .5f, 1.5f);
+                Settings.FrameScale = SettingsTooltips.Slider(l,
+                    Localization.T("RimAIPortrait.Settings.FrameScale", Settings.FrameScale.ToString("0.00")),
+                    Settings.FrameScale, .5f, 1.5f, "RimAIPortrait.Settings.FrameScaleTip");
                 Text(l, Localization.T("RimAIPortrait.Settings.FramePath"), ref Settings.FrameImagePath);
                 if (l.ButtonText(Localization.T("RimAIPortrait.Settings.OpenFrameFolder")))
                 {
@@ -63,6 +91,9 @@ namespace RimAIPortrait
                 Localization.T("RimAIPortrait.Settings.DebugModeTip"));
             l.CheckboxLabeled(Localization.T("RimAIPortrait.Settings.ShowApiRequest"), ref Settings.ShowApiRequest,
                 Localization.T("RimAIPortrait.Settings.ShowApiRequestTip"));
+            l.CheckboxLabeled(Localization.T("RimAIPortrait.Settings.EnableDeprecatedFeatures"),
+                ref Settings.EnableDeprecatedFeatures,
+                Localization.T("RimAIPortrait.Settings.EnableDeprecatedFeaturesTip"));
             l.GapLine();
             if (l.ButtonText(Localization.T("RimAIPortrait.Settings.ResetPortraitHelp")))
             {
@@ -71,10 +102,37 @@ namespace RimAIPortrait
                 Settings.PortraitHelpDismissed = false;
                 Settings.PortraitHelpAfterImageDismissed = false;
                 Settings.NovelAiV5HelpDismissed = false;
+                Settings.InpaintHelpDismissed = false;
                 WriteSettings();
                 status = Localization.T("RimAIPortrait.Settings.PortraitHelpReset");
             }
             if (!status.NullOrEmpty()) l.Label(status);
+        }
+
+        private void DrawPortraitStorageSettings(Listing_Standard listing)
+        {
+            Text(listing, Localization.T("RimAIPortrait.Settings.PortraitRootFolder"),
+                ref Settings.PortraitRootFolder);
+            PortraitData.RecheckRoot();
+            string portraitRoot;
+            if (string.IsNullOrWhiteSpace(Settings.PortraitRootFolder))
+                listing.Label(Localization.T("RimAIPortrait.Settings.PortraitRootDefault", PortraitData.DefaultRoot));
+            else if (PortraitData.TryGetCustomRoot(Settings.PortraitRootFolder, out portraitRoot))
+                listing.Label(Localization.T("RimAIPortrait.Settings.PortraitRootConfigured"));
+            else
+                listing.Label(Localization.T("RimAIPortrait.Settings.PortraitRootInvalid"));
+            if (!listing.ButtonText(Localization.T("RimAIPortrait.Settings.OpenPortraitRoot"))) return;
+            try
+            {
+                string folder;
+                if (string.IsNullOrWhiteSpace(Settings.PortraitRootFolder)) folder = PortraitData.DefaultRoot;
+                else if (!PortraitData.TryNormalizeCustomRoot(Settings.PortraitRootFolder, out folder))
+                    throw new InvalidOperationException(Localization.T("RimAIPortrait.Settings.PortraitRootInvalid"));
+                Directory.CreateDirectory(folder);
+                PortraitData.RecheckRoot();
+                Process.Start(folder);
+            }
+            catch (Exception e) { status = Localization.T("RimAIPortrait.Error.OpenPortraitRoot", e.Message); }
         }
 
         private void DrawImageCaptionSettings(Listing_Standard listing)
@@ -107,7 +165,10 @@ namespace RimAIPortrait
                     captionLoaded = true;
                 }
             }
-            captionEditorText = Widgets.TextArea(listing.GetRect(240f), captionEditorText ?? "");
+            Rect captionArea = listing.GetRect(240f);
+            captionEditorText = Widgets.TextArea(captionArea, captionEditorText ?? "");
+            TooltipHandler.TipRegion(captionArea,
+                Localization.T("RimAIPortrait.Settings.ImageCaptionEditorTip"));
             Rect row = listing.GetRect(32f);
             if (Widgets.ButtonText(new Rect(row.x, row.y, 170f, row.height),
                 Localization.T("RimAIPortrait.Settings.ImageCaptionUsePackaged")))
@@ -142,7 +203,11 @@ namespace RimAIPortrait
             string defaultName)
         {
             listing.Label(label);
-            value = Widgets.TextArea(listing.GetRect(160f), value ?? "");
+            Rect promptArea = listing.GetRect(160f);
+            value = Widgets.TextArea(promptArea, value ?? "");
+            TooltipHandler.TipRegion(promptArea, Localization.T(defaultName == "TagExtractor.md"
+                ? "RimAIPortrait.Settings.TagExtractorBasePromptTip"
+                : "RimAIPortrait.Settings.TagExtractorInpaintPromptTip"));
             Rect row = listing.GetRect(32f);
             if (Widgets.ButtonText(new Rect(row.xMax - 210f, row.y, 100f, row.height),
                 Localization.T("RimAIPortrait.Common.Reset")))

@@ -1,0 +1,1 @@
+in pain, grimacing, wincing, furrowed brows, clenched teeth, strained expression, 

@@ -20,7 +20,9 @@ namespace RimAIPortrait
             ModPack = content;
             ProviderOptionDefaults.Load(content);
             SettingsDefaults.Load(content);
+            XenotypePromptDefaults.Load(content);
             Settings = GetSettings<PortraitSettings>();
+            XenotypePromptDefaults.Apply(Settings);
             ApplyPromptDefaults(content);
             new Harmony("mint.rimaiportrait").PatchAll();
             LongEventHandler.ExecuteWhenFinished(PortraitRuntime.EnsureCreated);

@@ -13,7 +13,6 @@ namespace RimAIPortrait
         public byte[] RequestMask;
         public float Strength;
         public bool NarrowFeather;
-        public string ExtraTag;
         public ExtractedTags Tags;
         public string Error;
     }
@@ -52,7 +51,8 @@ namespace RimAIPortrait
             bool useExtractedFeatures = baseTags != null && baseTags.positive != null && baseTags.positive.Length > 0
                 && (providerId == AiProvider.NovelAI || providerId == AiProvider.LocalComfyUI
                     && WorkflowUsesExtractedTags(settings.ComfyWorkflowPath));
-            string prompt = options.Regenerate && (providerId == AiProvider.OpenAI || providerId == AiProvider.Google)
+            string prompt = options.Regenerate && (providerId == AiProvider.OpenAI
+                || providerId == AiProvider.LocalOpenAI || providerId == AiProvider.Google)
                 ? options.RegeneratePrompt : PortraitPrompt.Build(options.Pawn, options.State, settings,
                     options.ExpressionOverride, options.Regenerate ? (AiProvider?)providerId : null, useExtractedFeatures);
             byte[] primaryImage = options.PreparedInpaint == null
@@ -83,7 +83,8 @@ namespace RimAIPortrait
 
             PortraitProviderConfiguration configuration = options.Regenerate
                 ? settings.RegenerateConfiguration() : provider.CreateConfiguration(settings, expression);
-            string styleFolder = expression || options.Regenerate ? "" : settings.StyleFolder;
+            string styleFolder = options.Regenerate ? settings.RegenerateStyleFolder
+                : expression ? "" : settings.StyleFolder;
             return new PreparedPortraitRequest {
                 ProviderId = providerId,
                 Provider = provider,

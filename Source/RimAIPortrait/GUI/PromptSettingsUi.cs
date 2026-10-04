@@ -9,22 +9,21 @@ namespace RimAIPortrait
     internal sealed class PromptSettingsUi
     {
         private PortraitState editedState = PortraitState.Normal;
-        private AiProvider editedProvider;
-        private bool providerSelected;
 
-        public void DrawMain(Listing_Standard listing, PortraitSettings settings, Action<string> report)
+        public void DrawExpressionSettings(Listing_Standard listing, PortraitSettings settings,
+            Action saveSettings, Action<string> report)
         {
-            listing.GapLine();
+            ProviderSettingsUi.Draw(listing, settings, true, report);
             listing.CheckboxLabeled(Localization.T("RimAIPortrait.Settings.EmotionChanges"), ref settings.EnableEmotionChanges,
                 Localization.T("RimAIPortrait.Settings.EmotionChangesTip"));
             if (settings.EnableEmotionChanges)
             {
                 listing.Gap();
-                ProviderSettingsUi.Draw(listing, settings, true, report);
+                DrawEmotionSettings(listing, settings, saveSettings, report);
             }
         }
 
-        public void DrawDetails(Listing_Standard listing, PortraitSettings settings, Action saveSettings, Action<string> report)
+        public void DrawPromptInformation(Listing_Standard listing, PortraitSettings settings)
         {
             listing.Label(Localization.T("RimAIPortrait.Settings.PromptInformation"));
             Check(listing, Localization.T("RimAIPortrait.Settings.CharacterSprite"), ref settings.IncludeSprite);
@@ -42,12 +41,6 @@ namespace RimAIPortrait
             Check(listing, Localization.T("RimAIPortrait.Settings.Apparel"), ref settings.IncludeApparel);
             Check(listing, Localization.T("RimAIPortrait.Settings.Health"), ref settings.IncludeHealth);
             Check(listing, Localization.T("RimAIPortrait.Settings.Traits"), ref settings.IncludeTraits);
-            listing.Gap();
-            if (listing.ButtonText(Localization.T("RimAIPortrait.PromptArchive.Open")))
-                Find.WindowStack.Add(new Dialog_PromptArchive(settings, saveSettings));
-            if (!settings.EnableEmotionChanges) return;
-            listing.GapLine();
-            DrawEmotionSettings(listing, settings, saveSettings, report);
         }
 
         private void DrawEmotionSettings(Listing_Standard listing, PortraitSettings settings, Action saveSettings, Action<string> report)
@@ -64,34 +57,24 @@ namespace RimAIPortrait
             Check(listing, PortraitStateNames.Label(PortraitState.Distressed), ref settings.EnableDistressed);
             listing.GapLine();
             DrawEditor(listing, settings, saveSettings, report);
-            listing.Label(Localization.T("RimAIPortrait.Settings.SwapInterval", settings.SwapSeconds.ToString("0.0")));
-            settings.SwapSeconds = listing.Slider(settings.SwapSeconds, .5f, 30f);
-            listing.Label(Localization.T("RimAIPortrait.Settings.WhenLow", settings.LowMoodThreshold.ToString("P0")));
-            settings.LowMoodThreshold = listing.Slider(settings.LowMoodThreshold, 0f, settings.HighMoodThreshold);
-            listing.Label(Localization.T("RimAIPortrait.Settings.WhenHigh", settings.HighMoodThreshold.ToString("P0")));
-            settings.HighMoodThreshold = listing.Slider(settings.HighMoodThreshold, settings.LowMoodThreshold, 1f);
+            settings.SwapSeconds = SettingsTooltips.Slider(listing,
+                Localization.T("RimAIPortrait.Settings.SwapInterval", settings.SwapSeconds.ToString("0.0")),
+                settings.SwapSeconds, .5f, 30f, "RimAIPortrait.Settings.SwapIntervalTip");
+            settings.LowMoodThreshold = SettingsTooltips.Slider(listing,
+                Localization.T("RimAIPortrait.Settings.WhenLow", settings.LowMoodThreshold.ToString("P0")),
+                settings.LowMoodThreshold, 0f, settings.HighMoodThreshold, "RimAIPortrait.Settings.WhenLowTip");
+            settings.HighMoodThreshold = SettingsTooltips.Slider(listing,
+                Localization.T("RimAIPortrait.Settings.WhenHigh", settings.HighMoodThreshold.ToString("P0")),
+                settings.HighMoodThreshold, settings.LowMoodThreshold, 1f, "RimAIPortrait.Settings.WhenHighTip");
         }
 
         private void DrawEditor(Listing_Standard listing, PortraitSettings settings, Action saveSettings, Action<string> report)
         {
-            if (!providerSelected)
-            {
-                editedProvider = settings.ExpressionProvider;
-                providerSelected = true;
-            }
+            AiProvider provider = settings.ExpressionProvider;
             if (!settings.IsStateEnabled(editedState)) editedState = PortraitState.Normal;
-            listing.Label(Localization.T("RimAIPortrait.Settings.EmotionPrompts"));
-            if (listing.ButtonText(Localization.T("RimAIPortrait.Settings.ExpressionProvider") + ": "
-                + ProviderSettingsUi.Label(editedProvider)))
-            {
-                var providers = new List<FloatMenuOption>();
-                foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
-                {
-                    AiProvider selected = provider;
-                    providers.Add(new FloatMenuOption(ProviderSettingsUi.Label(selected), () => editedProvider = selected));
-                }
-                Find.WindowStack.Add(new FloatMenu(providers));
-            }
+            listing.Label(Localization.T("RimAIPortrait.Settings.EmotionPrompts")
+                + " (" + ProviderSettingsUi.Label(provider) + ")");
+            listing.Label(Localization.T("RimAIPortrait.Settings.EmotionPromptScope"));
             Rect row = listing.GetRect(32f);
             if (Widgets.ButtonText(new Rect(row.x, row.y, row.width - 220f, row.height), PortraitStateNames.Label(editedState) + " ▼"))
             {
@@ -108,28 +91,33 @@ namespace RimAIPortrait
             {
                 saveSettings();
                 report(Localization.T("RimAIPortrait.Settings.PromptSaved",
-                    ProviderSettingsUi.Label(editedProvider) + " / " + PortraitStateNames.Label(editedState)));
+                    ProviderSettingsUi.Label(provider) + " / " + PortraitStateNames.Label(editedState)));
             }
             if (Widgets.ButtonText(new Rect(row.xMax - 210f, row.y, 100f, row.height),
                 Localization.T("RimAIPortrait.Common.Reset")))
             {
-                string original = RimAIPortraitMod.PackagedPrompt(editedProvider, editedState + ".md", true);
+                string original = RimAIPortraitMod.PackagedPrompt(provider, editedState + ".md", true);
                 if (original == null) report(Localization.T("RimAIPortrait.Settings.PromptDefaultMissing"));
                 else
                 {
-                    settings.SetStatePrompt(editedProvider, editedState, original);
+                    settings.SetStatePrompt(provider, editedState, original);
                     saveSettings();
                     report(Localization.T("RimAIPortrait.Settings.PromptReset",
-                        ProviderSettingsUi.Label(editedProvider) + " / " + PortraitStateNames.Label(editedState)));
+                        ProviderSettingsUi.Label(provider) + " / " + PortraitStateNames.Label(editedState)));
                 }
             }
-            string prompt = PortraitPrompt.StateOverride(settings, editedProvider, editedState);
-            settings.SetStatePrompt(editedProvider, editedState, Widgets.TextArea(listing.GetRect(100f), prompt ?? ""));
+            string prompt = PortraitPrompt.StateOverride(settings, provider, editedState);
+            Rect promptArea = listing.GetRect(100f);
+            settings.SetStatePrompt(provider, editedState, Widgets.TextArea(promptArea, prompt ?? ""));
+            TooltipHandler.TipRegion(promptArea,
+                Localization.T("RimAIPortrait.Settings.EmotionPromptScope"));
         }
 
         private static void Check(Listing_Standard listing, string label, ref bool value)
         {
-            listing.CheckboxLabeled(label, ref value);
+            string tip = SettingsTooltips.TipForLabel(label)
+                ?? Localization.T("RimAIPortrait.Settings.EnabledEmotionTip", label);
+            listing.CheckboxLabeled(label, ref value, tip);
         }
     }
 }

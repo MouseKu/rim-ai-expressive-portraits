@@ -1,10 +1,7 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -21,16 +18,32 @@ namespace RimAIPortrait
         public string PositiveText => string.Join(", ", positive ?? new string[0]);
         public string NegativeText => string.Join(", ", negative ?? new string[0]);
 
-        public bool IsValid(bool inpaint)
+        public bool IsValid(int positiveLimit, int negativeLimit)
         {
-            return ValidationIssue(inpaint) == null;
+            return ValidationIssue(positiveLimit, negativeLimit) == null;
         }
 
-        public string ValidationIssue(bool inpaint)
+        public bool TrimExcess(int positiveLimit, int negativeLimit)
         {
-            string issue = ValidateList(positive, inpaint ? 12 : 20, "positive");
+            bool changed = false;
+            if (positive != null && positive.Length > positiveLimit)
+            {
+                positive = positive.Take(positiveLimit).ToArray();
+                changed = true;
+            }
+            if (negative != null && negative.Length > negativeLimit)
+            {
+                negative = negative.Take(negativeLimit).ToArray();
+                changed = true;
+            }
+            return changed;
+        }
+
+        public string ValidationIssue(int positiveLimit, int negativeLimit)
+        {
+            string issue = ValidateList(positive, positiveLimit, "positive");
             if (issue != null) return issue;
-            issue = ValidateList(negative, inpaint ? 10 : 15, "negative");
+            issue = ValidateList(negative, negativeLimit, "negative");
             if (issue != null) return issue;
             return positive.Length + negative.Length == 0 ? "both tag lists empty" : null;
         }
@@ -49,15 +62,10 @@ namespace RimAIPortrait
         }
     }
 
-    internal static class TagExtraction
+    internal static partial class TagExtraction
     {
         private const string Schema = "{\"type\":\"object\",\"properties\":{\"positive\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"negative\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"positive\",\"negative\"],\"additionalProperties\":false}";
         private const string GoogleSchema = "{\"type\":\"object\",\"properties\":{\"positive\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"negative\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"positive\",\"negative\"]}";
-        private const string BatchItem = "{\"type\":\"object\",\"properties\":{\"state\":{\"type\":\"string\"},\"positive\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"negative\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}},\"required\":[\"state\",\"positive\",\"negative\"]}";
-        private static readonly string BatchSchema = "{\"type\":\"object\",\"properties\":{\"states\":{\"type\":\"array\",\"items\":"
-            + BatchItem.Substring(0, BatchItem.Length - 1) + ",\"additionalProperties\":false}}},\"required\":[\"states\"],\"additionalProperties\":false}";
-        private static readonly string GoogleBatchSchema = "{\"type\":\"object\",\"properties\":{\"states\":{\"type\":\"array\",\"items\":"
-            + BatchItem + "}},\"required\":[\"states\"]}";
 
         public static bool IsConfigured(PortraitSettings settings)
         {
@@ -82,7 +90,12 @@ namespace RimAIPortrait
             try
             {
                 ExtractedTags tags = JsonUtility.FromJson<ExtractedTags>(response);
-                string issue = tags == null ? "JSON object missing" : tags.ValidationIssue(false);
+                int positiveLimit = Limit(settings.TagExtractorBasePositiveLimit, 1);
+                int negativeLimit = Limit(settings.TagExtractorBaseNegativeLimit, 0);
+                if (tags != null && tags.TrimExcess(positiveLimit, negativeLimit))
+                    Debug(settings, "tag limits", "scope=base, positive=" + (tags.positive?.Length ?? -1)
+                        + ", negative=" + (tags.negative?.Length ?? -1));
+                string issue = tags == null ? "JSON object missing" : tags.ValidationIssue(positiveLimit, negativeLimit);
                 Debug(settings, "validation", "scope=base"
                     + ", positive=" + (tags?.positive?.Length ?? -1)
                     + ", negative=" + (tags?.negative?.Length ?? -1)
@@ -101,66 +114,42 @@ namespace RimAIPortrait
         public static IEnumerator ExtractInpaint(PortraitSettings settings, byte[] image, PortraitState state,
             string prompt, Action<ExtractedTags, string> done)
         {
-            var prompts = new Dictionary<PortraitState, string> { { state, prompt } };
-            Dictionary<PortraitState, ExtractedTags> results = null;
-            string error = null;
-            yield return ExtractBatch(settings, image, prompts,
-                (value, failure) => { results = value; error = failure; });
-            ExtractedTags tags;
-            done(results != null && results.TryGetValue(state, out tags) ? tags : null, error);
-        }
-
-        public static IEnumerator ExtractBatch(PortraitSettings settings, byte[] image,
-            IDictionary<PortraitState, string> prompts, Action<Dictionary<PortraitState, ExtractedTags>, string> done)
-        {
-            var message = new StringBuilder();
-            foreach (KeyValuePair<PortraitState, string> entry in prompts)
-                message.Append("\n\n[State: ").Append(entry.Key).Append("]\n").Append(entry.Value);
             string response = null;
             string error = null;
-            yield return Send(settings, image, message.ToString(), "TagExtractorInpaintBatch.md", true,
+            string message = "[State: " + state + "]\n" + prompt;
+            yield return Send(settings, image, message, "TagExtractorInpaint.md", true,
                 (value, failure) => { response = value; error = failure; });
-            var results = new Dictionary<PortraitState, ExtractedTags>();
             if (response == null)
             {
-                done(results, error ?? Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
+                done(null, error ?? Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
                 yield break;
             }
             try
             {
-                ExtractedTagBatch batch;
-                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(response)))
-                    batch = (ExtractedTagBatch)new DataContractJsonSerializer(typeof(ExtractedTagBatch)).ReadObject(stream);
-                Debug(settings, "batch validation", "expected_states=" + prompts.Count
-                    + ", returned_states=" + (batch?.states?.Length ?? -1)
-                    + ", has_states_field=" + HasJsonField(response, "states"));
-                if (batch == null || batch.states == null || batch.states.Length != prompts.Count) throw new InvalidDataException();
-                foreach (ExtractedStateTags item in batch.states)
-                {
-                    PortraitState state;
-                    ExtractedTags tags = item == null ? null : new ExtractedTags { positive = item.positive, negative = item.negative };
-                    string issue = tags == null ? "state item missing" : tags.ValidationIssue(true);
-                    Debug(settings, "batch item", "index=" + results.Count
-                        + ", positive=" + (tags?.positive?.Length ?? -1)
-                        + ", negative=" + (tags?.negative?.Length ?? -1)
-                        + ", result=" + (issue ?? "valid"));
-                    if (item == null || !Enum.TryParse(item.state, out state) || !prompts.ContainsKey(state)
-                        || results.ContainsKey(state) || issue != null) throw new InvalidDataException();
-                    results.Add(state, tags);
-                }
+                ExtractedTags tags = JsonUtility.FromJson<ExtractedTags>(response);
+                int positiveLimit = Limit(settings.TagExtractorInpaintPositiveLimit, 1);
+                int negativeLimit = Limit(settings.TagExtractorInpaintNegativeLimit, 0);
+                if (tags != null && tags.TrimExcess(positiveLimit, negativeLimit))
+                    Debug(settings, "tag limits", "scope=inpaint, state=" + state
+                        + ", positive=" + (tags.positive?.Length ?? -1)
+                        + ", negative=" + (tags.negative?.Length ?? -1));
+                string issue = tags == null ? "JSON object missing" : tags.ValidationIssue(positiveLimit, negativeLimit);
+                Debug(settings, "validation", "scope=inpaint, state=" + state
+                    + ", positive=" + (tags?.positive?.Length ?? -1)
+                    + ", negative=" + (tags?.negative?.Length ?? -1)
+                    + ", result=" + (issue ?? "valid"));
+                if (issue != null || HasJsonField(response, "states")) throw new InvalidDataException();
+                done(tags, null);
             }
             catch (Exception exception)
             {
-                Debug(settings, "batch parse", "exception=" + exception.GetType().Name);
-                results.Clear();
-                done(results, Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
-                yield break;
+                Debug(settings, "parse", "scope=inpaint, exception=" + exception.GetType().Name);
+                done(null, Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
             }
-            done(results, null);
         }
 
         private static IEnumerator Send(PortraitSettings settings, byte[] image, string portraitPrompt,
-            string promptFile, bool batch, Action<string, string> done, string features = null)
+            string promptFile, bool inpaint, Action<string, string> done, string features = null)
         {
             if (image == null || image.Length == 0 || image.Length > 8 * 1024 * 1024)
             {
@@ -168,7 +157,7 @@ namespace RimAIPortrait
                 yield break;
             }
 
-            string instruction = batch ? settings.TagExtractorInpaintBatchPrompt : settings.TagExtractorBasePrompt;
+            string instruction = inpaint ? settings.TagExtractorInpaintPrompt : settings.TagExtractorBasePrompt;
             try
             {
                 if (string.IsNullOrWhiteSpace(instruction))
@@ -210,18 +199,38 @@ namespace RimAIPortrait
                 yield break;
             }
 
+            int positiveTagLimit = Limit(inpaint ? settings.TagExtractorInpaintPositiveLimit
+                : settings.TagExtractorBasePositiveLimit, 1);
+            int negativeTagLimit = Limit(inpaint ? settings.TagExtractorInpaintNegativeLimit
+                : settings.TagExtractorBaseNegativeLimit, 0);
             string message = instruction + (string.IsNullOrWhiteSpace(features) ? "" : "\n\nFeatures:\n" + features.Trim())
-                + "\n\nPortrait request: " + (portraitPrompt ?? "");
+                + "\n\nPortrait request: " + (portraitPrompt ?? "")
+                + "\n\nTag limits for this request: at most " + positiveTagLimit + " positive and "
+                + negativeTagLimit + " negative tags. These limits override earlier numeric tag limits."
+                + (negativeTagLimit == 0 ? " Return an empty negative array." : "");
+            System.Collections.Generic.Dictionary<string, string> options;
+            try
+            {
+                string optionJson = settings.TagExtractorBackend == TagExtractorModel.Google
+                    ? settings.TagExtractorGoogleOptions : settings.TagExtractorBackend == TagExtractorModel.LocalModel
+                        ? settings.TagExtractorLocalOptions : settings.TagExtractorOpenAiOptions;
+                options = ParseTagOptions(optionJson ?? "{}");
+            }
+            catch (Exception exception)
+            {
+                done(null, Localization.T("RimAIPortrait.TagExtractor.InvalidOptions", exception.Message));
+                yield break;
+            }
             string encodedImage = Convert.ToBase64String(image);
             string mime = image.Length > 3 && image[0] == 0xff && image[1] == 0xd8 ? "image/jpeg"
                 : image.Length > 12 && image[0] == 'R' && image[1] == 'I' && image[2] == 'F' && image[3] == 'F'
                     && image[8] == 'W' && image[9] == 'E' && image[10] == 'B' && image[11] == 'P'
                     ? "image/webp" : "image/png";
             string body = settings.TagExtractorBackend == TagExtractorModel.Google
-                ? GoogleBody(model, message, mime, encodedImage, batch)
+                ? GoogleBody(model, message, mime, encodedImage, options)
                 : settings.TagExtractorBackend == TagExtractorModel.LocalModel
-                    ? ChatBody(model, message, mime, encodedImage, batch)
-                    : OpenAiBody(model, message, mime, encodedImage, batch);
+                    ? ChatBody(model, message, mime, encodedImage, options)
+                    : OpenAiBody(model, message, mime, encodedImage, inpaint, options);
             Dialog_DebugRequest.Trace trace = Dialog_DebugRequest.Show("Tag Extractor / " + settings.TagExtractorBackend, url, body);
             using (var request = new UnityWebRequest(url, "POST"))
             {
@@ -267,95 +276,11 @@ namespace RimAIPortrait
                 && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
         }
 
-        private static string Q(string value) => "\"" + PortraitProviderUtilities.JsonEscape(value) + "\"";
-
-        private static string OpenAiBody(string model, string message, string mime, string image, bool batch)
+        private static int Limit(int value, int minimum)
         {
-            return "{\"model\":" + Q(model) + ",\"input\":[{\"role\":\"user\",\"content\":[{\"type\":\"input_text\",\"text\":"
-                + Q(message) + "},{\"type\":\"input_image\",\"image_url\":" + Q("data:" + mime + ";base64," + image)
-                + "}]}],\"text\":{\"format\":{\"type\":\"json_schema\",\"name\":\"portrait_tags\",\"strict\":true,\"schema\":"
-                + (batch ? BatchSchema : Schema) + "}},\"max_output_tokens\":" + (batch ? "4096" : "600") + "}";
+            return Math.Max(minimum, Math.Min(50, value));
         }
 
-        private static string GoogleBody(string model, string message, string mime, string image, bool batch)
-        {
-            string thinking = model.StartsWith("gemini-3", StringComparison.OrdinalIgnoreCase)
-                ? "{\"thinkingLevel\":\"minimal\"}" : "{\"thinkingBudget\":0}";
-            return "{\"contents\":[{\"parts\":[{\"text\":" + Q(message) + "},{\"inlineData\":{\"mimeType\":" + Q(mime)
-                + ",\"data\":" + Q(image) + "}}]}],\"generationConfig\":{\"responseMimeType\":\"application/json\",\"responseSchema\":"
-                + (batch ? GoogleBatchSchema : GoogleSchema) + ",\"maxOutputTokens\":"
-                + (batch ? "4096" : "2048") + ",\"thinkingConfig\":" + thinking + "}}";
-        }
-
-        private static string ChatBody(string model, string message, string mime, string image, bool batch)
-        {
-            return "{\"model\":" + Q(model) + ",\"messages\":[{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":"
-                + Q(message) + "},{\"type\":\"image_url\",\"image_url\":{\"url\":" + Q("data:" + mime + ";base64," + image)
-                + "}}]}],\"response_format\":{\"type\":\"json_object\"},\"max_tokens\":"
-                + (batch ? "4096" : "2048") + "}";
-        }
-
-        private static string OpenAiText(PortraitSettings settings, string json)
-        {
-            Debug(settings, "OpenAI raw response", "json_characters=" + (json?.Length ?? 0)
-                + ", has_output=" + HasJsonField(json, "output")
-                + ", has_output_text=" + HasJsonField(json, "output_text"));
-            OpenAiResponse response;
-            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-                response = (OpenAiResponse)new DataContractJsonSerializer(typeof(OpenAiResponse)).ReadObject(stream);
-            Debug(settings, "OpenAI response", "status=" + SafeStatus(response?.status)
-                + ", has_output=" + HasJsonField(json, "output")
-                + ", output_items=" + (response?.output?.Length ?? -1));
-            if (response == null || response.status != "completed") throw new InvalidDataException();
-            string text = response.output == null ? null : string.Concat(response.output
-                .Where(item => item != null && item.content != null)
-                .SelectMany(item => item.content)
-                .Where(part => part != null && part.type == "output_text")
-                .Select(part => part.text));
-            if (string.IsNullOrWhiteSpace(text)) text = response.output_text;
-            if (string.IsNullOrWhiteSpace(text)) throw new InvalidDataException();
-            return text;
-        }
-
-        private static string GoogleText(PortraitSettings settings, string json)
-        {
-            Debug(settings, "Google raw response", "json_characters=" + (json?.Length ?? 0)
-                + ", root_object=" + (!string.IsNullOrWhiteSpace(json) && json.TrimStart().StartsWith("{", StringComparison.Ordinal))
-                + ", has_candidates_field=" + HasJsonField(json, "candidates")
-                + ", has_usage_field=" + HasJsonField(json, "usageMetadata")
-                + ", has_feedback_field=" + HasJsonField(json, "promptFeedback")
-                + ", has_error_field=" + HasJsonField(json, "error"));
-            GoogleResponse response;
-            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-                response = (GoogleResponse)new DataContractJsonSerializer(typeof(GoogleResponse)).ReadObject(stream);
-            GoogleCandidate candidate = response?.candidates != null && response.candidates.Length > 0
-                ? response.candidates[0] : null;
-            Debug(settings, "Google parsed response", "object=" + (response != null)
-                + ", candidates=" + (response?.candidates?.Length ?? -1)
-                + ", finish_reason=" + SafeStatus(candidate?.finishReason)
-                + ", block_reason=" + SafeStatus(response?.promptFeedback?.blockReason)
-                + ", parts=" + (candidate?.content?.parts?.Length ?? -1)
-                + ", output_tokens=" + (response?.usageMetadata?.candidatesTokenCount ?? -1)
-                + ", thought_tokens=" + (response?.usageMetadata?.thoughtsTokenCount ?? -1));
-            if (response == null || response.candidates == null || response.candidates.Length == 0
-                || candidate.finishReason != "STOP" || candidate.content == null
-                || candidate.content.parts == null) throw new InvalidDataException();
-            return string.Concat(candidate.content.parts.Select(part => part.text));
-        }
-
-        private static string ChatText(PortraitSettings settings, string json)
-        {
-            ChatResponse response = JsonUtility.FromJson<ChatResponse>(json);
-            ChatChoice choice = response?.choices != null && response.choices.Length > 0
-                ? response.choices[0] : null;
-            Debug(settings, "local response", "choices=" + (response?.choices?.Length ?? -1)
-                + ", finish_reason=" + SafeStatus(choice?.finish_reason));
-            if (choice?.finish_reason == "length") throw new LocalModelOutputLimitException();
-            if (response == null || response.choices == null || response.choices.Length == 0
-                || response.choices[0].message == null || response.choices[0].finish_reason != "stop")
-                throw new InvalidDataException();
-            return response.choices[0].message.content;
-        }
 
         private static void Debug(PortraitSettings settings, string stage, string detail)
         {
@@ -384,50 +309,5 @@ namespace RimAIPortrait
                 && Regex.IsMatch(json, "\"" + Regex.Escape(name) + "\"\\s*:");
         }
 
-        [DataContract] private sealed class TextPart
-        {
-            [DataMember] public string type = null;
-            [DataMember] public string text = null;
-        }
-        [DataContract] private sealed class ExtractedStateTags
-        {
-            [DataMember] public string state = null;
-            [DataMember] public string[] positive = null;
-            [DataMember] public string[] negative = null;
-        }
-        [DataContract] private sealed class ExtractedTagBatch
-        {
-            [DataMember] public ExtractedStateTags[] states = null;
-        }
-        [DataContract] private sealed class OpenAiOutput { [DataMember] public TextPart[] content = null; }
-        [DataContract] private sealed class OpenAiResponse
-        {
-            [DataMember] public string status = null;
-            [DataMember] public OpenAiOutput[] output = null;
-            [DataMember] public string output_text = null;
-        }
-        [DataContract] private sealed class GooglePart { [DataMember] public string text = null; }
-        [DataContract] private sealed class GoogleContent { [DataMember] public GooglePart[] parts = null; }
-        [DataContract] private sealed class GoogleCandidate
-        {
-            [DataMember] public string finishReason = null;
-            [DataMember] public GoogleContent content = null;
-        }
-        [DataContract] private sealed class GooglePromptFeedback { [DataMember] public string blockReason = null; }
-        [DataContract] private sealed class GoogleUsageMetadata
-        {
-            [DataMember] public int candidatesTokenCount = 0;
-            [DataMember] public int thoughtsTokenCount = 0;
-        }
-        [DataContract] private sealed class GoogleResponse
-        {
-            [DataMember] public GoogleCandidate[] candidates = null;
-            [DataMember] public GooglePromptFeedback promptFeedback = null;
-            [DataMember] public GoogleUsageMetadata usageMetadata = null;
-        }
-        [Serializable] private sealed class ChatMessage { public string content = null; }
-        [Serializable] private sealed class ChatChoice { public string finish_reason = null; public ChatMessage message = null; }
-        [Serializable] private sealed class ChatResponse { public ChatChoice[] choices = null; }
-        private sealed class LocalModelOutputLimitException : Exception { }
     }
 }

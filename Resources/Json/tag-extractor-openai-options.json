@@ -1,0 +1,5 @@
+{
+  "max_tokens": 8192,
+  "temperature": 0.2,
+  "stream": false
+}

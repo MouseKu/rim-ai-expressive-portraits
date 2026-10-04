@@ -11,15 +11,11 @@ using Verse;
 namespace RimAIPortrait
 {
     /// <summary>Describes the behavior of this type or member.</summary>
-    public sealed class Dialog_PortraitGallery : Window
+    public sealed partial class Dialog_PortraitGallery : Window
     {
         private readonly Pawn pawn;
         private readonly HashSet<string> selected = new HashSet<string>();
         private string selectionAnchor;
-        private readonly Dictionary<string, Texture2D> textures = new Dictionary<string, Texture2D>();
-        private readonly Dictionary<string, int> textureUse = new Dictionary<string, int>();
-        private int textureUseClock;
-        private const int TextureCacheLimit = 64;
         private Vector2 scroll;
         private string[] files;
         private string galleryRoot;
@@ -120,7 +116,8 @@ namespace RimAIPortrait
                     PortraitRuntime.EnsureCreated();
                     string referencePath = selected.First();
                     AiProvider provider = RimAIPortraitMod.Settings.RegenerateProvider;
-                    if (provider == AiProvider.OpenAI || provider == AiProvider.Google)
+                    if (provider == AiProvider.OpenAI || provider == AiProvider.LocalOpenAI
+                        || provider == AiProvider.Google)
                         Find.WindowStack.Add(new Dialog_PortraitRegenerate(referencePath, prompt =>
                         {
                             PortraitRuntime.StartGenerationButtonCooldown();
@@ -223,10 +220,11 @@ namespace RimAIPortrait
             Widgets.Label(new Rect(0f, 128f, 85f, 26f), Localization.T("RimAIPortrait.Gallery.BaseLabel"));
             string providerName = basePromptProvider == AiProvider.Google ? "Google"
                 : basePromptProvider == AiProvider.NovelAI ? "NovelAI"
-                : basePromptProvider == AiProvider.LocalComfyUI ? "ComfyUI" : "OpenAI";
-            Widgets.Label(new Rect(0f, 153f, 85f, 26f),
-                Localization.T("RimAIPortrait.Gallery.BaseProviderLabel", providerName));
-            Rect baseArea = new Rect(90f, 128f, rect.width - 215f, 54f);
+                : ProviderSettingsUi.Label(basePromptProvider);
+            string providerLabel = Localization.T("RimAIPortrait.Gallery.BaseProviderLabel", providerName);
+            float baseLabelWidth = Mathf.Max(85f, Text.CalcSize(providerLabel).x + 8f);
+            Widgets.Label(new Rect(0f, 153f, baseLabelWidth, 26f), providerLabel);
+            Rect baseArea = new Rect(baseLabelWidth + 5f, 128f, rect.width - baseLabelWidth - 130f, 54f);
             GUI.SetNextControlName(BasePromptControl);
             basePrompt = Widgets.TextArea(baseArea, basePrompt ?? "");
             TooltipHandler.TipRegion(baseArea, Localization.T("RimAIPortrait.Gallery.BasePromptTip"));
@@ -238,31 +236,22 @@ namespace RimAIPortrait
             Tip(saveBaseButton, "SaveBase");
 
             Widgets.Label(new Rect(0f, 200f, 85f, 28f), Localization.T("RimAIPortrait.Gallery.ExtraLabel"));
-            Rect extraArea = new Rect(90f, 191f, rect.width - 215f, 54f);
+            Rect extraArea = new Rect(90f, 191f, rect.width - 90f, 54f);
             GUI.SetNextControlName(ExtraFeaturesControl);
             extraFeatures = Widgets.TextArea(extraArea, extraFeatures ?? "");
             TooltipHandler.TipRegion(extraArea, Localization.T("RimAIPortrait.Gallery.ExtraFeaturesTip"));
-            Rect saveExtraButton = new Rect(rect.width - 115f, 198f, 115f, 34f);
-            if (Widgets.ButtonText(saveExtraButton,
-                Localization.T("RimAIPortrait.Common.Save")))
-                status = Localization.T(SaveExtraFeatures()
-                    ? "RimAIPortrait.Gallery.ExtraSaved" : "RimAIPortrait.Gallery.ExtraSaveFailed");
-            Tip(saveExtraButton, "SaveExtra");
 
             if (basePromptProvider == AiProvider.NovelAI || basePromptProvider == AiProvider.LocalComfyUI)
             {
                 Widgets.Label(new Rect(0f, 257f, 150f, 28f),
                     Localization.T("RimAIPortrait.Gallery.TagExtractorLabel"));
-                if (Widgets.ButtonText(new Rect(155f, 252f, 80f, 32f),
+                Rect editTagButton = new Rect(rect.width - 205f, 252f, 80f, 32f);
+                if (Widgets.ButtonText(editTagButton,
                     Localization.T("RimAIPortrait.Gallery.EditTagExtractorPrompt")))
                     Find.WindowStack.Add(new Dialog_TagExtractorPrompt());
-                Rect saveTagButton = new Rect(rect.width - 240f, 252f, 115f, 32f);
-                if (Widgets.ButtonText(saveTagButton, Localization.T("RimAIPortrait.Common.Save")))
-                    status = Localization.T(SaveBaseTags()
-                        ? "RimAIPortrait.Gallery.TagSaved" : "RimAIPortrait.Gallery.TagSaveFailed");
                 Rect generateTagButton = new Rect(rect.width - 115f, 252f, 115f, 32f);
                 if (Widgets.ButtonText(generateTagButton, Localization.T("RimAIPortrait.Gallery.ExtractTag"),
-                    true, true, !generatingTag && RimAIPortraitMod.Settings.EnableTagExtractor))
+                    true, true, !generatingTag))
                     ExtractTag();
                 TooltipHandler.TipRegion(generateTagButton, Localization.T("RimAIPortrait.Gallery.ExtractTagTip"));
                 string placeholder = Localization.T("RimAIPortrait.Gallery.TagPlaceholder");
@@ -528,42 +517,6 @@ namespace RimAIPortrait
             return PortraitStateNames.Label(state);
         }
         /// <summary>Describes the behavior of this type or member.</summary>
-        private Texture2D Load(string path)
-        {
-            textureUse[path] = ++textureUseClock;
-            if (textures.TryGetValue(path, out var t)) return t;
-            try
-            {
-                t = new Texture2D(2, 2, TextureFormat.ARGB32, false);
-                if (!t.LoadImage(File.ReadAllBytes(path))) { UnityEngine.Object.Destroy(t); return null; }
-                textures[path] = t;
-                TrimTextureCache(path);
-                return t;
-            }
-            catch { return null; }
-        }
-        private void TrimTextureCache(string keepPath)
-        {
-            while (textures.Count > TextureCacheLimit)
-            {
-                string oldestPath = null;
-                int oldestUse = int.MaxValue;
-                foreach (KeyValuePair<string, Texture2D> item in textures)
-                {
-                    int used;
-                    if (item.Key != keepPath && (!textureUse.TryGetValue(item.Key, out used) || used < oldestUse))
-                    {
-                        oldestPath = item.Key;
-                        oldestUse = used;
-                    }
-                }
-                if (oldestPath == null) break;
-                DropTexture(oldestPath);
-            }
-        }
-        /// <summary>Describes the behavior of this type or member.</summary>
-        private void DropTexture(string path) { if (textures.TryGetValue(path, out var t)) UnityEngine.Object.Destroy(t); textures.Remove(path); textureUse.Remove(path); }
-        /// <summary>Describes the behavior of this type or member.</summary>
         private bool SaveExtraFeatures() => PortraitData.SaveExtraFeatures(pawn, extraFeatures);
         private bool SaveBaseTags()
         {
@@ -607,15 +560,11 @@ namespace RimAIPortrait
                         Localization.T("RimAIPortrait.TagExtractor.InvalidResponse"));
                     return;
                 }
-                if (PortraitData.SaveBaseTags(pawn, tags))
-                {
-                    baseTags = tags;
-                    positiveTagText = tags.PositiveText;
-                    negativeTagText = tags.NegativeText;
-                    tagEdited = false;
-                    status = Localization.T("RimAIPortrait.Gallery.TagSaved");
-                }
-                else status = Localization.T("RimAIPortrait.Gallery.TagSaveFailed");
+                positiveTagText = tags.PositiveText;
+                negativeTagText = tags.NegativeText;
+                tagEdited = true;
+                status = Localization.T(SaveBaseTags()
+                    ? "RimAIPortrait.Gallery.TagSaved" : "RimAIPortrait.Gallery.TagSaveFailed");
             });
         }
         private bool SaveBasePrompt()
@@ -626,6 +575,7 @@ namespace RimAIPortrait
                 if (basePromptProvider == AiProvider.Google) settings.GeminiBaseInstructions = basePrompt;
                 else if (basePromptProvider == AiProvider.NovelAI) settings.NovelAiBaseInstructions = basePrompt;
                 else if (basePromptProvider == AiProvider.LocalComfyUI) settings.ComfyBaseInstructions = basePrompt;
+                else if (basePromptProvider == AiProvider.LocalOpenAI) settings.LocalOpenAiBaseInstructions = basePrompt;
                 else settings.BaseInstructions = basePrompt;
                 RimAIPortraitMod.SaveSettings();
                 return true;
@@ -643,10 +593,17 @@ namespace RimAIPortrait
             basePrompt = basePromptProvider == AiProvider.Google ? settings.GeminiBaseInstructions
                 : basePromptProvider == AiProvider.NovelAI ? settings.NovelAiBaseInstructions
                 : basePromptProvider == AiProvider.LocalComfyUI ? settings.ComfyBaseInstructions
+                : basePromptProvider == AiProvider.LocalOpenAI ? settings.LocalOpenAiBaseInstructions
                 : settings.BaseInstructions;
         }
 
-        private bool SaveRequestFields() => SaveExtraFeatures() && SaveBasePrompt() && SaveBaseTags();
+        private bool SaveRequestFields()
+        {
+            bool extraSaved = SaveExtraFeatures();
+            bool promptSaved = SaveBasePrompt();
+            bool tagsSaved = SaveBaseTags();
+            return extraSaved && promptSaved && tagsSaved;
+        }
         private bool HasBaseImage()
         {
             return File.Exists(PortraitData.ExistingPathFor(pawn, PortraitState.Base));
@@ -669,14 +626,14 @@ namespace RimAIPortrait
             if (!baseHelpChecked && !settings.PortraitHelpDismissed)
             {
                 baseHelpChecked = true;
-                OpenHelp(new Dialog_PortraitHelp(0, 0, null,
+                OpenHelp(new Dialog_PortraitHelp(0, 2, null,
                     dismissed => CloseHelp(dismissed, () => settings.PortraitHelpDismissed = true)));
                 return;
             }
             if (!expressionHelpChecked && HasBaseImage() && !settings.PortraitHelpAfterImageDismissed)
             {
                 expressionHelpChecked = true;
-                OpenHelp(new Dialog_PortraitHelp(1, 2, null,
+                OpenHelp(new Dialog_PortraitHelp(3, 4, null,
                     dismissed => CloseHelp(dismissed, () => settings.PortraitHelpAfterImageDismissed = true)));
             }
         }

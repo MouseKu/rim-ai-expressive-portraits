@@ -5,18 +5,21 @@ using Verse;
 
 namespace RimAIPortrait
 {
-    /// <summary>Edits the shared Base tag extraction instruction.</summary>
+    /// <summary>Edits the shared tag extraction instruction for Base or Inpaint.</summary>
     internal sealed class Dialog_TagExtractorPrompt : Window
     {
         private string prompt;
         private string status;
         private Vector2 scroll;
+        private readonly bool inpaint;
 
         public override Vector2 InitialSize => PortraitWindowSizing.Fit(800f, 750f);
 
-        public Dialog_TagExtractorPrompt()
+        public Dialog_TagExtractorPrompt(bool inpaint = false)
         {
-            prompt = RimAIPortraitMod.Settings.TagExtractorBasePrompt ?? "";
+            this.inpaint = inpaint;
+            prompt = inpaint ? RimAIPortraitMod.Settings.TagExtractorInpaintPrompt ?? ""
+                : RimAIPortraitMod.Settings.TagExtractorBasePrompt ?? "";
             doCloseX = true;
             absorbInputAroundWindow = true;
             closeOnClickedOutside = false;
@@ -26,10 +29,12 @@ namespace RimAIPortrait
         {
             Text.Font = GameFont.Medium;
             Widgets.Label(new Rect(0f, 0f, rect.width, 35f),
-                Localization.T("RimAIPortrait.Gallery.TagExtractorPromptTitle"));
+                Localization.T(inpaint ? "RimAIPortrait.Inpaint.TagExtractorPromptTitle"
+                    : "RimAIPortrait.Gallery.TagExtractorPromptTitle"));
             Text.Font = GameFont.Small;
             Widgets.Label(new Rect(0f, 40f, rect.width, 50f),
-                Localization.T("RimAIPortrait.Gallery.TagExtractorPromptScope"));
+                Localization.T(inpaint ? "RimAIPortrait.Inpaint.TagExtractorPromptScope"
+                    : "RimAIPortrait.Gallery.TagExtractorPromptScope"));
 
             Rect editor = new Rect(0f, 96f, rect.width, rect.height - 163f);
             float viewWidth = editor.width - 18f;
@@ -58,7 +63,7 @@ namespace RimAIPortrait
             try
             {
                 string path = Path.Combine(RimAIPortraitMod.ModPack.RootDir,
-                    "Prompts", "Common", "TagExtractor.md");
+                    "Prompts", "Common", inpaint ? "TagExtractorInpaint.md" : "TagExtractor.md");
                 string original = File.ReadAllText(path).Trim();
                 if (string.IsNullOrWhiteSpace(original)) throw new InvalidDataException(path);
                 prompt = original;
@@ -78,7 +83,8 @@ namespace RimAIPortrait
                 status = Localization.T("RimAIPortrait.TagExtractor.PromptMissing");
                 return;
             }
-            RimAIPortraitMod.Settings.TagExtractorBasePrompt = prompt;
+            if (inpaint) RimAIPortraitMod.Settings.TagExtractorInpaintPrompt = prompt;
+            else RimAIPortraitMod.Settings.TagExtractorBasePrompt = prompt;
             RimAIPortraitMod.SaveSettings();
             Close();
         }

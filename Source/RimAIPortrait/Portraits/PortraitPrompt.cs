@@ -58,7 +58,8 @@ namespace RimAIPortrait
             AddFeature(output, settings.IncludeRace, pawn.RaceProps.Animal ? "Animal species" : "Race", pawn.def.LabelCap, compact);
             if (pawn.RaceProps.Humanlike && ModsConfig.BiotechActive && pawn.genes != null)
             {
-                AddFeature(output, settings.IncludeXenotype, "Xenotype", pawn.genes.XenotypeLabel, compact);
+                AddFeature(output, settings.IncludeXenotype, "Xenotype",
+                    settings.XenotypePromptValue(pawn.genes.Xenotype?.defName, pawn.genes.XenotypeLabel), compact);
                 if (settings.IncludeGene)
                 {
                     string genes = settings.OnlyAppearanceGenes
@@ -110,6 +111,8 @@ namespace RimAIPortrait
             if (settings == null) return "";
             return (provider == AiProvider.Google
                 ? settings.GeminiBaseInstructions
+                : provider == AiProvider.LocalOpenAI
+                ? settings.LocalOpenAiBaseInstructions
                 : provider == AiProvider.NovelAI
                 ? settings.NovelAiBaseInstructions
                 : provider == AiProvider.LocalComfyUI

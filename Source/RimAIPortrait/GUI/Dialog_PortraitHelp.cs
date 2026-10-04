@@ -8,7 +8,9 @@ namespace RimAIPortrait
     /// <summary>Shows the packaged portrait generation guide.</summary>
     internal sealed class Dialog_PortraitHelp : Window
     {
-        private const int PageCount = 3;
+        private static readonly string[] PageFiles = { "1-1.jpg", "1-2.jpg", "1-3.jpg", "2.jpg", "3.jpg", "4.jpg" };
+        private const int InpaintPageIndex = 5;
+        private const int PageCount = 6;
         private readonly Texture2D[] pages = new Texture2D[PageCount];
         private readonly int firstPageIndex;
         private readonly int lastPageIndex;
@@ -17,7 +19,8 @@ namespace RimAIPortrait
         private int pageIndex;
         private bool doNotShowAgain;
 
-        public override Vector2 InitialSize => pageIndex < 0 ? new Vector2(760f, 360f) : new Vector2(1030f, 430f);
+        public override Vector2 InitialSize => pageIndex < 0 ? PortraitWindowSizing.Fit(760f, 360f)
+            : pageIndex == InpaintPageIndex ? PortraitWindowSizing.Fit(800f, 900f) : PortraitWindowSizing.Fit(1030f, 430f);
 
         public Dialog_PortraitHelp(string warning, Action<bool> closed)
             : this(-1, -1, warning, closed)
@@ -41,12 +44,12 @@ namespace RimAIPortrait
         {
             base.PreOpen();
             if (pageIndex < 0) return;
-            for (int index = 0; index < PageCount; index++)
+            for (int index = firstPageIndex; index <= lastPageIndex; index++)
             {
                 Texture2D texture = null;
                 try
                 {
-                    string path = Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Help", (index + 1) + ".jpg");
+                    string path = Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Help", PageFiles[index]);
                     texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
                     if (!texture.LoadImage(File.ReadAllBytes(path)))
                         throw new InvalidDataException(path);
@@ -56,7 +59,7 @@ namespace RimAIPortrait
                 catch (Exception exception)
                 {
                     if (texture != null) UnityEngine.Object.Destroy(texture);
-                    Log.Warning("[RimAIPortrait] Could not load portrait help image " + (index + 1) + ": " + exception.Message);
+                    Log.Warning("[RimAIPortrait] Could not load portrait help image " + PageFiles[index] + ": " + exception.Message);
                 }
             }
         }
@@ -67,7 +70,8 @@ namespace RimAIPortrait
             Color titleColor = GUI.color;
             if (pageIndex < 0) GUI.color = new Color(.95f, .2f, .2f, 1f);
             Widgets.Label(new Rect(0f, 0f, rect.width - 100f, 34f), Localization.T(pageIndex < 0
-                ? "RimAIPortrait.Help.NovelAiV5WarningTitle" : "RimAIPortrait.Help.Title"));
+                ? "RimAIPortrait.Help.NovelAiV5WarningTitle"
+                : pageIndex == InpaintPageIndex ? "RimAIPortrait.Help.InpaintTitle" : "RimAIPortrait.Help.Title"));
             GUI.color = titleColor;
             Text.Font = GameFont.Small;
             if (pageIndex < 0)
@@ -84,7 +88,8 @@ namespace RimAIPortrait
                     Close();
                 return;
             }
-            Widgets.Label(new Rect(rect.width - 85f, 4f, 85f, 28f), (pageIndex + 1) + " / " + PageCount);
+            if (pageIndex != InpaintPageIndex)
+                Widgets.Label(new Rect(rect.width - 85f, 4f, 85f, 28f), (pageIndex + 1) + " / " + (PageCount - 1));
 
             float imageTop = 42f;
             if (!string.IsNullOrEmpty(warning))
@@ -95,13 +100,18 @@ namespace RimAIPortrait
                 GUI.color = previousColor;
                 imageTop = 112f;
             }
-            Rect imageArea = new Rect(0f, imageTop, rect.width, rect.height - imageTop - 58f);
+            string instructions = pageIndex == InpaintPageIndex ? Localization.T("RimAIPortrait.Help.InpaintInstructions") : null;
+            float instructionsHeight = instructions == null ? 0f : Text.CalcHeight(instructions, rect.width) + 12f;
+            Rect imageArea = new Rect(0f, imageTop, rect.width,
+                rect.height - imageTop - 58f - instructionsHeight);
             Widgets.DrawMenuSection(imageArea);
             Texture2D image = pages[pageIndex];
             if (image != null)
                 GUI.DrawTexture(imageArea.ContractedBy(8f), image, ScaleMode.ScaleToFit, true);
             else
                 Widgets.Label(imageArea.ContractedBy(12f), Localization.T("RimAIPortrait.Help.ImageUnavailable"));
+            if (instructions != null)
+                Widgets.Label(new Rect(0f, imageArea.yMax + 10f, rect.width, instructionsHeight - 10f), instructions);
 
             float buttonY = rect.height - 46f;
             if (Widgets.ButtonText(new Rect(0f, buttonY, 120f, 38f),
