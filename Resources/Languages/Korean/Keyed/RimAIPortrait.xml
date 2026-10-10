@@ -216,7 +216,7 @@
   <RimAIPortrait.Error.NovelAiV5SourceMissing>NovelAI V5 기본 초상화 img2img 생성에 Pawn 이미지가 필요합니다.</RimAIPortrait.Error.NovelAiV5SourceMissing>
   <RimAIPortrait.PromptArchive.Open>설정 내보내기 / 가져오기</RimAIPortrait.PromptArchive.Open>
   <RimAIPortrait.PromptArchive.Title>프롬프트 ZIP</RimAIPortrait.PromptArchive.Title>
-  <RimAIPortrait.PromptArchive.Scope>프롬프트, JSON 옵션, 제노타입별 문구, 제공자·모델 선택, 정보 포함 선택값과 인페인트 기본값을 공유합니다. 키, 경로, 감정 활성화와 화면 배치는 제외합니다.</RimAIPortrait.PromptArchive.Scope>
+  <RimAIPortrait.PromptArchive.Scope>프롬프트, 옵션, 제공자·모델 선택, 제노타입, Pawn 정보, 태그 개수 제한과 인페인트 기본값을 공유합니다. 없는 필드는 현재 값을 유지합니다. 키와 경로는 제외합니다.</RimAIPortrait.PromptArchive.Scope>
   <RimAIPortrait.PromptArchive.Export>ZIP 내보내기</RimAIPortrait.PromptArchive.Export>
   <RimAIPortrait.PromptArchive.OpenFolder>폴더 열기</RimAIPortrait.PromptArchive.OpenFolder>
   <RimAIPortrait.PromptArchive.Refresh>새로고침</RimAIPortrait.PromptArchive.Refresh>

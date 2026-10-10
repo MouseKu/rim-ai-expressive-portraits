@@ -137,56 +137,37 @@ namespace RimAIPortrait
 
         private static void Validate(ArchiveData data)
         {
-            if (data == null || (data.Version != 1 && data.Version != FormatVersion)
-                || data.Prompts == null || data.Inclusion == null)
+            if (data == null || (data.Version != 1 && data.Version != FormatVersion))
                 throw new InvalidDataException("Unsupported prompt archive version or format.");
-            if (data.Prompts.Count != 3 + 4 * (1 + Enum.GetValues(typeof(PortraitState)).Length)
-                || data.Inclusion.Count != InclusionFields.Length - 1)
-                throw new InvalidDataException("Prompt archive is incomplete.");
-            RequirePrompt(data, "Prompt");
-            RequirePrompt(data, "TagExtractorBasePrompt");
-            RequirePrompt(data, "TagExtractorInpaintBatchPrompt");
-            foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
-            {
-                if (provider == AiProvider.LocalOpenAI) continue;
-                string prefix = provider + "/";
-                RequirePrompt(data, prefix + "Base");
-                RequirePrompt(data, prefix + "Expression");
-                foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
-                    if (state != PortraitState.Base) RequirePrompt(data, prefix + state);
-            }
-            foreach (string name in InclusionFields)
-            {
-                if (name == nameof(PortraitSettings.ExcludeHeadgearFromSprite)) continue;
-                if (!data.Inclusion.ContainsKey(name))
-                    throw new InvalidDataException("Prompt archive is missing " + name + ".");
-            }
-        }
-
-        private static void RequirePrompt(ArchiveData data, string name)
-        {
-            if (!data.Prompts.ContainsKey(name))
-                throw new InvalidDataException("Prompt archive is missing " + name + ".");
         }
 
         private static void Apply(PortraitSettings settings, ArchiveData data)
         {
-            settings.Prompt = data.Prompts["Prompt"];
-            settings.TagExtractorBasePrompt = data.Prompts["TagExtractorBasePrompt"];
-            settings.TagExtractorInpaintPrompt = InpaintPromptDefault();
+            string prompt;
+            if (data.Prompts != null && data.Prompts.TryGetValue("Prompt", out prompt)) settings.Prompt = prompt;
+            if (data.Prompts != null && data.Prompts.TryGetValue("TagExtractorBasePrompt", out prompt))
+                settings.TagExtractorBasePrompt = prompt;
+            if (data.Prompts != null && data.Prompts.ContainsKey("TagExtractorInpaintBatchPrompt"))
+                settings.TagExtractorInpaintPrompt = InpaintPromptDefault();
             foreach (AiProvider provider in Enum.GetValues(typeof(AiProvider)))
             {
                 if (provider == AiProvider.LocalOpenAI) continue;
                 string prefix = provider + "/";
-                SetBasePrompt(settings, provider, data.Prompts[prefix + "Base"]);
-                SetExpressionPrompt(settings, provider, data.Prompts[prefix + "Expression"]);
+                if (data.Prompts != null && data.Prompts.TryGetValue(prefix + "Base", out prompt))
+                    SetBasePrompt(settings, provider, prompt);
+                if (data.Prompts != null && data.Prompts.TryGetValue(prefix + "Expression", out prompt))
+                    SetExpressionPrompt(settings, provider, prompt);
                 foreach (PortraitState state in Enum.GetValues(typeof(PortraitState)))
-                    if (state != PortraitState.Base) settings.SetStatePrompt(provider, state, data.Prompts[prefix + state]);
+                    if (state != PortraitState.Base && data.Prompts != null
+                        && data.Prompts.TryGetValue(prefix + state, out prompt))
+                        settings.SetStatePrompt(provider, state, prompt);
             }
             foreach (string name in InclusionFields)
             {
                 if (name == nameof(PortraitSettings.ExcludeHeadgearFromSprite)) continue;
-                typeof(PortraitSettings).GetField(name).SetValue(settings, data.Inclusion[name]);
+                bool included;
+                if (data.Inclusion != null && data.Inclusion.TryGetValue(name, out included))
+                    typeof(PortraitSettings).GetField(name).SetValue(settings, included);
             }
         }
 

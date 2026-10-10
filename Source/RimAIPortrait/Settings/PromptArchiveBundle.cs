@@ -20,14 +20,21 @@ namespace RimAIPortrait
         }
 
         private const string ValuesPath = "options/values.json";
-        private const int Version = 9;
-        private const int PreviousVersion = 8;
+        private const int Version = 10;
+        private const int PreviousVersion = 9;
+        private const int HeadgearVersion = 9;
         private const int XenotypeVersion = 8;
         private const int LocalProviderVersion = 6;
         private const int LocalOptionsVersion = 5;
         private const int TagOptionsVersion = 7;
         private const int LegacyModelFieldCount = 12;
         private const int LegacyOptionFileCount = 8;
+        private static readonly string[] TagLimitFields = {
+            nameof(PortraitSettings.TagExtractorBasePositiveLimit),
+            nameof(PortraitSettings.TagExtractorBaseNegativeLimit),
+            nameof(PortraitSettings.TagExtractorInpaintPositiveLimit),
+            nameof(PortraitSettings.TagExtractorInpaintNegativeLimit)
+        };
         private const string InpaintPromptPath = "Prompt/Common/TagExtractorInpaint.txt";
         private const string LegacyInpaintPromptPath = "Prompt/Common/TagExtractorInpaintBatch.txt";
         private const string XenotypePath = "options/xenotype-provider.json";
@@ -65,9 +72,10 @@ namespace RimAIPortrait
             [DataMember] public Dictionary<string, string> models;
             [DataMember] public string tagExtractorBackend;
             [DataMember] public Dictionary<string, bool> inclusion;
-            [DataMember] public float novelAiInpaintStrength;
-            [DataMember] public float novelAiSleepInpaintStrength;
+            [DataMember(EmitDefaultValue = false)] public float? novelAiInpaintStrength;
+            [DataMember(EmitDefaultValue = false)] public float? novelAiSleepInpaintStrength;
             [DataMember(EmitDefaultValue = false)] public Dictionary<string, float> inpaintStrengths;
+            [DataMember(EmitDefaultValue = false)] public Dictionary<string, int> tagLimits;
         }
 
         private sealed class BundleData
@@ -160,7 +168,8 @@ namespace RimAIPortrait
                 using (var stream = new MemoryStream(ReadBytes(archive, ValuesPath, ref totalBytes)))
                     data.Values = (ValuesData)ValuesSerializer().ReadObject(stream);
                 if (data.Values == null || (data.Values.version != Version
-                    && data.Values.version != PreviousVersion && data.Values.version != 7
+                    && data.Values.version != PreviousVersion && data.Values.version != 8
+                    && data.Values.version != 7
                     && data.Values.version != 6 && data.Values.version != 5
                     && data.Values.version != 4 && data.Values.version != 3))
                     throw new InvalidDataException("Unsupported prompt archive version.");
@@ -201,7 +210,8 @@ namespace RimAIPortrait
                     inclusion = new Dictionary<string, bool>(StringComparer.Ordinal),
                     novelAiInpaintStrength = settings.NovelAiInpaintStrength,
                     novelAiSleepInpaintStrength = settings.NovelAiSleepInpaintStrength,
-                    inpaintStrengths = new Dictionary<string, float>(StringComparer.Ordinal)
+                    inpaintStrengths = new Dictionary<string, float>(StringComparer.Ordinal),
+                    tagLimits = new Dictionary<string, int>(StringComparer.Ordinal)
                 },
                 Xenotypes = new XenotypeData { entries = new List<XenotypeEntryData>() }
             };
@@ -257,6 +267,8 @@ namespace RimAIPortrait
                 data.Values.inclusion[name] = (bool)typeof(PortraitSettings).GetField(name).GetValue(settings);
             foreach (PortraitState state in ExpressionStates())
                 data.Values.inpaintStrengths[state.ToString()] = settings.GetInpaintStrength(state);
+            foreach (string name in TagLimitFields)
+                data.Values.tagLimits[name] = (int)typeof(PortraitSettings).GetField(name).GetValue(settings);
             return data;
         }
 
@@ -276,6 +288,11 @@ namespace RimAIPortrait
             }
         }
 
+        private static bool ValidStrength(float value)
+        {
+            return !float.IsNaN(value) && !float.IsInfinity(value) && value >= .1f && value <= 1f;
+        }
+
         private static void Validate(BundleData data)
         {
             ValuesData values = data.Values;
@@ -283,47 +300,41 @@ namespace RimAIPortrait
             AiProvider expressionProvider;
             AiProvider regenerateProvider;
             TagExtractorModel backend;
-            int expectedModels = values != null && values.version >= LocalOptionsVersion ? ModelFields.Length : LegacyModelFieldCount;
             int expectedOptions = values != null ? OptionCount(values.version) : LegacyOptionFileCount;
-            int expectedInclusions = values != null && values.version >= Version
-                ? PromptArchive.InclusionFields.Length : PromptArchive.InclusionFields.Length - 1;
             if (values == null || (values.version != Version && values.version != PreviousVersion
-                && values.version != 7 && values.version != 6 && values.version != 5
+                    && values.version != 8 && values.version != 7
+                    && values.version != 6 && values.version != 5
                 && values.version != 4 && values.version != 3)
                 || data.Prompts == null || data.Options == null
-                || !Enum.TryParse(values.provider, out provider) || !Enum.IsDefined(typeof(AiProvider), provider)
-                || !Enum.TryParse(values.expressionProvider, out expressionProvider)
-                || !Enum.IsDefined(typeof(AiProvider), expressionProvider)
-                || !Enum.TryParse(values.regenerateProvider, out regenerateProvider)
-                || !Enum.IsDefined(typeof(AiProvider), regenerateProvider)
-                || !Enum.TryParse(values.tagExtractorBackend, out backend)
-                || !Enum.IsDefined(typeof(TagExtractorModel), backend)
-                || values.models == null || values.models.Count != expectedModels
-                || values.inclusion == null || values.inclusion.Count != expectedInclusions
-                || float.IsNaN(values.novelAiInpaintStrength) || float.IsInfinity(values.novelAiInpaintStrength)
-                || values.novelAiInpaintStrength < .1f || values.novelAiInpaintStrength > 1f
-                || float.IsNaN(values.novelAiSleepInpaintStrength) || float.IsInfinity(values.novelAiSleepInpaintStrength)
-                || values.novelAiSleepInpaintStrength < .1f || values.novelAiSleepInpaintStrength > 1f)
+                || (values.provider != null && (!Enum.TryParse(values.provider, out provider)
+                    || !Enum.IsDefined(typeof(AiProvider), provider)))
+                || (values.expressionProvider != null && (!Enum.TryParse(values.expressionProvider, out expressionProvider)
+                    || !Enum.IsDefined(typeof(AiProvider), expressionProvider)))
+                || (values.regenerateProvider != null && (!Enum.TryParse(values.regenerateProvider, out regenerateProvider)
+                    || !Enum.IsDefined(typeof(AiProvider), regenerateProvider)))
+                || (values.tagExtractorBackend != null && (!Enum.TryParse(values.tagExtractorBackend, out backend)
+                    || !Enum.IsDefined(typeof(TagExtractorModel), backend)))
+                || (values.novelAiInpaintStrength.HasValue && !ValidStrength(values.novelAiInpaintStrength.Value))
+                || (values.novelAiSleepInpaintStrength.HasValue && !ValidStrength(values.novelAiSleepInpaintStrength.Value)))
                 throw new InvalidDataException("Invalid prompt archive values.json.");
-            for (int index = 0; index < expectedModels; index++)
-                if (!values.models.ContainsKey(ModelFields[index]))
-                    throw new InvalidDataException("Missing model: " + ModelFields[index]);
-            foreach (string name in PromptArchive.InclusionFields)
-            {
-                if (values.version < Version && name == nameof(PortraitSettings.ExcludeHeadgearFromSprite)) continue;
-                if (!values.inclusion.ContainsKey(name)) throw new InvalidDataException("Missing prompt choice: " + name);
-            }
             if (values.inpaintStrengths != null)
             {
-                if (values.inpaintStrengths.Count != Enum.GetValues(typeof(PortraitState)).Length - 1)
-                    throw new InvalidDataException("Invalid inpaint strengths.");
                 foreach (PortraitState state in ExpressionStates())
                 {
                     float strength;
-                    if (!values.inpaintStrengths.TryGetValue(state.ToString(), out strength)
-                        || float.IsNaN(strength) || float.IsInfinity(strength)
-                        || strength < .1f || strength > 1f)
+                    if (values.inpaintStrengths.TryGetValue(state.ToString(), out strength)
+                        && !ValidStrength(strength))
                         throw new InvalidDataException("Invalid inpaint strength: " + state);
+                }
+            }
+            if (values.tagLimits != null)
+            {
+                for (int index = 0; index < TagLimitFields.Length; index++)
+                {
+                    int limit;
+                    if (values.tagLimits.TryGetValue(TagLimitFields[index], out limit)
+                        && (limit < (index % 2 == 0 ? 1 : 0) || limit > 50))
+                        throw new InvalidDataException("Invalid tag limit: " + TagLimitFields[index]);
                 }
             }
             int promptCount = 0;
@@ -360,26 +371,50 @@ namespace RimAIPortrait
         private static void Apply(PortraitSettings settings, BundleData data)
         {
             ValuesData values = data.Values;
-            settings.Provider = (AiProvider)Enum.Parse(typeof(AiProvider), values.provider);
-            settings.ExpressionProvider = (AiProvider)Enum.Parse(typeof(AiProvider), values.expressionProvider);
-            settings.RegenerateProvider = (AiProvider)Enum.Parse(typeof(AiProvider), values.regenerateProvider);
-            settings.TagExtractorBackend = (TagExtractorModel)Enum.Parse(typeof(TagExtractorModel), values.tagExtractorBackend);
-            settings.NovelAiInpaintStrength = values.novelAiInpaintStrength;
-            settings.NovelAiSleepInpaintStrength = values.novelAiSleepInpaintStrength;
+            if (values.provider != null)
+                settings.Provider = (AiProvider)Enum.Parse(typeof(AiProvider), values.provider);
+            if (values.expressionProvider != null)
+                settings.ExpressionProvider = (AiProvider)Enum.Parse(typeof(AiProvider), values.expressionProvider);
+            if (values.regenerateProvider != null)
+                settings.RegenerateProvider = (AiProvider)Enum.Parse(typeof(AiProvider), values.regenerateProvider);
+            if (values.tagExtractorBackend != null)
+                settings.TagExtractorBackend = (TagExtractorModel)Enum.Parse(typeof(TagExtractorModel), values.tagExtractorBackend);
+            if (values.novelAiInpaintStrength.HasValue)
+                settings.NovelAiInpaintStrength = values.novelAiInpaintStrength.Value;
+            if (values.novelAiSleepInpaintStrength.HasValue)
+                settings.NovelAiSleepInpaintStrength = values.novelAiSleepInpaintStrength.Value;
             foreach (PortraitState state in ExpressionStates())
             {
-                float strength = values.inpaintStrengths == null
-                    ? (state == PortraitState.Sleep ? values.novelAiSleepInpaintStrength : values.novelAiInpaintStrength)
-                    : values.inpaintStrengths[state.ToString()];
-                settings.SetInpaintStrength(state, strength);
+                float strength;
+                if (values.inpaintStrengths != null
+                    && values.inpaintStrengths.TryGetValue(state.ToString(), out strength))
+                    settings.SetInpaintStrength(state, strength);
+                else if (values.inpaintStrengths == null && values.version < HeadgearVersion)
+                {
+                    float? legacyStrength = state == PortraitState.Sleep
+                        ? values.novelAiSleepInpaintStrength : values.novelAiInpaintStrength;
+                    if (legacyStrength.HasValue) settings.SetInpaintStrength(state, legacyStrength.Value);
+                }
             }
             int modelCount = values.version >= LocalOptionsVersion ? ModelFields.Length : LegacyModelFieldCount;
             for (int index = 0; index < modelCount; index++)
-                typeof(PortraitSettings).GetField(ModelFields[index]).SetValue(settings, values.models[ModelFields[index]]);
+            {
+                string model;
+                if (values.models != null && values.models.TryGetValue(ModelFields[index], out model))
+                    typeof(PortraitSettings).GetField(ModelFields[index]).SetValue(settings, model);
+            }
             foreach (string name in PromptArchive.InclusionFields)
             {
-                if (values.version < Version && name == nameof(PortraitSettings.ExcludeHeadgearFromSprite)) continue;
-                typeof(PortraitSettings).GetField(name).SetValue(settings, values.inclusion[name]);
+                if (values.version < HeadgearVersion && name == nameof(PortraitSettings.ExcludeHeadgearFromSprite)) continue;
+                bool included;
+                if (values.inclusion != null && values.inclusion.TryGetValue(name, out included))
+                    typeof(PortraitSettings).GetField(name).SetValue(settings, included);
+            }
+            for (int index = 0; index < TagLimitFields.Length; index++)
+            {
+                int limit;
+                if (values.tagLimits != null && values.tagLimits.TryGetValue(TagLimitFields[index], out limit))
+                    typeof(PortraitSettings).GetField(TagLimitFields[index]).SetValue(settings, limit);
             }
             settings.Prompt = data.Prompts["Prompt/Additional.txt"];
             settings.TagExtractorBasePrompt = data.Prompts["Prompt/Common/TagExtractorBase.txt"];

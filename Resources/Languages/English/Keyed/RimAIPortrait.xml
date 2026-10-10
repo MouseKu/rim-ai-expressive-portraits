@@ -258,7 +258,7 @@
   <RimAIPortrait.Error.NovelAiV5SourceMissing>NovelAI V5 needs a Pawn image for Base img2img generation.</RimAIPortrait.Error.NovelAiV5SourceMissing>
   <RimAIPortrait.PromptArchive.Open>Export / Import Setup</RimAIPortrait.PromptArchive.Open>
   <RimAIPortrait.PromptArchive.Title>Prompt ZIP</RimAIPortrait.PromptArchive.Title>
-  <RimAIPortrait.PromptArchive.Scope>Shares prompts, JSON options, xenotype replacements, provider/model choices, prompt information choices, and inpaint defaults. Excludes keys, paths, emotion toggles, and layout.</RimAIPortrait.PromptArchive.Scope>
+  <RimAIPortrait.PromptArchive.Scope>Shares prompts, options, provider/model choices, xenotypes, pawn information choices, tag limits, and inpaint defaults. Missing fields keep current values. Excludes keys and paths.</RimAIPortrait.PromptArchive.Scope>
   <RimAIPortrait.PromptArchive.Export>Export ZIP</RimAIPortrait.PromptArchive.Export>
   <RimAIPortrait.PromptArchive.OpenFolder>Open folder</RimAIPortrait.PromptArchive.OpenFolder>
   <RimAIPortrait.PromptArchive.Refresh>Refresh</RimAIPortrait.PromptArchive.Refresh>
