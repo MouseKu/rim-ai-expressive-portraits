@@ -23,7 +23,7 @@ namespace RimAIPortrait
             if (LocalOpenAiExpressionOptions == ProviderOptionDefaults.OpenAiExpression)
                 LocalOpenAiExpressionOptions = ProviderOptionDefaults.LocalExpression;
             if (RegenerateLocalOpenAiOptions == ProviderOptionDefaults.OpenAiBase)
-                RegenerateLocalOpenAiOptions = ProviderOptionDefaults.LocalBase;
+                RegenerateLocalOpenAiOptions = ProviderOptionDefaults.LocalRegenerate;
         }
 
         private void MigrateGoogleOptionDefaults()

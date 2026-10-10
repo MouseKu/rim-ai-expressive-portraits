@@ -5,7 +5,7 @@
   <RimAIPortrait.Gallery.Tip.OpenFolder>이 정착민의 초상화 저장 폴더를 엽니다.</RimAIPortrait.Gallery.Tip.OpenFolder>
   <RimAIPortrait.Gallery.Tip.Refresh>게임 밖에서 추가하거나 수정한 이미지를 목록에 반영합니다.</RimAIPortrait.Gallery.Tip.Refresh>
   <RimAIPortrait.Gallery.Tip.GenerateBase>선택한 갤러리 이미지를 사용하지 않고 새 Base 초상화를 생성합니다.</RimAIPortrait.Gallery.Tip.GenerateBase>
-  <RimAIPortrait.Gallery.Tip.RegenerateSelected>선택한 이미지 한 장을 참조하여 새 Base 초상화를 생성합니다.</RimAIPortrait.Gallery.Tip.RegenerateSelected>
+  <RimAIPortrait.Gallery.Tip.RegenerateSelected>선택한 이미지 한 장으로 새 Base 초상화를 생성합니다. NovelAI와 Local은 인페인트 영역 선택이 필요합니다.</RimAIPortrait.Gallery.Tip.RegenerateSelected>
   <RimAIPortrait.Gallery.Tip.GenerateEmotions>지정된 Base 초상화로 생성할 감정을 선택합니다.</RimAIPortrait.Gallery.Tip.GenerateEmotions>
   <RimAIPortrait.Gallery.Tip.RemoveBackground>갤러리에서 선택한 이미지를 편집합니다. 선택한 이미지가 없으면 왼쪽에 표시된 초상화를 편집합니다.</RimAIPortrait.Gallery.Tip.RemoveBackground>
   <RimAIPortrait.Gallery.Tip.Confirm>선택한 이미지 한 장을 왼쪽에 표시된 감정에 지정합니다. 이미지를 더블클릭해도 됩니다.</RimAIPortrait.Gallery.Tip.Confirm>
@@ -72,7 +72,9 @@
   <RimAIPortrait.Settings.Category>Rim AI Expressive Portraits</RimAIPortrait.Settings.Category><RimAIPortrait.Settings.RestoreDefaults>기본값으로 되돌리기</RimAIPortrait.Settings.RestoreDefaults><RimAIPortrait.Settings.ConfirmRestoreDefaults>모든 옵션을 기본값으로 되돌릴까요? API 키, 제공자 설정, 프롬프트, 로컬 경로도 함께 지워지거나 초기화됩니다.</RimAIPortrait.Settings.ConfirmRestoreDefaults><RimAIPortrait.Settings.DefaultsRestored>모든 옵션을 기본값으로 되돌렸습니다.</RimAIPortrait.Settings.DefaultsRestored>
   <RimAIPortrait.Settings.ResetPortraitHelp>초상화 도움말 초기화</RimAIPortrait.Settings.ResetPortraitHelp>
   <RimAIPortrait.Settings.Advanced>고급 설정</RimAIPortrait.Settings.Advanced>
-  <RimAIPortrait.Settings.EnableDeprecatedFeatures>사용 중단 예정 기능 활성화</RimAIPortrait.Settings.EnableDeprecatedFeatures>
+  <RimAIPortrait.Settings.EnableDeprecatedFeatures>기존 ComfyUI 제공자 숨기기</RimAIPortrait.Settings.EnableDeprecatedFeatures>
+  <RimAIPortrait.Settings.HiddenProvider>숨겨진 제공자</RimAIPortrait.Settings.HiddenProvider>
+  <RimAIPortrait.Settings.DeprecatedProviderHidden>기존에 선택한 제공자를 숨겼습니다. 여기서 다른 제공자를 선택하거나 숨김 옵션을 끄면 다시 편집할 수 있습니다.</RimAIPortrait.Settings.DeprecatedProviderHidden>
   <RimAIPortrait.Settings.PortraitHelpReset>도움말이 각각 표시됩니다. V5 경고는 해당 모델에서, Base 안내는 갤러리를 열 때, Expression 안내는 Base 초상화가 생긴 뒤, Inpaint 안내는 Inpaint 창을 열 때 표시됩니다.</RimAIPortrait.Settings.PortraitHelpReset>
   <RimAIPortrait.Settings.ComfyTimeout>생성 제한 시간: {0}초</RimAIPortrait.Settings.ComfyTimeout>
   <RimAIPortrait.Settings.ComfyRequiredOutput>필수 출력 설정: 마지막 SaveImage 노드의 filename_prefix를 RimAI로 지정하세요.</RimAIPortrait.Settings.ComfyRequiredOutput>
@@ -314,7 +316,7 @@
   <RimAIPortrait.Settings.LocalOpenAiTimeoutTip>로컬 이미지 요청의 최대 대기 시간입니다.</RimAIPortrait.Settings.LocalOpenAiTimeoutTip>
   <RimAIPortrait.Settings.InpaintStrengthStateTip>선택한 감정 상태의 인페인트 변경 강도입니다. 값이 높을수록 더 크게 바뀔 수 있습니다.</RimAIPortrait.Settings.InpaintStrengthStateTip>
   <RimAIPortrait.Settings.FrameScaleTip>초상화를 기준으로 프레임 크기를 조절합니다.</RimAIPortrait.Settings.FrameScaleTip>
-  <RimAIPortrait.Settings.EnableDeprecatedFeaturesTip>호환성을 위해 남겨 둔 이전 기능을 표시합니다.</RimAIPortrait.Settings.EnableDeprecatedFeaturesTip>
+  <RimAIPortrait.Settings.EnableDeprecatedFeaturesTip>이전 ComfyUI 제공자를 선택 목록과 설정에서 숨깁니다. 이미 선택한 제공자와 설정값은 유지합니다.</RimAIPortrait.Settings.EnableDeprecatedFeaturesTip>
   <RimAIPortrait.Settings.ImageCaptionEditorTip>선택한 제공자의 이미지 설명에 사용할 JSON 규칙을 편집합니다. 저장하면 변경 사항이 적용됩니다.</RimAIPortrait.Settings.ImageCaptionEditorTip>
   <RimAIPortrait.Settings.XenotypeEnabledTip>프롬프트 정보의 유전자형 옵션을 켰을 때 이 유전자형의 대체 문구를 사용합니다.</RimAIPortrait.Settings.XenotypeEnabledTip>
   <RimAIPortrait.Settings.XenotypeValueTip>이 유전자형의 이름 대신 사용할 문구입니다. 비워 두면 원래 이름을 사용합니다.</RimAIPortrait.Settings.XenotypeValueTip>

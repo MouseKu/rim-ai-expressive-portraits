@@ -9,12 +9,16 @@ namespace RimAIPortrait
     {
         public static string OpenAiBase = "{}";
         public static string OpenAiExpression = "{}";
+        public static string OpenAiRegenerate = "{}";
         public static string LocalBase = "{}";
         public static string LocalExpression = "{}";
+        public static string LocalRegenerate = "{}";
         public static string GoogleBase = "{}";
         public static string GoogleExpression = "{}";
+        public static string GoogleRegenerate = "{}";
         public static string NovelAiBase = "{}";
         public static string NovelAiExpression = "{}";
+        public static string NovelAiRegenerate = "{}";
         public static string TagExtractorOpenAi = "{}";
         public static string TagExtractorGoogle = "{}";
         public static string TagExtractorLocal = "{}";
@@ -23,12 +27,16 @@ namespace RimAIPortrait
         {
             OpenAiBase = Read(content, "openai-base-options.json");
             OpenAiExpression = Read(content, "openai-expression-options.json");
+            OpenAiRegenerate = Read(content, "openai-regenerate-options.json");
             LocalBase = Read(content, "local-base-options.json");
             LocalExpression = Read(content, "local-expression-options.json");
+            LocalRegenerate = Read(content, "local-openai-regenerate-options.json");
             GoogleBase = Read(content, "google-base-options.json");
             GoogleExpression = Read(content, "google-expression-options.json");
+            GoogleRegenerate = Read(content, "google-regenerate-options.json");
             NovelAiBase = Read(content, "nai-base-options.json");
             NovelAiExpression = Read(content, "nai-expression-options.json");
+            NovelAiRegenerate = Read(content, "nai-regenerate-options.json");
             TagExtractorOpenAi = Read(content, "tag-extractor-openai-options.json");
             TagExtractorGoogle = Read(content, "tag-extractor-google-options.json");
             TagExtractorLocal = Read(content, "tag-extractor-local-options.json");

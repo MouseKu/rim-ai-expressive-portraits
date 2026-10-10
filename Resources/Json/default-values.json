@@ -55,7 +55,7 @@
   "TagExtractorOpenAiKey": "",
   "TagExtractorOpenAiModel": "gpt-5.4-mini",
   "TagExtractorGoogleKey": "",
-  "TagExtractorGoogleModel": "gemini-3.5-flash-lite",
+  "TagExtractorGoogleModel": "gemini-2.5-flash-lite",
   "TagExtractorLocalUrl": "http://127.0.0.1:11434",
   "TagExtractorLocalModel": "qwen3-vl:8b-instruct",
   "TagExtractorLocalKey": "",

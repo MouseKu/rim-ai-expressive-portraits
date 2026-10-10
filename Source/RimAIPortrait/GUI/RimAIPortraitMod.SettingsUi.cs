@@ -26,7 +26,8 @@ namespace RimAIPortrait
             Widgets.BeginScrollView(inRect, ref scroll, view);
             var l = new Listing_Standard(); l.Begin(view);
             if (l.ButtonText(Localization.T("RimAIPortrait.Settings.BaseProvider") + ": "
-                + ProviderSettingsUi.Label(Settings.Provider) + (baseProviderExpanded ? " [-]" : " [+]")))
+                + ProviderSettingsUi.Label(Settings.Provider, Settings.EnableDeprecatedFeatures)
+                + (baseProviderExpanded ? " [-]" : " [+]")))
                 baseProviderExpanded = !baseProviderExpanded;
             if (baseProviderExpanded)
             {
@@ -36,13 +37,15 @@ namespace RimAIPortrait
             }
             l.GapLine();
             if (l.ButtonText(Localization.T("RimAIPortrait.Settings.ExpressionProvider") + ": "
-                + ProviderSettingsUi.Label(Settings.ExpressionProvider) + (expressionProviderExpanded ? " [-]" : " [+]")))
+                + ProviderSettingsUi.Label(Settings.ExpressionProvider, Settings.EnableDeprecatedFeatures)
+                + (expressionProviderExpanded ? " [-]" : " [+]")))
                 expressionProviderExpanded = !expressionProviderExpanded;
             if (expressionProviderExpanded)
                 promptSettingsUi.DrawExpressionSettings(l, Settings, WriteSettings, message => status = message);
             l.GapLine();
             if (l.ButtonText(Localization.T("RimAIPortrait.Settings.RegenerateProvider") + ": "
-                + ProviderSettingsUi.Label(Settings.RegenerateProvider) + (regenerateProviderExpanded ? " [-]" : " [+]")))
+                + ProviderSettingsUi.Label(Settings.RegenerateProvider, Settings.EnableDeprecatedFeatures)
+                + (regenerateProviderExpanded ? " [-]" : " [+]")))
                 regenerateProviderExpanded = !regenerateProviderExpanded;
             if (regenerateProviderExpanded)
                 ProviderSettingsUi.DrawRegenerate(l, Settings, message => status = message);

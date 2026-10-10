@@ -20,8 +20,9 @@ namespace RimAIPortrait
         }
 
         private const string ValuesPath = "options/values.json";
-        private const int Version = 10;
-        private const int PreviousVersion = 9;
+        private const int Version = 11;
+        private const int PreviousVersion = 10;
+        private const int RegenerateOptionsVersion = 11;
         private const int HeadgearVersion = 9;
         private const int XenotypeVersion = 8;
         private const int LocalProviderVersion = 6;
@@ -59,7 +60,8 @@ namespace RimAIPortrait
             "local-openai-base-options.json", "local-openai-expression-options.json",
             "local-openai-regenerate-options.json", "local-ai-img-caption.json",
             "tag-extractor-openai-options.json", "tag-extractor-google-options.json",
-            "tag-extractor-local-options.json"
+            "tag-extractor-local-options.json", "openai-regenerate-options.json",
+            "google-regenerate-options.json", "nai-regenerate-options.json"
         };
 
         [DataContract]
@@ -168,8 +170,8 @@ namespace RimAIPortrait
                 using (var stream = new MemoryStream(ReadBytes(archive, ValuesPath, ref totalBytes)))
                     data.Values = (ValuesData)ValuesSerializer().ReadObject(stream);
                 if (data.Values == null || (data.Values.version != Version
-                    && data.Values.version != PreviousVersion && data.Values.version != 8
-                    && data.Values.version != 7
+                    && data.Values.version != PreviousVersion && data.Values.version != 9
+                    && data.Values.version != 8 && data.Values.version != 7
                     && data.Values.version != 6 && data.Values.version != 5
                     && data.Values.version != 4 && data.Values.version != 3))
                     throw new InvalidDataException("Unsupported prompt archive version.");
@@ -256,11 +258,14 @@ namespace RimAIPortrait
             data.Options["openai-expression-options.json"] = settings.OpenAiExpressionOptions ?? ProviderOptionDefaults.OpenAiExpression;
             data.Options["local-openai-base-options.json"] = settings.LocalOpenAiOptions ?? ProviderOptionDefaults.LocalBase;
             data.Options["local-openai-expression-options.json"] = settings.LocalOpenAiExpressionOptions ?? ProviderOptionDefaults.LocalExpression;
-            data.Options["local-openai-regenerate-options.json"] = settings.RegenerateLocalOpenAiOptions ?? ProviderOptionDefaults.LocalBase;
+            data.Options["local-openai-regenerate-options.json"] = settings.RegenerateLocalOpenAiOptions ?? ProviderOptionDefaults.LocalRegenerate;
             data.Options["local-ai-img-caption.json"] = PortraitImageCaptions.EffectiveJson(AiProvider.LocalOpenAI, settings);
             data.Options["tag-extractor-openai-options.json"] = settings.TagExtractorOpenAiOptions ?? ProviderOptionDefaults.TagExtractorOpenAi;
             data.Options["tag-extractor-google-options.json"] = settings.TagExtractorGoogleOptions ?? ProviderOptionDefaults.TagExtractorGoogle;
             data.Options["tag-extractor-local-options.json"] = settings.TagExtractorLocalOptions ?? ProviderOptionDefaults.TagExtractorLocal;
+            data.Options["openai-regenerate-options.json"] = settings.RegenerateOpenAiOptions ?? ProviderOptionDefaults.OpenAiRegenerate;
+            data.Options["google-regenerate-options.json"] = settings.RegenerateGoogleOptions ?? ProviderOptionDefaults.GoogleRegenerate;
+            data.Options["nai-regenerate-options.json"] = settings.RegenerateNovelAiOptions ?? ProviderOptionDefaults.NovelAiRegenerate;
             foreach (string name in ModelFields)
                 data.Values.models[name] = (string)typeof(PortraitSettings).GetField(name).GetValue(settings);
             foreach (string name in PromptArchive.InclusionFields)
@@ -302,7 +307,7 @@ namespace RimAIPortrait
             TagExtractorModel backend;
             int expectedOptions = values != null ? OptionCount(values.version) : LegacyOptionFileCount;
             if (values == null || (values.version != Version && values.version != PreviousVersion
-                    && values.version != 8 && values.version != 7
+                    && values.version != 9 && values.version != 8 && values.version != 7
                     && values.version != 6 && values.version != 5
                 && values.version != 4 && values.version != 3)
                 || data.Prompts == null || data.Options == null
@@ -451,6 +456,12 @@ namespace RimAIPortrait
                 settings.TagExtractorGoogleOptions = data.Options["tag-extractor-google-options.json"];
                 settings.TagExtractorLocalOptions = data.Options["tag-extractor-local-options.json"];
             }
+            if (values.version >= RegenerateOptionsVersion)
+            {
+                settings.RegenerateOpenAiOptions = data.Options["openai-regenerate-options.json"];
+                settings.RegenerateGoogleOptions = data.Options["google-regenerate-options.json"];
+                settings.RegenerateNovelAiOptions = data.Options["nai-regenerate-options.json"];
+            }
             if (values.version >= XenotypeVersion)
             {
                 var entries = new List<XenotypePromptEntry>(data.Xenotypes.entries.Count);
@@ -464,9 +475,10 @@ namespace RimAIPortrait
 
         private static int OptionCount(int version)
         {
-            return version >= TagOptionsVersion ? OptionFiles.Length
-                : version == LocalProviderVersion ? OptionFiles.Length - 3
-                : version == LocalOptionsVersion ? OptionFiles.Length - 4 : LegacyOptionFileCount;
+            return version >= RegenerateOptionsVersion ? OptionFiles.Length
+                : version >= TagOptionsVersion ? OptionFiles.Length - 3
+                : version == LocalProviderVersion ? OptionFiles.Length - 6
+                : version == LocalOptionsVersion ? OptionFiles.Length - 7 : LegacyOptionFileCount;
         }
 
         private static DataContractJsonSerializer XenotypeSerializer()

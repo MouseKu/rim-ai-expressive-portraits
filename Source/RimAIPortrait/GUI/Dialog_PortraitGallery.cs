@@ -116,8 +116,7 @@ namespace RimAIPortrait
                     PortraitRuntime.EnsureCreated();
                     string referencePath = selected.First();
                     AiProvider provider = RimAIPortraitMod.Settings.RegenerateProvider;
-                    if (provider == AiProvider.OpenAI || provider == AiProvider.LocalOpenAI
-                        || provider == AiProvider.Google)
+                    if (provider == AiProvider.OpenAI || provider == AiProvider.Google)
                         Find.WindowStack.Add(new Dialog_PortraitRegenerate(referencePath, prompt =>
                         {
                             PortraitRuntime.StartGenerationButtonCooldown();
@@ -220,7 +219,8 @@ namespace RimAIPortrait
             Widgets.Label(new Rect(0f, 128f, 85f, 26f), Localization.T("RimAIPortrait.Gallery.BaseLabel"));
             string providerName = basePromptProvider == AiProvider.Google ? "Google"
                 : basePromptProvider == AiProvider.NovelAI ? "NovelAI"
-                : ProviderSettingsUi.Label(basePromptProvider);
+                : ProviderSettingsUi.Label(basePromptProvider,
+                    RimAIPortraitMod.Settings.EnableDeprecatedFeatures);
             string providerLabel = Localization.T("RimAIPortrait.Gallery.BaseProviderLabel", providerName);
             float baseLabelWidth = Mathf.Max(85f, Text.CalcSize(providerLabel).x + 8f);
             Widgets.Label(new Rect(0f, 153f, baseLabelWidth, 26f), providerLabel);

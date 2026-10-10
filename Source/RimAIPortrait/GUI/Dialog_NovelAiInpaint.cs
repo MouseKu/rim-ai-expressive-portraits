@@ -172,7 +172,7 @@ namespace RimAIPortrait
             }
             if (Widgets.ButtonText(new Rect(rect.width - 125f, buttonY, 125f, 38f), Localization.T("RimAIPortrait.Inpaint.Confirm"), true, true,
                 preview != null && (hasSelectedPixels || provider == AiProvider.LocalComfyUI
-                    || provider == AiProvider.LocalOpenAI)))
+                    || provider == AiProvider.LocalOpenAI && state != PortraitState.Base)))
             {
                 byte[] mask = hasSelectedPixels ? BuildMask() : null;
                 byte[] requestMask = null;

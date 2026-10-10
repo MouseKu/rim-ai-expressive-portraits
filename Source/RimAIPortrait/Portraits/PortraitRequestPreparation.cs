@@ -53,7 +53,7 @@ namespace RimAIPortrait
                     || providerId == AiProvider.LocalComfyUI
                     && WorkflowUsesExtractedTags(settings.ComfyWorkflowPath));
             string prompt = options.Regenerate && (providerId == AiProvider.OpenAI
-                || providerId == AiProvider.LocalOpenAI || providerId == AiProvider.Google)
+                || providerId == AiProvider.Google)
                 ? options.RegeneratePrompt : PortraitPrompt.Build(options.Pawn, options.State, settings,
                     options.ExpressionOverride, options.Regenerate ? (AiProvider?)providerId : null, useExtractedFeatures);
             byte[] primaryImage = options.PreparedInpaint == null

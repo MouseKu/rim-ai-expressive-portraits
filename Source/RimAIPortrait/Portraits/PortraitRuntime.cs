@@ -436,6 +436,11 @@ namespace RimAIPortrait
                     done(null, selection.Error);
                     yield break;
                 }
+                if (options.Regenerate && providerId == AiProvider.LocalOpenAI && selection.Mask == null)
+                {
+                    done(null, Localization.T("RimAIPortrait.Inpaint.EmptyMask"));
+                    yield break;
+                }
                 request.InpaintMask = selection.Mask;
                 request.InpaintRequestMask = selection.RequestMask;
                 request.InpaintTag = selection.Tags?.PositiveText;

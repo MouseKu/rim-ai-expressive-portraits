@@ -59,7 +59,8 @@ namespace RimAIPortrait
             Check(listing, PortraitStateNames.Label(PortraitState.Angry), ref settings.EnableAngry);
             Check(listing, PortraitStateNames.Label(PortraitState.Distressed), ref settings.EnableDistressed);
             listing.GapLine();
-            DrawEditor(listing, settings, saveSettings, report);
+            if (!settings.EnableDeprecatedFeatures || settings.ExpressionProvider != AiProvider.LocalComfyUI)
+                DrawEditor(listing, settings, saveSettings, report);
             settings.SwapSeconds = SettingsTooltips.Slider(listing,
                 Localization.T("RimAIPortrait.Settings.SwapInterval", settings.SwapSeconds.ToString("0.0")),
                 settings.SwapSeconds, .5f, 30f, "RimAIPortrait.Settings.SwapIntervalTip");

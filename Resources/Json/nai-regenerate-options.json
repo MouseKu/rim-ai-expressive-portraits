@@ -1,0 +1,11 @@
+{
+  "width": 832,
+  "height": 832,
+  "steps": 23,
+  "scale": 5,
+  "sampler": "k_euler_ancestral",
+  "noise_schedule": "karras",
+  "negative_prompt": "lowres, bad anatomy, bad hands, text, watermark",
+  "strength": 0.6,
+  "noise": 0.1
+}

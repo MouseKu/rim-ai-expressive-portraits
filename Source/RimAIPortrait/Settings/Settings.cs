@@ -39,7 +39,7 @@ namespace RimAIPortrait
         public string RegenerateLocalOpenAiUrl;
         public string RegenerateLocalOpenAiApiKey;
         public string RegenerateLocalOpenAiModel;
-        public string RegenerateLocalOpenAiOptions = ProviderOptionDefaults.LocalBase;
+        public string RegenerateLocalOpenAiOptions = ProviderOptionDefaults.LocalRegenerate;
         public float LocalOpenAiTimeoutSeconds;
         public string GoogleModel;
         public string GoogleExpressionModel;
@@ -48,13 +48,13 @@ namespace RimAIPortrait
         public string GoogleImageCaptionsJson;
         public string RegenerateOpenAiApiKey;
         public string RegenerateOpenAiModel;
-        public string RegenerateOpenAiOptions = ProviderOptionDefaults.OpenAiBase;
+        public string RegenerateOpenAiOptions = ProviderOptionDefaults.OpenAiRegenerate;
         public string RegenerateGoogleApiKey;
         public string RegenerateGoogleModel;
-        public string RegenerateGoogleOptions = ProviderOptionDefaults.GoogleBase;
+        public string RegenerateGoogleOptions = ProviderOptionDefaults.GoogleRegenerate;
         public string RegenerateNovelAiApiKey;
         public string RegenerateNovelAiModel;
-        public string RegenerateNovelAiOptions = ProviderOptionDefaults.NovelAiExpression;
+        public string RegenerateNovelAiOptions = ProviderOptionDefaults.NovelAiRegenerate;
         public string RegenerateComfyUrl;
         public string RegenerateComfyWorkflowPath;
         public string RegenerateComfyNegativePrompt;
@@ -134,6 +134,7 @@ namespace RimAIPortrait
             EnableCold, EnableAngry, EnableDistressed;
         public bool DebugMode;
         public bool ShowApiRequest;
+        // Retains the existing Scribe key; checked now hides the legacy ComfyUI controls.
         public bool EnableDeprecatedFeatures;
         public bool EnableFrame;
         public float FrameScale;
@@ -211,17 +212,17 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref RegenerateProvider, "regenerateProvider", defaults.RegenerateProvider);
             Scribe_Values.Look(ref RegenerateOpenAiApiKey, "regenerateOpenAiApiKey", defaults.RegenerateOpenAiApiKey);
             Scribe_Values.Look(ref RegenerateOpenAiModel, "regenerateOpenAiModel", defaults.RegenerateOpenAiModel);
-            Scribe_Values.Look(ref RegenerateOpenAiOptions, "regenerateOpenAiOptions", ProviderOptionDefaults.OpenAiBase);
+            Scribe_Values.Look(ref RegenerateOpenAiOptions, "regenerateOpenAiOptions", ProviderOptionDefaults.OpenAiRegenerate);
             Scribe_Values.Look(ref RegenerateLocalOpenAiUrl, "regenerateLocalOpenAiUrl", defaults.RegenerateLocalOpenAiUrl);
             Scribe_Values.Look(ref RegenerateLocalOpenAiApiKey, "regenerateLocalOpenAiApiKey", defaults.RegenerateLocalOpenAiApiKey);
             Scribe_Values.Look(ref RegenerateLocalOpenAiModel, "regenerateLocalOpenAiModel", defaults.RegenerateLocalOpenAiModel);
-            Scribe_Values.Look(ref RegenerateLocalOpenAiOptions, "regenerateLocalOpenAiOptions", ProviderOptionDefaults.LocalBase);
+            Scribe_Values.Look(ref RegenerateLocalOpenAiOptions, "regenerateLocalOpenAiOptions", ProviderOptionDefaults.LocalRegenerate);
             Scribe_Values.Look(ref RegenerateGoogleApiKey, "regenerateGoogleApiKey", defaults.RegenerateGoogleApiKey);
             Scribe_Values.Look(ref RegenerateGoogleModel, "regenerateGoogleModel", defaults.RegenerateGoogleModel);
-            Scribe_Values.Look(ref RegenerateGoogleOptions, "regenerateGoogleOptions", ProviderOptionDefaults.GoogleBase);
+            Scribe_Values.Look(ref RegenerateGoogleOptions, "regenerateGoogleOptions", ProviderOptionDefaults.GoogleRegenerate);
             Scribe_Values.Look(ref RegenerateNovelAiApiKey, "regenerateNovelAiApiKey", defaults.RegenerateNovelAiApiKey);
             Scribe_Values.Look(ref RegenerateNovelAiModel, "regenerateNovelAiModel", defaults.RegenerateNovelAiModel);
-            Scribe_Values.Look(ref RegenerateNovelAiOptions, "regenerateNovelAiOptions", ProviderOptionDefaults.NovelAiExpression);
+            Scribe_Values.Look(ref RegenerateNovelAiOptions, "regenerateNovelAiOptions", ProviderOptionDefaults.NovelAiRegenerate);
             Scribe_Values.Look(ref RegenerateComfyUrl, "regenerateComfyUrl", defaults.RegenerateComfyUrl);
             Scribe_Values.Look(ref RegenerateComfyWorkflowPath, "regenerateComfyWorkflowPath", defaults.RegenerateComfyWorkflowPath);
             Scribe_Values.Look(ref RegenerateComfyNegativePrompt, "regenerateComfyNegativePrompt", defaults.RegenerateComfyNegativePrompt);

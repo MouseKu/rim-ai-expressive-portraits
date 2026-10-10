@@ -13,14 +13,15 @@ namespace RimAIPortrait
         public static void Draw(Listing_Standard listing, PortraitSettings settings, bool expression, Action<string> report)
         {
             AiProvider provider = expression ? settings.ExpressionProvider : settings.Provider;
-            if (listing.ButtonText(Label(provider)))
+            if (listing.ButtonText(Label(provider, settings.EnableDeprecatedFeatures)))
             {
-                provider = provider == AiProvider.OpenAI ? AiProvider.LocalOpenAI
-                    : provider == AiProvider.LocalOpenAI ? AiProvider.LocalComfyUI
-                    : provider == AiProvider.LocalComfyUI ? AiProvider.Google
-                    : provider == AiProvider.Google ? AiProvider.NovelAI
-                    : AiProvider.OpenAI;
+                provider = NextProvider(provider, settings.EnableDeprecatedFeatures);
                 if (expression) settings.ExpressionProvider = provider; else settings.Provider = provider;
+            }
+            if (settings.EnableDeprecatedFeatures && provider == AiProvider.LocalComfyUI)
+            {
+                listing.Label(Localization.T("RimAIPortrait.Settings.DeprecatedProviderHidden"));
+                return;
             }
 
             if (provider == AiProvider.OpenAI)
@@ -82,11 +83,13 @@ namespace RimAIPortrait
         public static void DrawRegenerate(Listing_Standard listing, PortraitSettings settings, Action<string> report)
         {
             AiProvider provider = settings.RegenerateProvider;
-            if (listing.ButtonText(Label(provider)))
-                settings.RegenerateProvider = provider = provider == AiProvider.OpenAI ? AiProvider.LocalOpenAI
-                    : provider == AiProvider.LocalOpenAI ? AiProvider.LocalComfyUI
-                    : provider == AiProvider.LocalComfyUI ? AiProvider.Google
-                    : provider == AiProvider.Google ? AiProvider.NovelAI : AiProvider.OpenAI;
+            if (listing.ButtonText(Label(provider, settings.EnableDeprecatedFeatures)))
+                settings.RegenerateProvider = provider = NextProvider(provider, settings.EnableDeprecatedFeatures);
+            if (settings.EnableDeprecatedFeatures && provider == AiProvider.LocalComfyUI)
+            {
+                listing.Label(Localization.T("RimAIPortrait.Settings.DeprecatedProviderHidden"));
+                return;
+            }
             if (provider == AiProvider.OpenAI)
             {
                 Text(listing, Localization.T("RimAIPortrait.Settings.ApiKey"), ref settings.RegenerateOpenAiApiKey);
@@ -341,6 +344,20 @@ namespace RimAIPortrait
                 : provider == AiProvider.LocalOpenAI ? Localization.T("RimAIPortrait.Settings.LocalOpenAi")
                 : provider == AiProvider.NovelAI ? "NovelAI"
                 : "ComfyUI (Deprecated)";
+        }
+
+        internal static string Label(AiProvider provider, bool hideDeprecated)
+        {
+            return hideDeprecated && provider == AiProvider.LocalComfyUI
+                ? Localization.T("RimAIPortrait.Settings.HiddenProvider") : Label(provider);
+        }
+
+        private static AiProvider NextProvider(AiProvider provider, bool hideDeprecated)
+        {
+            return provider == AiProvider.OpenAI ? AiProvider.LocalOpenAI
+                : provider == AiProvider.LocalOpenAI ? (hideDeprecated ? AiProvider.Google : AiProvider.LocalComfyUI)
+                : provider == AiProvider.LocalComfyUI ? AiProvider.Google
+                : provider == AiProvider.Google ? AiProvider.NovelAI : AiProvider.OpenAI;
         }
 
         private static void Text(Listing_Standard listing, string label, ref string value)

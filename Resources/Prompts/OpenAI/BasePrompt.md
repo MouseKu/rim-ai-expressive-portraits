@@ -1,17 +1,19 @@
-Redraw the attached character as a 2D colonist portrait that blends naturally with RimWorld’s in-game visuals.
+Redraw the attached character as a polished 2D RimWorld-style colonist portrait.
 
 Art style:
-- Thick, clean, dark brown outlines
-- Broad colors with simple two- or three-tone cel shading
-- Subdued palette of muted browns, grays, and creams
-- Hair in large, distinct shapes without fine strands
-- Eyes slightly smaller than the original, with minimal highlights and eyelashes
-- Simple nose and mouth while preserving facial identity
-- Retain some cuteness with an understated, slightly indifferent frontier-colonist look
-- Keep the face and silhouette readable at small game UI sizes
 
-Use a three-quarter-view bust showing the head and shoulders. Center the character with enough padding to keep all hair, ears, horns, or headwear fully visible.
+* Thick, clean dark brown outlines
+* Muted browns, grays, and creams with 2–3 tone cel shading
+* Subtle shadows and highlights for depth and volume
+* Hair in large, distinct shapes without fine strands
+* Small, expressive eyes with minimal highlights and eyelashes
+* Simple nose and mouth, retaining subtle cuteness and a slightly indifferent frontier-colonist look
+* Clear, readable silhouette at small UI sizes
 
-Fully transparent background. Isolate the character only. No backdrop or background color. Everything outside the character must be transparent.
+Preserve the original hairstyle, colors, clothing, anatomy, and distinctive features. Naturally enrich simple vanilla characters with facial details, hair volume, and shading while retaining their identity. Simplify detailed modded characters without losing unique traits. Maintain consistent artistic quality and visual richness across both.
 
-Exclude pixel art, photorealism, 3D rendering, glossy anime effects, oversized eyes, fine hair strands, scenery, text, and borders.
+Three-quarter-view bust, head and shoulders, centered with enough padding for all hair, ears, horns, and headwear.
+
+Background: Solid #04F404 (RGB 4, 244, 4), perfectly uniform and flat. No gradients, shadows, textures, or transparency.
+
+Avoid pixel art, photorealism, 3D, glossy anime effects, oversized eyes, fine hair strands, scenery, text, and borders.
