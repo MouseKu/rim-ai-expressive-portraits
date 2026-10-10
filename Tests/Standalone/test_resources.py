@@ -131,7 +131,8 @@ class ResourceTests(unittest.TestCase):
     def test_packaged_help_images_and_default_frame_exist(self):
         help_folder = RESOURCES / "Help"
         self.assertEqual({path.name for path in help_folder.glob("*.jpg")},
-                         {"1-1.jpg", "1-2.jpg", "1-3.jpg", "2.jpg", "3.jpg", "4.jpg"})
+                         {"1-1.jpg", "1-2.jpg", "1-3.jpg", "2.jpg", "3.jpg", "4.jpg",
+                          "5-1.jpg", "5-2.jpg"})
         for path in help_folder.glob("*.jpg"):
             with self.subTest(file=path.name):
                 image = path.read_bytes()

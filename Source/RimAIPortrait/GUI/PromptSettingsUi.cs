@@ -28,8 +28,17 @@ namespace RimAIPortrait
             listing.Label(Localization.T("RimAIPortrait.Settings.PromptInformation"));
             Check(listing, Localization.T("RimAIPortrait.Settings.CharacterSprite"), ref settings.IncludeSprite);
             if (settings.IncludeSprite)
+            {
                 Check(listing, Localization.T("RimAIPortrait.Settings.ExcludeHeadgearFromSprite"),
                     ref settings.ExcludeHeadgearFromSprite);
+                if (settings.ExcludeHeadgearFromSprite && settings.IncludeApparel)
+                {
+                    Color previousColor = GUI.color;
+                    GUI.color = new Color(.95f, .2f, .2f, 1f);
+                    listing.Label(Localization.T("RimAIPortrait.Settings.HeadgearApparelWarning"));
+                    GUI.color = previousColor;
+                }
+            }
             Check(listing, Localization.T("RimAIPortrait.Settings.Gender"), ref settings.IncludeGender);
             Check(listing, Localization.T("RimAIPortrait.Settings.Race"), ref settings.IncludeRace);
             Check(listing, Localization.T("RimAIPortrait.Settings.Xenotype"), ref settings.IncludeXenotype);

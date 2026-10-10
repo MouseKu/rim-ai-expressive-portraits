@@ -2,6 +2,7 @@
 <LanguageData>
   <RimAIPortrait.Settings.ExcludeHeadgearFromSprite>Exclude headgear from sprite</RimAIPortrait.Settings.ExcludeHeadgearFromSprite>
   <RimAIPortrait.Settings.ExcludeHeadgearFromSpriteTip>Hide headgear in the pawn sprite sent as a reference image.</RimAIPortrait.Settings.ExcludeHeadgearFromSpriteTip>
+  <RimAIPortrait.Settings.HeadgearApparelWarning>Headgear may still appear in the prompt through Apparel unless you turn Apparel off too.</RimAIPortrait.Settings.HeadgearApparelWarning>
   <RimAIPortrait.Gallery.Tip.OpenFolder>Open this colonist's portrait folder.</RimAIPortrait.Gallery.Tip.OpenFolder>
   <RimAIPortrait.Gallery.Tip.Refresh>Reload the image list after adding or changing files outside the game.</RimAIPortrait.Gallery.Tip.Refresh>
   <RimAIPortrait.Gallery.Tip.GenerateBase>Generate a new Base portrait without using selected gallery images.</RimAIPortrait.Gallery.Tip.GenerateBase>
@@ -35,12 +36,14 @@
   <RimAIPortrait.Error.OpenPortraitRoot>Could not open the portrait storage folder: {0}</RimAIPortrait.Error.OpenPortraitRoot>
   <RimAIPortrait.Help.Title>Portrait help</RimAIPortrait.Help.Title>
   <RimAIPortrait.Help.InpaintTitle>Inpaint help</RimAIPortrait.Help.InpaintTitle>
+  <RimAIPortrait.Help.TagExtractorTitle>Tag Extractor help</RimAIPortrait.Help.TagExtractorTitle>
   <RimAIPortrait.Help.Prev>Previous</RimAIPortrait.Help.Prev>
   <RimAIPortrait.Help.Next>Next</RimAIPortrait.Help.Next>
   <RimAIPortrait.Help.Ok>OK</RimAIPortrait.Help.Ok>
   <RimAIPortrait.Help.ImageUnavailable>Could not load this help image.</RimAIPortrait.Help.ImageUnavailable>
   <RimAIPortrait.Help.DoNotShowAgain>Do not show again</RimAIPortrait.Help.DoNotShowAgain>
   <RimAIPortrait.Help.InpaintInstructions>(1) Left-click and right-click to select the area to redraw.&#10;(2) Enter tags describing what to draw in the selected area. You can also extract them automatically when Tag Extractor is enabled.&#10;(3) Adjust Strength. Higher values change the original image more.</RimAIPortrait.Help.InpaintInstructions>
+  <RimAIPortrait.Help.TagExtractorInstructions>Tag Extractor automatically extracts the needed tags from an image and an informational prompt. It can improve quality when the in-game image alone is insufficient, but it requires LLM configuration.</RimAIPortrait.Help.TagExtractorInstructions>
   <RimAIPortrait.Help.NovelAiV5WarningTitle>Warning: Major portrait features are unavailable in V5</RimAIPortrait.Help.NovelAiV5WarningTitle>
   <RimAIPortrait.Help.NovelAiV5SpriteWarning>NovelAI V5 support in this mod is incomplete. Character Reference, Vibe Transfer, style folder images, and selected gallery references do not work. Generation fails if gallery references remain selected.&#10;&#10;Base generation uses the pawn sprite for img2img. The result may no longer look like the same character. Use Tag Extractor or describe the character yourself. V5 Curated expressions use V4.5 Curated inpainting. Check these limitations before using V5.</RimAIPortrait.Help.NovelAiV5SpriteWarning>
   <RimAIPortrait.Error.PortraitLoadFailed>Could not load {0}'s portrait ({1}). Replace the file and refresh the gallery.</RimAIPortrait.Error.PortraitLoadFailed>
@@ -117,7 +120,7 @@
   <RimAIPortrait.Settings.ConfirmRestoreDefaults>Restore all options to their defaults? API keys, provider settings, prompts, and local paths will also be cleared or reset.</RimAIPortrait.Settings.ConfirmRestoreDefaults>
   <RimAIPortrait.Settings.DefaultsRestored>Restored all options to their defaults.</RimAIPortrait.Settings.DefaultsRestored>
   <RimAIPortrait.Settings.ResetPortraitHelp>Reset portrait help</RimAIPortrait.Settings.ResetPortraitHelp>
-  <RimAIPortrait.Settings.PortraitHelpReset>Help will appear separately: the V5 warning when applicable, the Base guide when opening the gallery, the Expression guide once a Base portrait is available, and the Inpaint guide when opening Inpaint.</RimAIPortrait.Settings.PortraitHelpReset>
+  <RimAIPortrait.Settings.PortraitHelpReset>Help will appear separately: the V5 warning when applicable, the Base guide when opening the gallery, the Expression guide once a Base portrait is available, the Inpaint guide when opening Inpaint, and the Tag Extractor guide when clicking Extract or Edit.</RimAIPortrait.Settings.PortraitHelpReset>
   <RimAIPortrait.Settings.ComfyTimeout>Generation timeout: {0} seconds</RimAIPortrait.Settings.ComfyTimeout>
   <RimAIPortrait.Settings.ComfyRequiredOutput>Required output: set the final SaveImage node filename_prefix to RimAI</RimAIPortrait.Settings.ComfyRequiredOutput>
   <RimAIPortrait.Settings.ComfyWorkflowTokens>Workflow tokens: __RIM_PROMPT__, __RIM_NEGATIVE_PROMPT__, __RIM_EXTRACTED_TAG__.positive, __RIM_EXTRACTED_TAG__.negative, __RIM_INPUT_IMAGE__, __RIM_INPAINT_MASK__, __RIM_INPAINT_STRENGTH__, __RIM_REFERENCE_1__ ... __RIM_REFERENCE_8__, __RIM_SEED__</RimAIPortrait.Settings.ComfyWorkflowTokens>

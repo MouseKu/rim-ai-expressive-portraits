@@ -103,6 +103,7 @@ namespace RimAIPortrait
                 Settings.PortraitHelpAfterImageDismissed = false;
                 Settings.NovelAiV5HelpDismissed = false;
                 Settings.InpaintHelpDismissed = false;
+                Settings.TagExtractorHelpDismissed = false;
                 WriteSettings();
                 status = Localization.T("RimAIPortrait.Settings.PortraitHelpReset");
             }

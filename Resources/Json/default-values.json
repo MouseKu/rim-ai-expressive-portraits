@@ -87,7 +87,7 @@
   "EnableDistressed": false,
   "DebugMode": false,
   "ShowApiRequest": false,
-  "EnableDeprecatedFeatures": false,
+  "EnableDeprecatedFeatures": true,
   "EnableFrame": false,
   "FrameScale": 1.0,
   "FrameImagePath": "Textures/AIExpressivePortraits/default_frame.png",

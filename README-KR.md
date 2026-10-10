@@ -5,6 +5,7 @@
 <img src="Resources/About/Preview.jpg" title="" alt="Rim AI Expressive Portraits preview" data-align="center">
 
 - **RIM AI Expressive Portraits**는 정착민의 **게임 내 모습(스프라이트), 건강 상태, 나이, 성별 등의 정보**를 바탕으로 AI 초상화를 생성해주는 모드입니다.
+- 바닐라도 사용 가능하지만 모드 사용으로 게임 내 스프라이트가 디테일해지면 생성 능력이 더 강해지는 경향이 있습니다. 
 
 ![](.img/generation.webp)
 
@@ -102,7 +103,7 @@
 
 ### 3-5. Google Gemini
 
-![](.img/gemini-examples.png)
+![](.img/2026-10-10-21-47-07-image.png)
 
 - 투명 배경을 지원하지 않습니다. 
 

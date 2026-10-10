@@ -249,11 +249,11 @@ namespace RimAIPortrait
                 Rect editTagButton = new Rect(rect.width - 205f, 252f, 80f, 32f);
                 if (Widgets.ButtonText(editTagButton,
                     Localization.T("RimAIPortrait.Gallery.EditTagExtractorPrompt")))
-                    Find.WindowStack.Add(new Dialog_TagExtractorPrompt());
+                    RunTagExtractorAction(() => Find.WindowStack.Add(new Dialog_TagExtractorPrompt()));
                 Rect generateTagButton = new Rect(rect.width - 115f, 252f, 115f, 32f);
                 if (Widgets.ButtonText(generateTagButton, Localization.T("RimAIPortrait.Gallery.ExtractTag"),
                     true, true, !generatingTag))
-                    ExtractTag();
+                    RunTagExtractorAction(ExtractTag);
                 TooltipHandler.TipRegion(generateTagButton, Localization.T("RimAIPortrait.Gallery.ExtractTagTip"));
                 string placeholder = Localization.T("RimAIPortrait.Gallery.TagPlaceholder");
                 string positive = TagDisplay.DrawEditable(new Rect(0f, 288f, 85f, 28f),
@@ -645,6 +645,22 @@ namespace RimAIPortrait
         {
             helpOpen = true;
             Find.WindowStack.Add(help);
+        }
+
+        private void RunTagExtractorAction(Action action)
+        {
+            PortraitSettings settings = RimAIPortraitMod.Settings;
+            if (settings.TagExtractorHelpDismissed)
+            {
+                action();
+                return;
+            }
+            OpenHelp(new Dialog_PortraitHelp(Dialog_PortraitHelp.TagExtractorFirstPageIndex,
+                Dialog_PortraitHelp.TagExtractorLastPageIndex, null, dismissed =>
+                {
+                    CloseHelp(dismissed, () => settings.TagExtractorHelpDismissed = true);
+                    if (!galleryClosed) action();
+                }));
         }
 
         private void CloseHelp(bool dismissed, Action dismiss)

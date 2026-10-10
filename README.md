@@ -5,6 +5,7 @@
 <img src="Resources/About/Preview.jpg" alt="RIM AI Expressive Portraits preview">
 
 - **RIM AI Expressive Portraits** is a mod that generates AI portraits from a colonist's **in-game appearance (sprite), health, age, gender, and other information**.
+- It works with vanilla RimWorld, but more detailed in-game sprites from mods tend to produce better generated portraits.
 
 ![](.img/generation.webp)
 
@@ -78,7 +79,7 @@ You can generate several state-specific expression portraits from a Base portrai
 
 ### 3-5. Google Gemini
 
-![](.img/gemini-examples.png)
+![](.img/2026-10-10-21-47-07-image.png)
 
 - Transparent backgrounds are not supported.
 - `gemini-3.1-flash-lite-image` costs about twice as much per image as Sunburst at low quality.
