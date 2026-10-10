@@ -144,7 +144,7 @@ namespace RimAIPortrait
         public bool RemoveEnclosedBackground;
         public float EnclosedCleanup;
         public bool BackgroundAlignBottom;
-        public bool IncludeSprite, IncludeGender, IncludeRace,
+        public bool IncludeSprite, ExcludeHeadgearFromSprite, IncludeGender, IncludeRace,
             IncludeXenotype, IncludeGene, OnlyAppearanceGenes, IncludeAge, IncludeBody,
             IncludeSkin, IncludeHair, IncludeEyes,
             IncludeApparel, IncludeApparelQuality,
@@ -349,7 +349,9 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref RemoveEnclosedBackground, "removeEnclosedBackground", defaults.RemoveEnclosedBackground);
             Scribe_Values.Look(ref EnclosedCleanup, "enclosedCleanup", defaults.EnclosedCleanup);
             Scribe_Values.Look(ref BackgroundAlignBottom, "backgroundAlignBottom", defaults.BackgroundAlignBottom);
-            Scribe_Values.Look(ref IncludeSprite, "includeSprite", defaults.IncludeSprite); Scribe_Values.Look(ref IncludeGender, "includeGender", defaults.IncludeGender);
+            Scribe_Values.Look(ref IncludeSprite, "includeSprite", defaults.IncludeSprite);
+            Scribe_Values.Look(ref ExcludeHeadgearFromSprite, "excludeHeadgearFromSprite", defaults.ExcludeHeadgearFromSprite);
+            Scribe_Values.Look(ref IncludeGender, "includeGender", defaults.IncludeGender);
             Scribe_Values.Look(ref IncludeRace, "includeRace", defaults.IncludeRace); Scribe_Values.Look(ref IncludeXenotype, "includeXenotype", defaults.IncludeXenotype);
             Scribe_Collections.Look(ref XenotypePromptEntries, "xenotypePromptEntries", LookMode.Deep);
             Scribe_Values.Look(ref IncludeGene, "includeGene", defaults.IncludeGene);

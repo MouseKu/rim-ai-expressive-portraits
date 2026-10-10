@@ -1,0 +1,16 @@
+{
+  "1": {
+    "class_type": "RimPortraitRequest",
+    "inputs": {
+      "prompt": "",
+      "model": "rim-example",
+      "options_json": "{}",
+      "images_json": "[]",
+      "mask_base64": ""
+    }
+  },
+  "2": {
+    "class_type": "RimPortraitResponse",
+    "inputs": {"image": ["1", 2]}
+  }
+}

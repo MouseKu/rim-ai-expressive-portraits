@@ -9,7 +9,7 @@ namespace RimAIPortrait
             "ApiKey", "NovelAiApiKey", "Model", "OptionsJson", "LocalOpenAiUrl",
             "ComfyUrl", "WorkflowPath", "StyleFolder", "FramePath", "PortraitRootFolder",
             "NegativePrompt", "BasePrompt", "TagExtractorBasePrompt", "TagExtractorInpaintPrompt",
-            "CharacterSprite", "Gender", "Race", "Xenotype", "Gene",
+            "CharacterSprite", "ExcludeHeadgearFromSprite", "Gender", "Race", "Xenotype", "Gene",
             "AppearanceGenesOnly", "Age", "BodyType", "SkinColor", "Hair",
             "EyeColor", "Apparel", "Health", "Traits"
         };

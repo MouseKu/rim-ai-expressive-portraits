@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -138,10 +139,12 @@ namespace RimAIPortrait
             if (Id == AiProvider.LocalOpenAI && request.ExtractedTags != null)
             {
                 if (!string.IsNullOrWhiteSpace(request.ExtractedTags.PositiveText))
-                    prompt += "\n\n[Inpaint positive tags]\n" + request.ExtractedTags.PositiveText;
+                    prompt += "\n\n[positive_tag]\n" + request.ExtractedTags.PositiveText;
                 if (!string.IsNullOrWhiteSpace(request.ExtractedTags.NegativeText))
-                    prompt += "\n\n[Inpaint negative tags to avoid]\n" + request.ExtractedTags.NegativeText;
+                    prompt += "\n\n[negative_tag]\n" + request.ExtractedTags.NegativeText;
             }
+            if (Id == AiProvider.LocalOpenAI && request.HasInpaintSelection)
+                prompt += "\n\n[weight]\n" + request.InpaintStrength.ToString("R", CultureInfo.InvariantCulture);
             if (imageCaptions.Length > 0)
             {
                 prompt += "\n\n[Image references]\n" + imageCaptions;

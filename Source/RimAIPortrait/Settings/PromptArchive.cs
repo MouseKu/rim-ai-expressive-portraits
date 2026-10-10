@@ -21,7 +21,8 @@ namespace RimAIPortrait
         private const int MaximumJsonBytes = 2 * 1024 * 1024;
 
         internal static readonly string[] InclusionFields = {
-            nameof(PortraitSettings.IncludeSprite), nameof(PortraitSettings.IncludeGender),
+            nameof(PortraitSettings.IncludeSprite), nameof(PortraitSettings.ExcludeHeadgearFromSprite),
+            nameof(PortraitSettings.IncludeGender),
             nameof(PortraitSettings.IncludeRace), nameof(PortraitSettings.IncludeXenotype),
             nameof(PortraitSettings.IncludeGene), nameof(PortraitSettings.OnlyAppearanceGenes),
             nameof(PortraitSettings.IncludeAge), nameof(PortraitSettings.IncludeBody),
@@ -140,7 +141,7 @@ namespace RimAIPortrait
                 || data.Prompts == null || data.Inclusion == null)
                 throw new InvalidDataException("Unsupported prompt archive version or format.");
             if (data.Prompts.Count != 3 + 4 * (1 + Enum.GetValues(typeof(PortraitState)).Length)
-                || data.Inclusion.Count != InclusionFields.Length)
+                || data.Inclusion.Count != InclusionFields.Length - 1)
                 throw new InvalidDataException("Prompt archive is incomplete.");
             RequirePrompt(data, "Prompt");
             RequirePrompt(data, "TagExtractorBasePrompt");
@@ -155,8 +156,11 @@ namespace RimAIPortrait
                     if (state != PortraitState.Base) RequirePrompt(data, prefix + state);
             }
             foreach (string name in InclusionFields)
+            {
+                if (name == nameof(PortraitSettings.ExcludeHeadgearFromSprite)) continue;
                 if (!data.Inclusion.ContainsKey(name))
                     throw new InvalidDataException("Prompt archive is missing " + name + ".");
+            }
         }
 
         private static void RequirePrompt(ArchiveData data, string name)
@@ -180,7 +184,10 @@ namespace RimAIPortrait
                     if (state != PortraitState.Base) settings.SetStatePrompt(provider, state, data.Prompts[prefix + state]);
             }
             foreach (string name in InclusionFields)
+            {
+                if (name == nameof(PortraitSettings.ExcludeHeadgearFromSprite)) continue;
                 typeof(PortraitSettings).GetField(name).SetValue(settings, data.Inclusion[name]);
+            }
         }
 
         internal static string BasePrompt(PortraitSettings settings, AiProvider provider)

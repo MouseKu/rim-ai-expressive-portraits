@@ -171,6 +171,32 @@ namespace RimAIPortrait
             }
             catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save NovelAI inpaint strength: " + e.Message); return false; }
         }
+        public static float LocalInpaintWeight(Pawn p, PortraitState state, float fallback)
+        {
+            string path = LocalInpaintWeightPath(p, state);
+            try
+            {
+                if (!File.Exists(path)) return fallback;
+                float value;
+                if (float.TryParse(File.ReadAllText(path), NumberStyles.Float, CultureInfo.InvariantCulture, out value)
+                    && !float.IsNaN(value) && !float.IsInfinity(value) && value >= .1f && value <= 1f)
+                    return value;
+                Log.Warning("[Rim AI Expressive Portraits] Invalid local inpaint weight in " + path);
+            }
+            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not read local inpaint weight: " + e.Message); }
+            return fallback;
+        }
+        public static bool SaveLocalInpaintWeight(Pawn p, PortraitState state, float value)
+        {
+            try
+            {
+                string path = LocalInpaintWeightPath(p, state);
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, value.ToString("R", CultureInfo.InvariantCulture));
+                return true;
+            }
+            catch (Exception e) { Log.Warning("[Rim AI Expressive Portraits] Could not save local inpaint weight: " + e.Message); return false; }
+        }
         /// <summary>Describes the behavior of this type or member.</summary>
         /// <summary>Describes the behavior of this type or member.</summary>
         public static void Save(Pawn p, PortraitState state, byte[] png)

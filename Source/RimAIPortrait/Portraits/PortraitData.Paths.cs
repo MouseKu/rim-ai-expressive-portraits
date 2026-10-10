@@ -154,6 +154,8 @@ namespace RimAIPortrait
         public static string NovelAiInpaintStrengthPath(Pawn p) => Path.Combine(PawnFolder(p), "novelai_inpaint_strength.txt");
         public static string NovelAiInpaintStrengthPath(Pawn p, PortraitState state) =>
             Path.Combine(PawnFolder(p), "novelai_inpaint_strength_" + state.ToString().ToLowerInvariant() + ".txt");
+        public static string LocalInpaintWeightPath(Pawn p, PortraitState state) =>
+            Path.Combine(PawnFolder(p), "local_inpaint_weight_" + state.ToString().ToLowerInvariant() + ".txt");
         /// <summary>Describes the behavior of this type or member.</summary>
         /// <summary>Describes the behavior of this type or member.</summary>
 

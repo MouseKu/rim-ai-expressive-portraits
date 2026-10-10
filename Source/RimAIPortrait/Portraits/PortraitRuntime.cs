@@ -337,7 +337,9 @@ namespace RimAIPortrait
             AiProvider providerId = selectedProvider ?? settings.ExpressionProvider;
             float defaultStrength = settings.GetInpaintStrength(state);
             float strength = providerId == AiProvider.NovelAI
-                ? PortraitData.NovelAiInpaintStrength(pawn, state, defaultStrength) : defaultStrength;
+                ? PortraitData.NovelAiInpaintStrength(pawn, state, defaultStrength)
+                : providerId == AiProvider.LocalOpenAI
+                    ? PortraitData.LocalInpaintWeight(pawn, state, defaultStrength) : defaultStrength;
             byte[] mask = null;
             byte[] requestMask = null;
             ExtractedTags tags = state == PortraitState.Base
@@ -385,6 +387,8 @@ namespace RimAIPortrait
                 selection.Error = Localization.T("RimAIPortrait.Inpaint.TagSaveFailed");
             else if (providerId == AiProvider.NovelAI && !PortraitData.SaveNovelAiInpaintStrength(pawn, state, strength))
                 selection.Error = Localization.T("RimAIPortrait.Inpaint.StrengthSaveFailed");
+            else if (providerId == AiProvider.LocalOpenAI && !PortraitData.SaveLocalInpaintWeight(pawn, state, strength))
+                selection.Error = Localization.T("RimAIPortrait.Inpaint.WeightSaveFailed");
             done(selection);
         }
 
@@ -436,6 +440,7 @@ namespace RimAIPortrait
                 request.InpaintRequestMask = selection.RequestMask;
                 request.InpaintTag = selection.Tags?.PositiveText;
                 request.InpaintStrength = selection.Strength;
+                request.HasInpaintSelection = true;
                 request.ExtractedTags = selection.Tags;
             }
             PortraitRequestPreparation.AddStyleReferences(prepared);

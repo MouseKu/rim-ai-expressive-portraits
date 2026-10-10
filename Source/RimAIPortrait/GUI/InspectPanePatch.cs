@@ -11,6 +11,7 @@ using Verse;
 namespace RimAIPortrait
 {
     /// <summary>Describes the behavior of this type or member.</summary>
+    [StaticConstructorOnStartup]
     [HarmonyPatch(typeof(UIRoot), nameof(UIRoot.UIRootOnGUI))]
     public static class InspectPanePatch
     {

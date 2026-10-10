@@ -241,7 +241,8 @@ namespace RimAIPortrait
             extraFeatures = Widgets.TextArea(extraArea, extraFeatures ?? "");
             TooltipHandler.TipRegion(extraArea, Localization.T("RimAIPortrait.Gallery.ExtraFeaturesTip"));
 
-            if (basePromptProvider == AiProvider.NovelAI || basePromptProvider == AiProvider.LocalComfyUI)
+            if (basePromptProvider == AiProvider.NovelAI || basePromptProvider == AiProvider.LocalComfyUI
+                || basePromptProvider == AiProvider.LocalOpenAI)
             {
                 Widgets.Label(new Rect(0f, 257f, 150f, 28f),
                     Localization.T("RimAIPortrait.Gallery.TagExtractorLabel"));
@@ -497,7 +498,9 @@ namespace RimAIPortrait
                 Widgets.Label(new Rect(area.x, area.y + 27, area.width, 45), Localization.T("RimAIPortrait.Debug.SpriteDisabled"));
                 return;
             }
-            if (PawnCapture.LastPawnThingId != pawn.ThingID || PawnCapture.LastCapture == null) PawnCapture.Capture(pawn);
+            if (PawnCapture.LastPawnThingId != pawn.ThingID || PawnCapture.LastCapture == null
+                || PawnCapture.LastCaptureExcludedHeadgear != RimAIPortraitMod.Settings.ExcludeHeadgearFromSprite)
+                PawnCapture.Capture(pawn);
             byte[] bytes = PawnCapture.LastCapture;
             if (bytes == null) { Widgets.Label(new Rect(area.x, area.y + 27, area.width, 45), Localization.T("RimAIPortrait.Debug.CaptureFailed")); return; }
             if (!ReferenceEquals(debugSpriteSource, bytes))

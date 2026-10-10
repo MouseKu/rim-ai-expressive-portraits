@@ -15,6 +15,7 @@ namespace RimAIPortrait
         public byte[] InpaintRequestMask { get; set; }
         public string InpaintTag { get; set; }
         public float InpaintStrength { get; set; }
+        public bool HasInpaintSelection { get; set; }
         public ExtractedTags ExtractedTags { get; set; }
         public PortraitImageUse ImageUse { get; set; }
         public IReadOnlyList<string> ReferencePaths { get; set; }

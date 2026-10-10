@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
+  <RimAIPortrait.Settings.ExcludeHeadgearFromSprite>Exclude headgear from sprite</RimAIPortrait.Settings.ExcludeHeadgearFromSprite>
+  <RimAIPortrait.Settings.ExcludeHeadgearFromSpriteTip>Hide headgear in the pawn sprite sent as a reference image.</RimAIPortrait.Settings.ExcludeHeadgearFromSpriteTip>
   <RimAIPortrait.Gallery.Tip.OpenFolder>Open this colonist's portrait folder.</RimAIPortrait.Gallery.Tip.OpenFolder>
   <RimAIPortrait.Gallery.Tip.Refresh>Reload the image list after adding or changing files outside the game.</RimAIPortrait.Gallery.Tip.Refresh>
   <RimAIPortrait.Gallery.Tip.GenerateBase>Generate a new Base portrait without using selected gallery images.</RimAIPortrait.Gallery.Tip.GenerateBase>
@@ -96,7 +98,7 @@
   <RimAIPortrait.Settings.NovelAiInpaintStrengthDefault>Default inpaint strength: {0}</RimAIPortrait.Settings.NovelAiInpaintStrengthDefault>
   <RimAIPortrait.Settings.NovelAiInpaintDefaults>NovelAI inpaint defaults</RimAIPortrait.Settings.NovelAiInpaintDefaults>
   <RimAIPortrait.Settings.InpaintStrength>Inpaint Strength</RimAIPortrait.Settings.InpaintStrength>
-  <RimAIPortrait.Settings.InpaintStrengthHelp>Default strength for each state. ComfyUI workflows can use __RIM_INPAINT_STRENGTH__ as a number.</RimAIPortrait.Settings.InpaintStrengthHelp>
+  <RimAIPortrait.Settings.InpaintStrengthHelp>Default strength for each state. Local workflows receive this as weight; ComfyUI workflows can use __RIM_INPAINT_STRENGTH__ as a number.</RimAIPortrait.Settings.InpaintStrengthHelp>
   <RimAIPortrait.Settings.InpaintStrengthState>{0}: {1}</RimAIPortrait.Settings.InpaintStrengthState>
   <RimAIPortrait.Settings.NovelAiSleepInpaintStrengthDefault>Default sleep inpaint strength: {0}</RimAIPortrait.Settings.NovelAiSleepInpaintStrengthDefault>
   <RimAIPortrait.Debug.PawnSprite>Sent pawn sprite</RimAIPortrait.Debug.PawnSprite><RimAIPortrait.Debug.SpriteDisabled>Sprite sending disabled</RimAIPortrait.Debug.SpriteDisabled><RimAIPortrait.Debug.CaptureFailed>Capture failed</RimAIPortrait.Debug.CaptureFailed><RimAIPortrait.Debug.LastPawnPng>Pawn PNG most recently used for a Base portrait request</RimAIPortrait.Debug.LastPawnPng>
@@ -189,10 +191,13 @@
   <RimAIPortrait.Inpaint.Title>Image Inpaint</RimAIPortrait.Inpaint.Title>
   <RimAIPortrait.Inpaint.State>Expression: {0}</RimAIPortrait.Inpaint.State>
   <RimAIPortrait.Inpaint.Strength>Inpaint strength: {0}</RimAIPortrait.Inpaint.Strength>
+  <RimAIPortrait.Inpaint.Weight>Inpaint weight: {0}</RimAIPortrait.Inpaint.Weight>
+  <RimAIPortrait.Inpaint.WeightTip>Weight sent to the local workflow for this pawn and expression. Connect the Rim Portrait Request weight output to a compatible node.</RimAIPortrait.Inpaint.WeightTip>
   <RimAIPortrait.Error.ComfyInpaintMaskRequired>The ComfyUI workflow uses __RIM_INPAINT_MASK__. Select an area before generating this expression.</RimAIPortrait.Error.ComfyInpaintMaskRequired>
   <RimAIPortrait.Inpaint.ComfyInstructions>Left-drag to add areas; right-drag to remove areas. If your workflow does not use a mask, continue without selecting an area.</RimAIPortrait.Inpaint.ComfyInstructions>
   <RimAIPortrait.Inpaint.TagSaveFailed>Could not save this pawn's inpaint tags.</RimAIPortrait.Inpaint.TagSaveFailed>
   <RimAIPortrait.Inpaint.StrengthSaveFailed>Could not save this pawn's NovelAI inpaint strength.</RimAIPortrait.Inpaint.StrengthSaveFailed>
+  <RimAIPortrait.Inpaint.WeightSaveFailed>Could not save this pawn's local inpaint weight.</RimAIPortrait.Inpaint.WeightSaveFailed>
   <RimAIPortrait.Inpaint.Instructions>Left-drag to add rectangular areas to edit; right-drag to remove areas. Later drags take precedence.</RimAIPortrait.Inpaint.Instructions>
   <RimAIPortrait.Inpaint.SleepInstructions>Left-drag around each eye; right-drag to exclude areas. Add as many rectangles as needed. Later drags take precedence.</RimAIPortrait.Inpaint.SleepInstructions>
   <RimAIPortrait.Inpaint.Undo>Undo</RimAIPortrait.Inpaint.Undo>

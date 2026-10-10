@@ -40,6 +40,7 @@ namespace RimAIPortrait
     }
 
     /// <summary>Describes the behavior of this type or member.</summary>
+    [StaticConstructorOnStartup]
     internal static class PortraitCommandIcon
     {
         private const string TexturePath = "AIExpressivePortraits/icon_button";

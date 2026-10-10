@@ -27,6 +27,9 @@ namespace RimAIPortrait
         {
             listing.Label(Localization.T("RimAIPortrait.Settings.PromptInformation"));
             Check(listing, Localization.T("RimAIPortrait.Settings.CharacterSprite"), ref settings.IncludeSprite);
+            if (settings.IncludeSprite)
+                Check(listing, Localization.T("RimAIPortrait.Settings.ExcludeHeadgearFromSprite"),
+                    ref settings.ExcludeHeadgearFromSprite);
             Check(listing, Localization.T("RimAIPortrait.Settings.Gender"), ref settings.IncludeGender);
             Check(listing, Localization.T("RimAIPortrait.Settings.Race"), ref settings.IncludeRace);
             Check(listing, Localization.T("RimAIPortrait.Settings.Xenotype"), ref settings.IncludeXenotype);

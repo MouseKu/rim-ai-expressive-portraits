@@ -95,12 +95,15 @@ namespace RimAIPortrait
             Widgets.Label(new Rect(0f, 0f, rect.width, 34f), Localization.T("RimAIPortrait.Inpaint.Title"));
             Text.Font = GameFont.Small;
             Widgets.Label(new Rect(0f, 38f, rect.width, 28f), Localization.T("RimAIPortrait.Inpaint.State", PortraitStateNames.Label(state)));
-            if (provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI)
+            if (provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI
+                || provider == AiProvider.LocalOpenAI)
             {
-                Widgets.Label(new Rect(0f, 66f, rect.width, 28f), Localization.T("RimAIPortrait.Inpaint.Strength", strength.ToString("0.00")));
+                Widgets.Label(new Rect(0f, 66f, rect.width, 28f), Localization.T(provider == AiProvider.LocalOpenAI
+                    ? "RimAIPortrait.Inpaint.Weight" : "RimAIPortrait.Inpaint.Strength", strength.ToString("0.00")));
                 strength = Widgets.HorizontalSlider(new Rect(0f, 94f, rect.width, 24f), strength, .1f, 1f);
                 TooltipHandler.TipRegion(new Rect(0f, 66f, rect.width, 52f),
-                    Localization.T("RimAIPortrait.Inpaint.StrengthTip"));
+                    Localization.T(provider == AiProvider.LocalOpenAI
+                        ? "RimAIPortrait.Inpaint.WeightTip" : "RimAIPortrait.Inpaint.StrengthTip"));
             }
             if (provider == AiProvider.NovelAI || provider == AiProvider.LocalComfyUI
                 || provider == AiProvider.LocalOpenAI)

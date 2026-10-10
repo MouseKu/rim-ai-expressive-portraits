@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
+  <RimAIPortrait.Settings.ExcludeHeadgearFromSprite>스프라이트에서 모자 제외</RimAIPortrait.Settings.ExcludeHeadgearFromSprite>
+  <RimAIPortrait.Settings.ExcludeHeadgearFromSpriteTip>참조 이미지로 보내는 폰 스프라이트에서 모자를 숨깁니다.</RimAIPortrait.Settings.ExcludeHeadgearFromSpriteTip>
   <RimAIPortrait.Gallery.Tip.OpenFolder>이 정착민의 초상화 저장 폴더를 엽니다.</RimAIPortrait.Gallery.Tip.OpenFolder>
   <RimAIPortrait.Gallery.Tip.Refresh>게임 밖에서 추가하거나 수정한 이미지를 목록에 반영합니다.</RimAIPortrait.Gallery.Tip.Refresh>
   <RimAIPortrait.Gallery.Tip.GenerateBase>선택한 갤러리 이미지를 사용하지 않고 새 Base 초상화를 생성합니다.</RimAIPortrait.Gallery.Tip.GenerateBase>
@@ -57,7 +59,7 @@
   <RimAIPortrait.Settings.NovelAiInpaintStrengthDefault>기본 인페인트 강도: {0}</RimAIPortrait.Settings.NovelAiInpaintStrengthDefault>
   <RimAIPortrait.Settings.NovelAiInpaintDefaults>NovelAI 인페인트 기본값</RimAIPortrait.Settings.NovelAiInpaintDefaults>
   <RimAIPortrait.Settings.InpaintStrength>Inpaint Strength</RimAIPortrait.Settings.InpaintStrength>
-  <RimAIPortrait.Settings.InpaintStrengthHelp>감정별 기본 강도입니다. ComfyUI 워크플로에는 __RIM_INPAINT_STRENGTH__를 숫자 값으로 넣을 수 있습니다.</RimAIPortrait.Settings.InpaintStrengthHelp>
+  <RimAIPortrait.Settings.InpaintStrengthHelp>감정별 기본 강도입니다. 로컬 워크플로에는 weight로 전달되며, ComfyUI 워크플로에는 __RIM_INPAINT_STRENGTH__를 숫자 값으로 넣을 수 있습니다.</RimAIPortrait.Settings.InpaintStrengthHelp>
   <RimAIPortrait.Settings.InpaintStrengthState>{0}: {1}</RimAIPortrait.Settings.InpaintStrengthState>
   <RimAIPortrait.Settings.NovelAiSleepInpaintStrengthDefault>기본 수면 인페인트 강도: {0}</RimAIPortrait.Settings.NovelAiSleepInpaintStrengthDefault>
   <RimAIPortrait.Debug.PawnSprite>전송 Pawn 스프라이트</RimAIPortrait.Debug.PawnSprite><RimAIPortrait.Debug.SpriteDisabled>스프라이트 전송 꺼짐</RimAIPortrait.Debug.SpriteDisabled><RimAIPortrait.Debug.CaptureFailed>캡처 실패</RimAIPortrait.Debug.CaptureFailed><RimAIPortrait.Debug.LastPawnPng>기본 초상화 요청에 마지막으로 사용된 Pawn PNG</RimAIPortrait.Debug.LastPawnPng>
@@ -147,10 +149,13 @@
   <RimAIPortrait.Inpaint.Title>이미지 인페인트</RimAIPortrait.Inpaint.Title>
   <RimAIPortrait.Inpaint.State>생성할 감정: {0}</RimAIPortrait.Inpaint.State>
   <RimAIPortrait.Inpaint.Strength>인페인트 강도: {0}</RimAIPortrait.Inpaint.Strength>
+  <RimAIPortrait.Inpaint.Weight>인페인트 가중치: {0}</RimAIPortrait.Inpaint.Weight>
+  <RimAIPortrait.Inpaint.WeightTip>이 정착민과 표정에 사용할 가중치입니다. Rim Portrait Request의 weight 출력을 호환되는 노드에 연결하세요.</RimAIPortrait.Inpaint.WeightTip>
   <RimAIPortrait.Error.ComfyInpaintMaskRequired>ComfyUI 워크플로에서 __RIM_INPAINT_MASK__를 사용합니다. 감정 생성 전에 영역을 선택하세요.</RimAIPortrait.Error.ComfyInpaintMaskRequired>
   <RimAIPortrait.Inpaint.ComfyInstructions>좌클릭 드래그로 영역을 더하고 우클릭 드래그로 빼세요. 워크플로에서 마스크를 쓰지 않으면 선택 없이 진행할 수 있습니다.</RimAIPortrait.Inpaint.ComfyInstructions>
   <RimAIPortrait.Inpaint.TagSaveFailed>이 정착민의 인페인트 태그를 저장할 수 없습니다.</RimAIPortrait.Inpaint.TagSaveFailed>
   <RimAIPortrait.Inpaint.StrengthSaveFailed>이 정착민의 NovelAI 인페인트 강도를 저장할 수 없습니다.</RimAIPortrait.Inpaint.StrengthSaveFailed>
+  <RimAIPortrait.Inpaint.WeightSaveFailed>이 정착민의 로컬 인페인트 가중치를 저장할 수 없습니다.</RimAIPortrait.Inpaint.WeightSaveFailed>
   <RimAIPortrait.Inpaint.Instructions>좌클릭 드래그로 편집할 사각형을 더하고 우클릭 드래그로 영역을 빼세요. 나중에 그린 사각형이 우선합니다.</RimAIPortrait.Inpaint.Instructions>
   <RimAIPortrait.Inpaint.SleepInstructions>좌클릭 드래그로 두 눈을 각각 선택하고 우클릭 드래그로 영역을 빼세요. 사각형을 여러 개 그릴 수 있으며 나중에 그린 사각형이 우선합니다.</RimAIPortrait.Inpaint.SleepInstructions>
   <RimAIPortrait.Inpaint.Undo>되돌리기</RimAIPortrait.Inpaint.Undo>
