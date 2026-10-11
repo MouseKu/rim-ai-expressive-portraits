@@ -66,24 +66,8 @@ namespace RimAIPortrait
                 settings.XenotypePromptEntries = new List<XenotypePromptEntry>();
             foreach (XenotypePromptEntry entry in PackagedEntries())
             {
-                XenotypePromptEntry saved = settings.XenotypePromptEntries.FirstOrDefault(item =>
-                    item != null && item.DefName == entry.DefName);
-                if (saved == null)
-                {
+                if (!settings.XenotypePromptEntries.Any(item => item != null && item.DefName == entry.DefName))
                     settings.XenotypePromptEntries.Add(entry);
-                    continue;
-                }
-                if (saved.DefaultValue != null && saved.Value == saved.DefaultValue)
-                {
-                    if (!saved.Enabled && saved.DefaultValue != entry.Value)
-                        saved.Enabled = true;
-                    saved.Value = entry.Value;
-                }
-                else if (saved.DefaultValue == null &&
-                    (string.IsNullOrWhiteSpace(saved.Value) ||
-                    string.Equals(saved.Value, saved.DefName, StringComparison.OrdinalIgnoreCase)))
-                    saved.Value = entry.Value;
-                saved.DefaultValue = entry.Value;
             }
         }
 

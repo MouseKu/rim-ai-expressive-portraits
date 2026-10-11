@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Verse;
 
 namespace RimAIPortrait
@@ -16,11 +15,9 @@ namespace RimAIPortrait
                 Settings.TagExtractorBasePrompt = ReadCommonPrompt(content, "TagExtractor.md");
             if (Settings.TagExtractorInpaintPrompt.NullOrEmpty())
                 Settings.TagExtractorInpaintPrompt = ReadCommonPrompt(content, "TagExtractorInpaint.md");
-            var previousStateDefaults = new Dictionary<PortraitState, string>(PromptLibrary.State);
             string previousBase = Settings.BaseInstructions;
             string openAiBase = ReadPrompt(content, AiProvider.OpenAI, "BasePrompt.md", false);
-            if (!openAiBase.NullOrEmpty()
-                && (Settings.BaseInstructions.NullOrEmpty() || Settings.BaseInstructions == PromptLibrary.DefaultBase))
+            if (!openAiBase.NullOrEmpty() && Settings.BaseInstructions.NullOrEmpty())
                 Settings.BaseInstructions = openAiBase;
 
             string localBase = ReadPrompt(content, AiProvider.LocalOpenAI, "BasePrompt.md", false);
@@ -47,11 +44,6 @@ namespace RimAIPortrait
                 Settings.NovelAiBaseInstructions = customLegacyPrompt ? previousBase : novelAiBase;
             }
 
-            string currentOptions = ProviderOptionDefaults.NovelAiBase;
-            string previousOptions = currentOptions.Replace("three-quarter view, gentle head and shoulder turn", "nearly frontal view");
-            if (OptionsMatch(Settings.NovelAiOptions, previousOptions))
-                Settings.NovelAiOptions = currentOptions;
-
             string openAiExpression = ReadPrompt(content, AiProvider.OpenAI, "ExpressionPrompt.md", false);
             if (Settings.LocalOpenAiExpressionInstructions.NullOrEmpty()
                 && !Settings.ExpressionInstructions.NullOrEmpty()
@@ -63,14 +55,11 @@ namespace RimAIPortrait
                 string expression = ReadPrompt(content, provider, "ExpressionPrompt.md", false);
                 if (provider == AiProvider.OpenAI)
                 {
-                    if (!expression.NullOrEmpty() && (Settings.ExpressionInstructions.NullOrEmpty()
-                        || Settings.ExpressionInstructions == PromptLibrary.DefaultExpression))
+                    if (!expression.NullOrEmpty() && Settings.ExpressionInstructions.NullOrEmpty())
                         Settings.ExpressionInstructions = expression;
                 }
                 else if (!expression.NullOrEmpty()
-                    && (Settings.GetExpressionInstructions(provider).NullOrEmpty()
-                        || (Settings.ProviderPromptMigrationPending
-                            && Settings.GetExpressionInstructions(provider) == openAiExpression)))
+                    && Settings.GetExpressionInstructions(provider).NullOrEmpty())
                 {
                     if (provider == AiProvider.Google) Settings.GoogleExpressionInstructions = expression;
                     else if (provider == AiProvider.LocalComfyUI) Settings.ComfyExpressionInstructions = expression;
@@ -88,21 +77,17 @@ namespace RimAIPortrait
                     {
                         string sharedPrompt = Settings.GetStatePrompt(AiProvider.OpenAI, state);
                         string openAiState = ReadPrompt(content, AiProvider.OpenAI, state + ".md", true);
-                        if (!sharedPrompt.NullOrEmpty() && sharedPrompt != openAiState
-                            && sharedPrompt != previousStateDefaults[state])
+                        if (!sharedPrompt.NullOrEmpty() && sharedPrompt != openAiState)
                         {
                             current = sharedPrompt;
                             Settings.SetStatePrompt(provider, state, current);
                         }
                     }
-                    if (current.NullOrEmpty() || current == previousStateDefaults[state]
-                        || (Settings.ProviderPromptMigrationPending && provider != AiProvider.OpenAI
-                            && current == PromptLibrary.State[state]))
+                    if (current.NullOrEmpty())
                         Settings.SetStatePrompt(provider, state, prompt);
                     if (provider == AiProvider.OpenAI) PromptLibrary.State[state] = prompt;
                 }
             }
-            Settings.ProviderPromptMigrationPending = false;
         }
 
         private static string ReadCommonPrompt(ModContentPack content, string name)
@@ -156,15 +141,6 @@ namespace RimAIPortrait
             if (start < lines.Length && lines[start].TrimStart().StartsWith("#")) start++;
             while (start < lines.Length && string.IsNullOrWhiteSpace(lines[start])) start++;
             return string.Join("\n", lines, start, lines.Length - start).Trim();
-        }
-
-        private static bool OptionsMatch(string actual, string expected)
-        {
-            Dictionary<string, string> actualOptions = PortraitProviderUtilities.ParseOptions(actual);
-            Dictionary<string, string> expectedOptions = PortraitProviderUtilities.ParseOptions(expected);
-            return actualOptions.Count == expectedOptions.Count
-                && expectedOptions.All(option => actualOptions.ContainsKey(option.Key)
-                    && actualOptions[option.Key] == option.Value);
         }
     }
 }

@@ -104,10 +104,10 @@ namespace RimAIPortrait
         public string PortraitRootFolder;
         public string StyleFolder;
         public string ExpressionStyleFolder;
-        public string BaseInstructions = PromptLibrary.DefaultBase;
+        public string BaseInstructions;
         public string LocalOpenAiBaseInstructions;
         public string ComfyBaseInstructions;
-        public string ExpressionInstructions = PromptLibrary.DefaultExpression;
+        public string ExpressionInstructions;
         public string LocalOpenAiExpressionInstructions;
         public string GoogleExpressionInstructions;
         public string ComfyExpressionInstructions;
@@ -153,17 +153,17 @@ namespace RimAIPortrait
             IncludeApparel, IncludeApparelQuality,
             IncludeHealth, IncludeTraits, IncludeBackstory;
         public List<XenotypePromptEntry> XenotypePromptEntries = new List<XenotypePromptEntry>();
-        public string NormalPrompt = PromptLibrary.State[PortraitState.Normal];
-        public string HighPrompt = PromptLibrary.State[PortraitState.High];
-        public string LowPrompt = PromptLibrary.State[PortraitState.Low];
-        public string SleepPrompt = PromptLibrary.State[PortraitState.Sleep];
-        public string PainPrompt = PromptLibrary.State[PortraitState.Pain];
-        public string DownPrompt = PromptLibrary.State[PortraitState.Down];
-        public string HotPrompt = PromptLibrary.State[PortraitState.Hot];
-        public string ColdPrompt = PromptLibrary.State[PortraitState.Cold];
-        public string AngryPrompt = PromptLibrary.State[PortraitState.Angry];
-        public string DistressedPrompt = PromptLibrary.State[PortraitState.Distressed];
-        public string LovePrompt = PromptLibrary.State[PortraitState.Love];
+        public string NormalPrompt;
+        public string HighPrompt;
+        public string LowPrompt;
+        public string SleepPrompt;
+        public string PainPrompt;
+        public string DownPrompt;
+        public string HotPrompt;
+        public string ColdPrompt;
+        public string AngryPrompt;
+        public string DistressedPrompt;
+        public string LovePrompt;
         public ProviderStatePrompts GoogleStatePrompts = new ProviderStatePrompts();
         public ProviderStatePrompts ComfyStatePrompts = new ProviderStatePrompts();
         public ProviderStatePrompts NovelAiStatePrompts = new ProviderStatePrompts();
@@ -171,10 +171,8 @@ namespace RimAIPortrait
         private bool ModelsSplitMigrated;
         private bool ProviderSettingsSplitMigrated;
         private bool ProviderApiKeysSplitMigrated;
-        private bool PositionDefaultsMigrated;
         private bool ProviderPromptsSplitMigrated = true;
         private bool RegenerateSettingsMigrated;
-        internal bool ProviderPromptMigrationPending;
 
         public PortraitSettings()
         {
@@ -210,8 +208,6 @@ namespace RimAIPortrait
         public override void ExposeData()
         {
             PortraitSettings defaults = SettingsDefaults.Values;
-            float legacyCharacterStrength = .55f;
-            float legacyCharacterFidelity = .7f;
             Scribe_Values.Look(ref Provider, "provider", defaults.Provider);
             Scribe_Values.Look(ref ExpressionProvider, "expressionProvider", defaults.ExpressionProvider);
             Scribe_Values.Look(ref RegenerateProvider, "regenerateProvider", defaults.RegenerateProvider);
@@ -274,11 +270,6 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref InpaintAngryStrength, "inpaintAngryStrength", NovelAiInpaintStrength);
             Scribe_Values.Look(ref InpaintDistressedStrength, "inpaintDistressedStrength", NovelAiInpaintStrength);
             Scribe_Values.Look(ref InpaintLoveStrength, "inpaintLoveStrength", defaults.InpaintLoveStrength);
-            if (Scribe.mode == LoadSaveMode.LoadingVars)
-            {
-                Scribe_Values.Look(ref legacyCharacterStrength, "novelAiCharacterReferenceStrength", .55f);
-                Scribe_Values.Look(ref legacyCharacterFidelity, "novelAiCharacterReferenceFidelity", .7f);
-            }
             Scribe_Values.Look(ref ComfyUrl, "comfyUrl", defaults.ComfyUrl);
             Scribe_Values.Look(ref ComfyExpressionUrl, "comfyExpressionUrl", defaults.ComfyExpressionUrl);
             Scribe_Values.Look(ref ComfyWorkflowPath, "comfyWorkflowPath", defaults.ComfyWorkflowPath);
@@ -316,10 +307,10 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref PortraitRootFolder, "portraitRootFolder", "");
             Scribe_Values.Look(ref StyleFolder, "styleFolder", "");
             Scribe_Values.Look(ref ExpressionStyleFolder, "expressionStyleFolder", "");
-            Scribe_Values.Look(ref BaseInstructions, "baseInstructions", PromptLibrary.DefaultBase);
+            Scribe_Values.Look(ref BaseInstructions, "baseInstructions");
             Scribe_Values.Look(ref LocalOpenAiBaseInstructions, "localOpenAiBaseInstructions");
             Scribe_Values.Look(ref ComfyBaseInstructions, "comfyBaseInstructions", defaults.ComfyBaseInstructions);
-            Scribe_Values.Look(ref ExpressionInstructions, "expressionInstructions", PromptLibrary.DefaultExpression);
+            Scribe_Values.Look(ref ExpressionInstructions, "expressionInstructions");
             Scribe_Values.Look(ref LocalOpenAiExpressionInstructions, "localOpenAiExpressionInstructions");
             Scribe_Values.Look(ref GoogleExpressionInstructions, "googleExpressionInstructions");
             Scribe_Values.Look(ref ComfyExpressionInstructions, "comfyExpressionInstructions");
@@ -371,17 +362,17 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref IncludeApparelQuality, "includeApparelQuality", defaults.IncludeApparelQuality); Scribe_Values.Look(ref IncludeTraits, "includeTraits", defaults.IncludeTraits);
             Scribe_Values.Look(ref IncludeHealth, "includeHealth", defaults.IncludeHealth);
             Scribe_Values.Look(ref IncludeBackstory, "includeBackstory", defaults.IncludeBackstory);
-            Scribe_Values.Look(ref NormalPrompt, "normalPrompt", PromptLibrary.State[PortraitState.Normal]);
-            Scribe_Values.Look(ref HighPrompt, "highPrompt", PromptLibrary.State[PortraitState.High]);
-            Scribe_Values.Look(ref LowPrompt, "lowPrompt", PromptLibrary.State[PortraitState.Low]);
-            Scribe_Values.Look(ref SleepPrompt, "sleepPrompt", PromptLibrary.State[PortraitState.Sleep]);
-            Scribe_Values.Look(ref PainPrompt, "painPrompt", PromptLibrary.State[PortraitState.Pain]);
-            Scribe_Values.Look(ref DownPrompt, "downPrompt", PromptLibrary.State[PortraitState.Down]);
-            Scribe_Values.Look(ref HotPrompt, "hotPrompt", PromptLibrary.State[PortraitState.Hot]);
-            Scribe_Values.Look(ref ColdPrompt, "coldPrompt", PromptLibrary.State[PortraitState.Cold]);
-            Scribe_Values.Look(ref AngryPrompt, "angryPrompt", PromptLibrary.State[PortraitState.Angry]);
-            Scribe_Values.Look(ref DistressedPrompt, "distressedPrompt", PromptLibrary.State[PortraitState.Distressed]);
-            Scribe_Values.Look(ref LovePrompt, "lovePrompt", PromptLibrary.State[PortraitState.Love]);
+            Scribe_Values.Look(ref NormalPrompt, "normalPrompt");
+            Scribe_Values.Look(ref HighPrompt, "highPrompt");
+            Scribe_Values.Look(ref LowPrompt, "lowPrompt");
+            Scribe_Values.Look(ref SleepPrompt, "sleepPrompt");
+            Scribe_Values.Look(ref PainPrompt, "painPrompt");
+            Scribe_Values.Look(ref DownPrompt, "downPrompt");
+            Scribe_Values.Look(ref HotPrompt, "hotPrompt");
+            Scribe_Values.Look(ref ColdPrompt, "coldPrompt");
+            Scribe_Values.Look(ref AngryPrompt, "angryPrompt");
+            Scribe_Values.Look(ref DistressedPrompt, "distressedPrompt");
+            Scribe_Values.Look(ref LovePrompt, "lovePrompt");
             Scribe_Deep.Look(ref GoogleStatePrompts, "googleStatePrompts");
             Scribe_Deep.Look(ref ComfyStatePrompts, "comfyStatePrompts");
             Scribe_Deep.Look(ref NovelAiStatePrompts, "novelAiStatePrompts");
@@ -390,28 +381,22 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref ModelsSplitMigrated, "modelsSplitMigrated", false);
             Scribe_Values.Look(ref ProviderSettingsSplitMigrated, "providerSettingsSplitMigrated", false);
             Scribe_Values.Look(ref ProviderApiKeysSplitMigrated, "providerApiKeysSplitMigrated", false);
-            Scribe_Values.Look(ref PositionDefaultsMigrated, "positionDefaultsMigrated", false);
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
                 MigrateSplitModels();
                 MigrateProviderSettings();
                 MigrateProviderApiKeys();
-                MigratePositionDefaults();
-                MigrateOpenAiOptionDefaults();
-                MigrateLocalOpenAiOptionDefaults();
-                MigrateGoogleOptionDefaults();
-                MigrateNovelAiOptions(legacyCharacterStrength, legacyCharacterFidelity);
                 MigrateRegenerateSettings();
             }
             if (Scribe.mode == LoadSaveMode.PostLoadInit)
             {
                 if (!ProviderPromptsSplitMigrated)
                 {
-                    ProviderPromptMigrationPending = true;
                     GoogleStatePrompts = LegacyStatePrompts();
                     ComfyStatePrompts = LegacyStatePrompts();
                     NovelAiStatePrompts = LegacyStatePrompts();
-                    if (ExpressionInstructions != PromptLibrary.DefaultExpression)
+                    if (!ExpressionInstructions.NullOrEmpty()
+                        && ExpressionInstructions != PromptLibrary.DefaultExpression)
                     {
                         GoogleExpressionInstructions = ExpressionInstructions;
                         ComfyExpressionInstructions = ExpressionInstructions;
