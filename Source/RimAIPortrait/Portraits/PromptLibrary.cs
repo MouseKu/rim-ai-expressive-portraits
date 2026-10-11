@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace RimAIPortrait
 {
     /// <summary>Describes the behavior of this type or member.</summary>
-    public enum PortraitState { Normal, High, Low, Sleep, Pain, Down, Hot, Cold, Angry, Distressed, Base }
+    public enum PortraitState { Normal, High, Low, Sleep, Pain, Down, Hot, Cold, Angry, Distressed, Base, Love }
 
     /// <summary>Describes the behavior of this type or member.</summary>
     public static class PortraitStateNames
@@ -47,7 +47,8 @@ namespace RimAIPortrait
             { PortraitState.Hot, "An exhausted, sweaty expression with a flushed face from a high fever or heatstroke. Preserve the original character’s appearance, clothing, pose, and composition. Change only the facial expression." },
             { PortraitState.Cold, "A pale, shivering expression from hypothermia and extreme cold. Preserve the original character’s appearance, clothing, pose, and composition. Change only the facial expression." },
             { PortraitState.Angry, "An angry expression with sharply furrowed brows, a fierce gaze, and a tightly clenched jaw. Preserve the original character’s appearance, clothing, pose, and composition. Change only the facial expression." },
-            { PortraitState.Distressed, "A deeply distressed expression showing anxiety, anguish, and despair, with tense brows, an unfocused fearful gaze, and trembling lips. Preserve the original character’s appearance, clothing, pose, and composition. Change only the facial expression." }
+            { PortraitState.Distressed, "A deeply distressed expression showing anxiety, anguish, and despair, with tense brows, an unfocused fearful gaze, and trembling lips. Preserve the original character’s appearance, clothing, pose, and composition. Change only the facial expression." },
+            { PortraitState.Love, "A bashful, affectionate expression with a soft blush on the cheeks, a shy smile, softened eyes, and gently raised brows. Preserve the original character's appearance, clothing, pose, and composition. Change only the facial expression and cheek blush." }
         };
     }
 }

@@ -14,6 +14,7 @@ namespace RimAIPortrait
         public string Cold;
         public string Angry;
         public string Distressed;
+        public string Love;
 
         public string Get(PortraitState state)
         {
@@ -28,6 +29,7 @@ namespace RimAIPortrait
                 case PortraitState.Hot: return Hot;
                 case PortraitState.Cold: return Cold;
                 case PortraitState.Angry: return Angry;
+                case PortraitState.Love: return Love;
                 default: return Distressed;
             }
         }
@@ -45,6 +47,7 @@ namespace RimAIPortrait
                 case PortraitState.Hot: Hot = value; break;
                 case PortraitState.Cold: Cold = value; break;
                 case PortraitState.Angry: Angry = value; break;
+                case PortraitState.Love: Love = value; break;
                 default: Distressed = value; break;
             }
         }
@@ -61,6 +64,7 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref Cold, "cold");
             Scribe_Values.Look(ref Angry, "angry");
             Scribe_Values.Look(ref Distressed, "distressed");
+            Scribe_Values.Look(ref Love, "love");
         }
     }
 }

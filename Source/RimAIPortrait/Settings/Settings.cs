@@ -75,6 +75,7 @@ namespace RimAIPortrait
         public float InpaintColdStrength;
         public float InpaintAngryStrength;
         public float InpaintDistressedStrength;
+        public float InpaintLoveStrength;
         public string ComfyUrl;
         public string ComfyExpressionUrl;
         public string ComfyWorkflowPath;
@@ -132,7 +133,7 @@ namespace RimAIPortrait
         public bool TagExtractorHelpDismissed;
         public bool EnableHigh, EnableLow, EnableSleep,
             EnablePain, EnableDown, EnableHot,
-            EnableCold, EnableAngry, EnableDistressed;
+            EnableCold, EnableAngry, EnableDistressed, EnableLove;
         public bool DebugMode;
         public bool ShowApiRequest;
         // Retains the existing Scribe key; checked now hides the legacy ComfyUI controls.
@@ -162,6 +163,7 @@ namespace RimAIPortrait
         public string ColdPrompt = PromptLibrary.State[PortraitState.Cold];
         public string AngryPrompt = PromptLibrary.State[PortraitState.Angry];
         public string DistressedPrompt = PromptLibrary.State[PortraitState.Distressed];
+        public string LovePrompt = PromptLibrary.State[PortraitState.Love];
         public ProviderStatePrompts GoogleStatePrompts = new ProviderStatePrompts();
         public ProviderStatePrompts ComfyStatePrompts = new ProviderStatePrompts();
         public ProviderStatePrompts NovelAiStatePrompts = new ProviderStatePrompts();
@@ -271,6 +273,7 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref InpaintColdStrength, "inpaintColdStrength", NovelAiInpaintStrength);
             Scribe_Values.Look(ref InpaintAngryStrength, "inpaintAngryStrength", NovelAiInpaintStrength);
             Scribe_Values.Look(ref InpaintDistressedStrength, "inpaintDistressedStrength", NovelAiInpaintStrength);
+            Scribe_Values.Look(ref InpaintLoveStrength, "inpaintLoveStrength", defaults.InpaintLoveStrength);
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
                 Scribe_Values.Look(ref legacyCharacterStrength, "novelAiCharacterReferenceStrength", .55f);
@@ -342,6 +345,7 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref EnableDown, "enableDown", defaults.EnableDown); Scribe_Values.Look(ref EnableHot, "enableHot", defaults.EnableHot);
             Scribe_Values.Look(ref EnableCold, "enableCold", defaults.EnableCold); Scribe_Values.Look(ref EnableAngry, "enableAngry", defaults.EnableAngry);
             Scribe_Values.Look(ref EnableDistressed, "enableDistressed", defaults.EnableDistressed);
+            Scribe_Values.Look(ref EnableLove, "enableLove", defaults.EnableLove);
             Scribe_Values.Look(ref DebugMode, "debugMode", defaults.DebugMode);
             Scribe_Values.Look(ref ShowApiRequest, "showApiRequest", false);
             Scribe_Values.Look(ref EnableDeprecatedFeatures, "enableDeprecatedFeatures", false);
@@ -377,6 +381,7 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref ColdPrompt, "coldPrompt", PromptLibrary.State[PortraitState.Cold]);
             Scribe_Values.Look(ref AngryPrompt, "angryPrompt", PromptLibrary.State[PortraitState.Angry]);
             Scribe_Values.Look(ref DistressedPrompt, "distressedPrompt", PromptLibrary.State[PortraitState.Distressed]);
+            Scribe_Values.Look(ref LovePrompt, "lovePrompt", PromptLibrary.State[PortraitState.Love]);
             Scribe_Deep.Look(ref GoogleStatePrompts, "googleStatePrompts");
             Scribe_Deep.Look(ref ComfyStatePrompts, "comfyStatePrompts");
             Scribe_Deep.Look(ref NovelAiStatePrompts, "novelAiStatePrompts");
@@ -455,6 +460,7 @@ namespace RimAIPortrait
                 case PortraitState.Hot: return HotPrompt;
                 case PortraitState.Cold: return ColdPrompt;
                 case PortraitState.Angry: return AngryPrompt;
+                case PortraitState.Love: return LovePrompt;
                 default: return DistressedPrompt;
             }
         }
@@ -497,6 +503,7 @@ namespace RimAIPortrait
                 case PortraitState.Hot: HotPrompt = value; break;
                 case PortraitState.Cold: ColdPrompt = value; break;
                 case PortraitState.Angry: AngryPrompt = value; break;
+                case PortraitState.Love: LovePrompt = value; break;
                 default: DistressedPrompt = value; break;
             }
         }
@@ -524,6 +531,7 @@ namespace RimAIPortrait
             if (state == PortraitState.Hot) return EnableHot;
             if (state == PortraitState.Cold) return EnableCold;
             if (state == PortraitState.Angry) return EnableAngry;
+            if (state == PortraitState.Love) return EnableLove;
             return EnableDistressed;
         }
 
@@ -540,6 +548,7 @@ namespace RimAIPortrait
                 case PortraitState.Cold: return InpaintColdStrength;
                 case PortraitState.Angry: return InpaintAngryStrength;
                 case PortraitState.Distressed: return InpaintDistressedStrength;
+                case PortraitState.Love: return InpaintLoveStrength;
                 default: return NovelAiInpaintStrength;
             }
         }
@@ -557,6 +566,7 @@ namespace RimAIPortrait
                 case PortraitState.Cold: InpaintColdStrength = strength; break;
                 case PortraitState.Angry: InpaintAngryStrength = strength; break;
                 case PortraitState.Distressed: InpaintDistressedStrength = strength; break;
+                case PortraitState.Love: InpaintLoveStrength = strength; break;
                 default: NovelAiInpaintStrength = strength; break;
             }
         }

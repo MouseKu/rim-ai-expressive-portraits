@@ -19,9 +19,16 @@ namespace RimAIPortrait
                 if (state != PortraitState.Base) yield return state;
         }
 
+        private static IEnumerable<PortraitState> ExpressionStates(int version)
+        {
+            foreach (PortraitState state in ExpressionStates())
+                if (state != PortraitState.Love || version >= LoveVersion) yield return state;
+        }
+
         private const string ValuesPath = "options/values.json";
-        private const int Version = 11;
-        private const int PreviousVersion = 10;
+        private const int Version = 12;
+        private const int PreviousVersion = 11;
+        private const int LoveVersion = 12;
         private const int RegenerateOptionsVersion = 11;
         private const int HeadgearVersion = 9;
         private const int XenotypeVersion = 8;
@@ -170,7 +177,8 @@ namespace RimAIPortrait
                 using (var stream = new MemoryStream(ReadBytes(archive, ValuesPath, ref totalBytes)))
                     data.Values = (ValuesData)ValuesSerializer().ReadObject(stream);
                 if (data.Values == null || (data.Values.version != Version
-                    && data.Values.version != PreviousVersion && data.Values.version != 9
+                    && data.Values.version != PreviousVersion && data.Values.version != 10
+                    && data.Values.version != 9
                     && data.Values.version != 8 && data.Values.version != 7
                     && data.Values.version != 6 && data.Values.version != 5
                     && data.Values.version != 4 && data.Values.version != 3))
@@ -288,7 +296,7 @@ namespace RimAIPortrait
                 string folder = "Prompt/" + PromptLibrary.ProviderFolder(provider) + "/";
                 yield return folder + "Base.txt";
                 yield return folder + "Expression.txt";
-                foreach (PortraitState state in ExpressionStates())
+                foreach (PortraitState state in ExpressionStates(version))
                     yield return folder + state + ".txt";
             }
         }
@@ -307,7 +315,7 @@ namespace RimAIPortrait
             TagExtractorModel backend;
             int expectedOptions = values != null ? OptionCount(values.version) : LegacyOptionFileCount;
             if (values == null || (values.version != Version && values.version != PreviousVersion
-                    && values.version != 9 && values.version != 8 && values.version != 7
+                    && values.version != 10 && values.version != 9 && values.version != 8 && values.version != 7
                     && values.version != 6 && values.version != 5
                 && values.version != 4 && values.version != 3)
                 || data.Prompts == null || data.Options == null
@@ -324,7 +332,7 @@ namespace RimAIPortrait
                 throw new InvalidDataException("Invalid prompt archive values.json.");
             if (values.inpaintStrengths != null)
             {
-                foreach (PortraitState state in ExpressionStates())
+                foreach (PortraitState state in ExpressionStates(values.version))
                 {
                     float strength;
                     if (values.inpaintStrengths.TryGetValue(state.ToString(), out strength)
@@ -388,7 +396,7 @@ namespace RimAIPortrait
                 settings.NovelAiInpaintStrength = values.novelAiInpaintStrength.Value;
             if (values.novelAiSleepInpaintStrength.HasValue)
                 settings.NovelAiSleepInpaintStrength = values.novelAiSleepInpaintStrength.Value;
-            foreach (PortraitState state in ExpressionStates())
+            foreach (PortraitState state in ExpressionStates(values.version))
             {
                 float strength;
                 if (values.inpaintStrengths != null
@@ -431,7 +439,7 @@ namespace RimAIPortrait
                 string folder = "Prompt/" + PromptLibrary.ProviderFolder(provider) + "/";
                 PromptArchive.SetBasePrompt(settings, provider, data.Prompts[folder + "Base.txt"]);
                 PromptArchive.SetExpressionPrompt(settings, provider, data.Prompts[folder + "Expression.txt"]);
-                foreach (PortraitState state in ExpressionStates())
+                foreach (PortraitState state in ExpressionStates(values.version))
                     settings.SetStatePrompt(provider, state, data.Prompts[folder + state + ".txt"]);
             }
             settings.GoogleOptions = data.Options["google-base-options.json"];

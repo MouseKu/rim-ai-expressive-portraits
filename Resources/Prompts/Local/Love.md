@@ -1,0 +1,1 @@
+soft blush on cheeks, bashful, affectionate expression, shy smile, softened gaze, gently raised brows,

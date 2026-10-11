@@ -193,6 +193,7 @@ namespace RimAIPortrait
             if (settings.EnableDown && p.Downed) return PortraitState.Down;
             if (settings.EnableHot && p.health?.hediffSet != null && p.health.hediffSet.HasHediff(HediffDefOf.Heatstroke)) return PortraitState.Hot;
             if (settings.EnableCold && p.health?.hediffSet != null && p.health.hediffSet.HasHediff(HediffDefOf.Hypothermia)) return PortraitState.Cold;
+            if (settings.EnableLove && p.CurJobDef == JobDefOf.Lovin) return PortraitState.Love;
             if (settings.EnableSleep && !p.Awake()) return PortraitState.Sleep;
             if (settings.EnablePain && p.health?.hediffSet != null && p.health.hediffSet.PainTotal > .15f) return PortraitState.Pain;
             MentalStateDef mentalState = p.MentalStateDef;

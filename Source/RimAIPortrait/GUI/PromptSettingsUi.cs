@@ -61,6 +61,7 @@ namespace RimAIPortrait
             Check(listing, PortraitStateNames.Label(PortraitState.High), ref settings.EnableHigh);
             Check(listing, PortraitStateNames.Label(PortraitState.Low), ref settings.EnableLow);
             Check(listing, PortraitStateNames.Label(PortraitState.Sleep), ref settings.EnableSleep);
+            Check(listing, PortraitStateNames.Label(PortraitState.Love), ref settings.EnableLove);
             Check(listing, PortraitStateNames.Label(PortraitState.Pain), ref settings.EnablePain);
             Check(listing, PortraitStateNames.Label(PortraitState.Down), ref settings.EnableDown);
             Check(listing, PortraitStateNames.Label(PortraitState.Hot), ref settings.EnableHot);
