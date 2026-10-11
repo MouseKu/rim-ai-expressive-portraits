@@ -14,6 +14,6 @@ Preserve the original hairstyle, colors, clothing, anatomy, and distinctive feat
 
 Three-quarter-view bust, head and shoulders, centered with enough padding for all hair, ears, horns, and headwear.
 
-Background: Solid #04F404 (RGB 4, 244, 4), perfectly uniform and flat. No gradients, shadows, textures, or transparency.
+Background: Fully transparent (alpha channel, RGBA 0). No background colors, gradients, shadows, textures, or patterns. Do not draw or simulate transparency with a checkerboard pattern. All areas outside the character must have zero opacity, with clean, well-defined edges.
 
 Avoid pixel art, photorealism, 3D, glossy anime effects, oversized eyes, fine hair strands, scenery, text, and borders.
