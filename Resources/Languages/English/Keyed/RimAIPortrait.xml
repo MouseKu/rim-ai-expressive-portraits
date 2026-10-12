@@ -42,6 +42,9 @@
   <RimAIPortrait.Help.Ok>OK</RimAIPortrait.Help.Ok>
   <RimAIPortrait.Help.ImageUnavailable>Could not load this help image.</RimAIPortrait.Help.ImageUnavailable>
   <RimAIPortrait.Help.DoNotShowAgain>Do not show again</RimAIPortrait.Help.DoNotShowAgain>
+  <RimAIPortrait.Notice.Title>Notice</RimAIPortrait.Notice.Title>
+  <RimAIPortrait.Notice.ImageUnavailable>Could not load the notice image.</RimAIPortrait.Notice.ImageUnavailable>
+  <RimAIPortrait.Notice.TextUnavailable>Could not load the notice text.</RimAIPortrait.Notice.TextUnavailable>
   <RimAIPortrait.Help.InpaintInstructions>(1) Left-click and right-click to select the area to redraw.&#10;(2) Enter tags describing what to draw in the selected area. You can also extract them automatically when Tag Extractor is enabled.&#10;(3) Adjust Strength. Higher values change the original image more.</RimAIPortrait.Help.InpaintInstructions>
   <RimAIPortrait.Help.TagExtractorInstructions>Tag Extractor automatically extracts the needed tags from an image and an informational prompt. It can improve quality when the in-game image alone is insufficient, but it requires LLM configuration.</RimAIPortrait.Help.TagExtractorInstructions>
   <RimAIPortrait.Help.NovelAiV5WarningTitle>Warning: Major portrait features are unavailable in V5</RimAIPortrait.Help.NovelAiV5WarningTitle>

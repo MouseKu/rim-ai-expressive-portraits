@@ -1,0 +1,1 @@
+Notice for OpenAI Users: An issue has been reported where a checkerboard background appears in generated portraits due to changes in the mod settings during a recent update. If you encounter this issue, please go to the OpenAI Provider settings and change the background value to "transparent" in the JSON options.

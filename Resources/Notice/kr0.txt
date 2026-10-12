@@ -1,0 +1,1 @@
+OpenAI 사용자 분들에게: 현재 업데이트 과정에서 모드 옵션이 변경되어서 초상화를 생성할 때 체크 무늬가 발생하는 이슈가 보고되었습니다. 만약, 그런 이슈가 발생한다면 OpenAI Provider의 JSON 옵션에서 background를 "transparent"로 바꿔주세요.

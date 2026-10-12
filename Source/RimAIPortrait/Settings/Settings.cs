@@ -131,6 +131,7 @@ namespace RimAIPortrait
         public bool NovelAiV5HelpDismissed;
         public bool InpaintHelpDismissed;
         public bool TagExtractorHelpDismissed;
+        public int DismissedNoticeNumber = -1;
         public bool EnableHigh, EnableLow, EnableSleep,
             EnablePain, EnableDown, EnableHot,
             EnableCold, EnableAngry, EnableDistressed, EnableLove;
@@ -189,6 +190,7 @@ namespace RimAIPortrait
             bool novelAiV5HelpDismissed = NovelAiV5HelpDismissed;
             bool inpaintHelpDismissed = InpaintHelpDismissed;
             bool tagExtractorHelpDismissed = TagExtractorHelpDismissed;
+            int dismissedNoticeNumber = DismissedNoticeNumber;
             var defaults = new PortraitSettings();
             foreach (FieldInfo field in typeof(PortraitSettings).GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
             {
@@ -201,6 +203,7 @@ namespace RimAIPortrait
             NovelAiV5HelpDismissed = novelAiV5HelpDismissed;
             InpaintHelpDismissed = inpaintHelpDismissed;
             TagExtractorHelpDismissed = tagExtractorHelpDismissed;
+            DismissedNoticeNumber = dismissedNoticeNumber;
             RegenerateSettingsMigrated = true;
         }
 
@@ -331,6 +334,7 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref NovelAiV5HelpDismissed, "novelAiV5HelpDismissed", false);
             Scribe_Values.Look(ref InpaintHelpDismissed, "inpaintHelpDismissed", false);
             Scribe_Values.Look(ref TagExtractorHelpDismissed, "tagExtractorHelpDismissed", false);
+            Scribe_Values.Look(ref DismissedNoticeNumber, "dismissedNoticeNumber", -1);
             Scribe_Values.Look(ref EnableHigh, "enableHigh", defaults.EnableHigh); Scribe_Values.Look(ref EnableLow, "enableLow", defaults.EnableLow);
             Scribe_Values.Look(ref EnableSleep, "enableSleep", defaults.EnableSleep); Scribe_Values.Look(ref EnablePain, "enablePain", defaults.EnablePain);
             Scribe_Values.Look(ref EnableDown, "enableDown", defaults.EnableDown); Scribe_Values.Look(ref EnableHot, "enableHot", defaults.EnableHot);

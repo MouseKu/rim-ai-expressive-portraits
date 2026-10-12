@@ -59,7 +59,7 @@ namespace RimAIPortrait
             if (!checkedFirstHelp)
             {
                 checkedFirstHelp = true;
-                ShowNextHelp();
+                if (!ShowNoticeOnGalleryOpen()) ShowNextHelp();
             }
             if (basePromptProvider != RimAIPortraitMod.Settings.Provider)
             {
