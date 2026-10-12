@@ -56,7 +56,8 @@ namespace RimAIPortrait
             base.PreOpen();
             string folder = Path.Combine(RimAIPortraitMod.ModPack.RootDir, "Notice");
             string language = LanguageDatabase.activeLanguage != null &&
-                LanguageDatabase.activeLanguage.folderName == "Korean" ? "kr" : "eng";
+                LanguageDatabase.activeLanguage.folderName.StartsWith("Korean", StringComparison.OrdinalIgnoreCase)
+                ? "kr" : "eng";
             string textPath = Path.Combine(folder, language + noticeNumber + ".txt");
             try
             {
