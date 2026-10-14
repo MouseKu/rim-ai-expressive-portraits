@@ -10,8 +10,11 @@ namespace RimAIPortrait
     public static partial class PortraitData
     {
         private static readonly Dictionary<string, Texture2D> Cache = new Dictionary<string, Texture2D>();
-        private static readonly Dictionary<string, Texture2D> GrayCache = new Dictionary<string, Texture2D>();
+        private static readonly Dictionary<string, LinkedListNode<string>> CacheNodes = new Dictionary<string, LinkedListNode<string>>();
+        private static readonly LinkedList<string> CacheOrder = new LinkedList<string>();
         private static readonly HashSet<string> MissingPortraits = new HashSet<string>();
+        private static string transientKey;
+        private static Texture2D transientTexture;
         private static Game cachedGame;
 
         public static void EnsureGameScope()
@@ -22,19 +25,81 @@ namespace RimAIPortrait
                 cachedGame = Current.Game;
             }
             _ = Root;
+            TrimCache();
         }
 
         private static void ClearCaches()
         {
-            var destroyed = new HashSet<Texture2D>();
             foreach (Texture2D texture in Cache.Values)
-                if (texture != null && destroyed.Add(texture)) UnityEngine.Object.Destroy(texture);
-            foreach (Texture2D texture in GrayCache.Values)
-                if (texture != null && destroyed.Add(texture)) UnityEngine.Object.Destroy(texture);
+                if (texture != null) UnityEngine.Object.Destroy(texture);
             Cache.Clear();
-            GrayCache.Clear();
+            CacheNodes.Clear();
+            CacheOrder.Clear();
+            ClearTransient();
             PawnFolders.Clear();
             MissingPortraits.Clear();
+        }
+
+        private static int CacheLimit
+        {
+            get
+            {
+                PortraitSettings settings = RimAIPortraitMod.Settings;
+                return settings == null ? 100 : Mathf.Clamp(settings.PortraitCacheLimit, 0, 1000);
+            }
+        }
+
+        private static void ClearTransient()
+        {
+            if (transientTexture != null) UnityEngine.Object.Destroy(transientTexture);
+            transientTexture = null;
+            transientKey = null;
+        }
+
+        private static bool TryGetCachedTexture(string key, out Texture2D texture)
+        {
+            if (CacheLimit == 0)
+            {
+                texture = transientKey == key ? transientTexture : null;
+                return texture != null;
+            }
+            if (!Cache.TryGetValue(key, out texture)) return false;
+            LinkedListNode<string> node = CacheNodes[key];
+            if (node != CacheOrder.Last)
+            {
+                CacheOrder.Remove(node);
+                CacheOrder.AddLast(node);
+            }
+            return true;
+        }
+
+        private static void StoreTexture(string key, Texture2D texture)
+        {
+            if (CacheLimit == 0)
+            {
+                ClearTransient();
+                transientKey = key;
+                transientTexture = texture;
+                return;
+            }
+            Cache[key] = texture;
+            CacheNodes[key] = CacheOrder.AddLast(key);
+            TrimCache();
+        }
+
+        private static void TrimCache()
+        {
+            int limit = CacheLimit;
+            int evicted = 0;
+            while (Cache.Count > limit)
+            {
+                RemoveCachedTexture(CacheOrder.First.Value);
+                evicted++;
+            }
+            if (limit > 0) ClearTransient();
+            if (evicted > 0 && Current.Game != null && RimAIPortraitMod.Settings != null && RimAIPortraitMod.Settings.DebugMode)
+                Messages.Message(Localization.T("RimAIPortrait.Debug.PortraitCacheEvicted", evicted, Cache.Count, limit),
+                    MessageTypeDefOf.NeutralEvent, false);
         }
         /// <summary>Describes the behavior of this type or member.</summary>
 
@@ -49,8 +114,7 @@ namespace RimAIPortrait
                 foreach (PortraitState cachedState in Enum.GetValues(typeof(PortraitState)))
                     RemoveCachedTexture(p.ThingID + cachedState);
 
-                if (GrayCache.TryGetValue(p.ThingID, out var gray)) UnityEngine.Object.Destroy(gray);
-                GrayCache.Remove(p.ThingID);
+                RemoveCachedTexture(p.ThingID + "Grayscale");
                 return;
             }
 
@@ -68,6 +132,9 @@ namespace RimAIPortrait
         {
             if (Cache.TryGetValue(key, out var texture)) UnityEngine.Object.Destroy(texture);
             Cache.Remove(key);
+            if (CacheNodes.TryGetValue(key, out var node)) CacheOrder.Remove(node);
+            CacheNodes.Remove(key);
+            if (transientKey == key) ClearTransient();
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         private static void SaveDeathPortrait(Pawn p, byte[] sourcePng)
@@ -91,8 +158,7 @@ namespace RimAIPortrait
                     string path = DeathPath(p); Directory.CreateDirectory(Path.GetDirectoryName(path));
                     File.WriteAllBytes(path, death.EncodeToPNG());
                     MissingPortraits.Remove(p.ThingID + "Death");
-                    if (Cache.TryGetValue(p.ThingID + "Death", out var old)) UnityEngine.Object.Destroy(old);
-                    Cache.Remove(p.ThingID + "Death");
+                    RemoveCachedTexture(p.ThingID + "Death");
                 }
                 finally { UnityEngine.Object.Destroy(death); }
             }
@@ -104,7 +170,7 @@ namespace RimAIPortrait
         {
             EnsureGameScope();
             string key = p.ThingID + "Death";
-            if (Cache.TryGetValue(key, out var cached)) return cached;
+            if (TryGetCachedTexture(key, out var cached)) return cached;
             if (MissingPortraits.Contains(key)) return null;
             string deathPath = DeathPath(p);
             Texture2D texture = null;
@@ -114,7 +180,7 @@ namespace RimAIPortrait
                 texture = new Texture2D(2, 2, TextureFormat.ARGB32, false);
                 if (!texture.LoadImage(image)) throw new InvalidDataException(Localization.T("RimAIPortrait.Preview.UnsupportedImage"));
                 texture.wrapMode = TextureWrapMode.Clamp;
-                Cache[key] = texture;
+                StoreTexture(key, texture);
                 Texture2D loaded = texture;
                 texture = null;
                 return loaded;
@@ -128,14 +194,15 @@ namespace RimAIPortrait
         public static Texture2D GetGrayscale(Pawn p)
         {
             EnsureGameScope();
-            if (GrayCache.TryGetValue(p.ThingID, out var cached)) return cached;
+            string key = p.ThingID + "Grayscale";
+            if (TryGetCachedTexture(key, out var cached)) return cached;
             Texture2D source = Get(p, PortraitState.Base); if (source == null) return null;
             try
             {
                 var pixels = source.GetPixels32();
                 for (int i = 0; i < pixels.Length; i++) { byte y = (byte)(pixels[i].r * .299f + pixels[i].g * .587f + pixels[i].b * .114f); pixels[i].r = pixels[i].g = pixels[i].b = y; }
                 var gray = new Texture2D(source.width, source.height, TextureFormat.ARGB32, false); gray.SetPixels32(pixels); gray.Apply(); gray.wrapMode = TextureWrapMode.Clamp;
-                GrayCache[p.ThingID] = gray; return gray;
+                StoreTexture(key, gray); return gray;
             }
             catch (Exception e) { Log.Error("[Rim AI Expressive Portraits] Grayscale conversion failed: " + e); return source; }
         }
@@ -144,7 +211,7 @@ namespace RimAIPortrait
         {
             EnsureGameScope();
             if (state == PortraitState.Normal) ExistingPathFor(p, PortraitState.Base);
-            string key = p.ThingID + state; if (Cache.TryGetValue(key, out var tex)) return tex;
+            string key = p.ThingID + state; if (TryGetCachedTexture(key, out var tex)) return tex;
             if (MissingPortraits.Contains(key)) return FallbackPortrait(p, state);
             string path = ExistingPathFor(p, state);
             tex = null;
@@ -154,7 +221,7 @@ namespace RimAIPortrait
                 tex = new Texture2D(2, 2, TextureFormat.ARGB32, false);
                 if (!tex.LoadImage(image)) throw new InvalidDataException(Localization.T("RimAIPortrait.Preview.UnsupportedImage"));
                 tex.wrapMode = TextureWrapMode.Clamp;
-                Cache[key] = tex;
+                StoreTexture(key, tex);
                 Texture2D loaded = tex;
                 tex = null;
                 return loaded;

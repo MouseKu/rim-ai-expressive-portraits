@@ -14,6 +14,7 @@ namespace RimAIPortrait
     {
         public string[] positive = null;
         public string[] negative = null;
+        public bool deduplicatePrompt;
 
         public string PositiveText => string.Join(", ", positive ?? new string[0]);
         public string NegativeText => string.Join(", ", negative ?? new string[0]);

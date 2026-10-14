@@ -19,6 +19,9 @@ namespace RimAIPortrait
         private void DrawAdvancedSettings(Listing_Standard l)
         {
             DrawPortraitStorageSettings(l);
+            Settings.PortraitCacheLimit = Mathf.RoundToInt(SettingsTooltips.Slider(l,
+                Localization.T("RimAIPortrait.Settings.PortraitCacheLimit", Settings.PortraitCacheLimit),
+                Settings.PortraitCacheLimit, 0f, 1000f, "RimAIPortrait.Settings.PortraitCacheLimitTip"));
             l.GapLine();
             if (l.ButtonText(Localization.T("RimAIPortrait.Settings.XenotypeProvider")))
                 Find.WindowStack.Add(new Dialog_XenotypeProvider(Settings, WriteSettings));

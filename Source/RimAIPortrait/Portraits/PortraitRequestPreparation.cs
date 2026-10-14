@@ -48,7 +48,8 @@ namespace RimAIPortrait
                 : expression ? settings.ExpressionProvider : settings.Provider;
             IPortraitGenerationProvider provider = PortraitProviderRegistry.Get(providerId);
             ExtractedTags baseTags = !options.Regenerate && !expression ? PortraitData.BaseTags(options.Pawn) : null;
-            bool useExtractedFeatures = baseTags != null && baseTags.positive != null && baseTags.positive.Length > 0
+            bool useExtractedFeatures = baseTags != null && baseTags.deduplicatePrompt
+                && baseTags.positive != null && baseTags.positive.Length > 0
                 && (providerId == AiProvider.NovelAI || providerId == AiProvider.LocalOpenAI
                     || providerId == AiProvider.LocalComfyUI
                     && WorkflowUsesExtractedTags(settings.ComfyWorkflowPath));

@@ -6,7 +6,7 @@
   <RimAIPortrait.Gallery.Tip.OpenFolder>Open this colonist's portrait folder.</RimAIPortrait.Gallery.Tip.OpenFolder>
   <RimAIPortrait.Gallery.Tip.Refresh>Reload the image list after adding or changing files outside the game.</RimAIPortrait.Gallery.Tip.Refresh>
   <RimAIPortrait.Gallery.Tip.GenerateBase>Generate a new Base portrait without using selected gallery images.</RimAIPortrait.Gallery.Tip.GenerateBase>
-  <RimAIPortrait.Gallery.Tip.RegenerateSelected>Generate a new Base portrait from one selected image. NovelAI and Local require an inpaint area.</RimAIPortrait.Gallery.Tip.RegenerateSelected>
+  <RimAIPortrait.Gallery.Tip.RegenerateSelected>Generate a new portrait for the displayed state from one selected image. NovelAI and Local require an inpaint area.</RimAIPortrait.Gallery.Tip.RegenerateSelected>
   <RimAIPortrait.Gallery.Tip.GenerateEmotions>Choose expressions to generate from the assigned Base portrait.</RimAIPortrait.Gallery.Tip.GenerateEmotions>
   <RimAIPortrait.Gallery.Tip.RemoveBackground>Edit selected gallery images, or the portrait shown on the left when nothing is selected.</RimAIPortrait.Gallery.Tip.RemoveBackground>
   <RimAIPortrait.Gallery.Tip.Confirm>Assign one selected gallery image to the state shown on the left. You can also double-click the image.</RimAIPortrait.Gallery.Tip.Confirm>
@@ -116,6 +116,9 @@
   <RimAIPortrait.Settings.EnabledEmotions>Enabled emotions</RimAIPortrait.Settings.EnabledEmotions>
   <RimAIPortrait.Settings.Category>Rim AI Expressive Portraits</RimAIPortrait.Settings.Category>
   <RimAIPortrait.Settings.Advanced>Advanced</RimAIPortrait.Settings.Advanced>
+  <RimAIPortrait.Settings.PortraitCacheLimit>Portrait cache size: {0}</RimAIPortrait.Settings.PortraitCacheLimit>
+  <RimAIPortrait.Settings.PortraitCacheLimitTip>Maximum number of loaded portraits kept for quick reuse. 0 keeps only the currently displayed portrait. Smaller values reduce memory use but may pause briefly when a portrait is opened again.</RimAIPortrait.Settings.PortraitCacheLimitTip>
+  <RimAIPortrait.Debug.PortraitCacheEvicted>Portrait cache: removed {0} image(s) ({1}/{2} cached).</RimAIPortrait.Debug.PortraitCacheEvicted>
   <RimAIPortrait.Settings.EnableDeprecatedFeatures>Hide legacy ComfyUI provider</RimAIPortrait.Settings.EnableDeprecatedFeatures>
   <RimAIPortrait.Settings.HiddenProvider>Hidden provider</RimAIPortrait.Settings.HiddenProvider>
   <RimAIPortrait.Settings.DeprecatedProviderHidden>The previously selected provider is hidden. Select another provider here, or turn off the hide option to edit it.</RimAIPortrait.Settings.DeprecatedProviderHidden>
@@ -291,6 +294,8 @@
   <RimAIPortrait.DebugRequest.Copy>Copy shown text</RimAIPortrait.DebugRequest.Copy><RimAIPortrait.DebugRequest.Waiting>Waiting for response...</RimAIPortrait.DebugRequest.Waiting><RimAIPortrait.DebugRequest.Binary>Binary response: {0} bytes (base64 available in Full text)</RimAIPortrait.DebugRequest.Binary><RimAIPortrait.DebugRequest.DisplayLimit>Display limited to 100,000 characters. Copy shown text in Full text mode to copy the complete request and response.</RimAIPortrait.DebugRequest.DisplayLimit>
   <RimAIPortrait.Gallery.TagLabel>Tag:</RimAIPortrait.Gallery.TagLabel>
   <RimAIPortrait.Gallery.TagExtractorLabel>Tag Extractor:</RimAIPortrait.Gallery.TagExtractorLabel>
+  <RimAIPortrait.Gallery.DeduplicatePrompt>Remove duplicate prompt details</RimAIPortrait.Gallery.DeduplicatePrompt>
+  <RimAIPortrait.Gallery.DeduplicatePromptTip>When this pawn has positive tags, omit the Extra Features, gender, race, age, apparel, and other pawn detail sections from the Base prompt to avoid repeating the tags. Base instructions and personal prompt remain; tag and image delivery are unchanged. Off by default; turns on after a successful tag extraction.</RimAIPortrait.Gallery.DeduplicatePromptTip>
   <RimAIPortrait.Gallery.EditTagExtractorPrompt>Edit</RimAIPortrait.Gallery.EditTagExtractorPrompt>
   <RimAIPortrait.Gallery.TagExtractorPromptTitle>Tag Extractor Prompt</RimAIPortrait.Gallery.TagExtractorPromptTitle>
   <RimAIPortrait.Gallery.TagExtractorPromptScope>This Base tag extraction prompt applies to all pawns. Save to use it for future extractions.</RimAIPortrait.Gallery.TagExtractorPromptScope>

@@ -75,7 +75,8 @@ namespace RimAIPortrait
                 PortraitPrompt.TagExtractorFeatures(pawn, settings));
         }
         /// <summary>Describes the behavior of this type or member.</summary>
-        public void GenerateNormalFromReference(Pawn pawn, string referencePath, string prompt, Action<string> report)
+        public void GenerateNormalFromReference(Pawn pawn, PortraitState state, string referencePath, string prompt,
+            Action<string> report)
         {
             if (pawn == null || RimAIPortraitMod.Settings == null)
             {
@@ -86,7 +87,7 @@ namespace RimAIPortrait
             IPortraitGenerationProvider provider = PortraitProviderRegistry.Get(settings.RegenerateProvider);
             string error = provider.Validate(settings.RegenerateConfiguration(), Localization.T("RimAIPortrait.Kind.Regenerate"));
             if (!string.IsNullOrEmpty(error)) { report(error); return; }
-            StartCoroutine(GenerateNormalFromReferenceRoutine(pawn, referencePath, prompt, report));
+            StartCoroutine(GenerateNormalFromReferenceRoutine(pawn, state, referencePath, prompt, report));
         }
         /// <summary>Describes the behavior of this type or member.</summary>
         public void GenerateEmotions(Pawn pawn, IEnumerable<string> references, Action<string> report)
@@ -161,19 +162,22 @@ namespace RimAIPortrait
             Messages.Message(Localization.T("RimAIPortrait.Status.PortraitSavedFor", pawn.LabelShort), MessageTypeDefOf.PositiveEvent, false);
         }
         /// <summary>Describes the behavior of this type or member.</summary>
-        private IEnumerator GenerateNormalFromReferenceRoutine(Pawn pawn, string referencePath, string prompt, Action<string> report)
+        private IEnumerator GenerateNormalFromReferenceRoutine(Pawn pawn, PortraitState state, string referencePath,
+            string prompt, Action<string> report)
         {
             byte[] reference;
             try { reference = File.ReadAllBytes(referencePath); }
             catch (Exception e) { Fail(Localization.T("RimAIPortrait.Status.ReferenceReadFailed", e.Message), report); yield break; }
             string error = null;
-            Log.Message("[Rim AI Expressive Portraits] Starting referenced normal portrait for " + pawn.LabelShort);
+            Log.Message("[Rim AI Expressive Portraits] Starting referenced " + state + " portrait for " + pawn.LabelShort);
             yield return RequestAndSave(new PortraitRequestOptions {
-                Pawn = pawn, State = PortraitState.Base, PrimaryImage = reference,
+                Pawn = pawn, State = state, PrimaryImage = reference,
                 ImageUse = PortraitImageUse.Edit, Regenerate = true, RegeneratePrompt = prompt
             }, value => error = value);
             if (error != null) { Fail(Localization.T("RimAIPortrait.Status.GenerationFailed", error), report); yield break; }
-            report(Localization.T("RimAIPortrait.Status.ReferenceBaseSaved"));
+            report(Localization.T(state == PortraitState.Base
+                ? "RimAIPortrait.Status.ReferenceBaseSaved" : "RimAIPortrait.Status.StateSaved",
+                PortraitStateNames.Label(state)));
             Messages.Message(Localization.T("RimAIPortrait.Status.PortraitSavedFor", pawn.LabelShort), MessageTypeDefOf.PositiveEvent, false);
         }
         /// <summary>Describes the behavior of this type or member.</summary>

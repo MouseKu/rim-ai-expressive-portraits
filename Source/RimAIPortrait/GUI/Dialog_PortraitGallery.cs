@@ -23,6 +23,7 @@ namespace RimAIPortrait
         private ExtractedTags baseTags;
         private string positiveTagText;
         private string negativeTagText;
+        private bool deduplicatePrompt;
         private bool tagEdited;
         private bool generatingTag;
         private string basePrompt;
@@ -45,7 +46,7 @@ namespace RimAIPortrait
         private const string NegativeTagControl = "RimAIPortrait.Gallery.NegativeTag";
         public override Vector2 InitialSize => PortraitWindowSizing.Fit(900f, 980f);
         /// <summary>Describes the behavior of this type or member.</summary>
-        public Dialog_PortraitGallery(Pawn pawn) { this.pawn = pawn; extraFeatures = PortraitData.ExtraFeatures(pawn); baseTags = PortraitData.BaseTags(pawn); positiveTagText = baseTags?.PositiveText ?? ""; negativeTagText = baseTags?.NegativeText ?? ""; basePromptProvider = RimAIPortraitMod.Settings.Provider; LoadBasePrompt(); doCloseX = true; absorbInputAroundWindow = true; RefreshFiles(); hadBaseImage = HasBaseImage(); }
+        public Dialog_PortraitGallery(Pawn pawn) { this.pawn = pawn; extraFeatures = PortraitData.ExtraFeatures(pawn); baseTags = PortraitData.BaseTags(pawn); positiveTagText = baseTags?.PositiveText ?? ""; negativeTagText = baseTags?.NegativeText ?? ""; deduplicatePrompt = baseTags != null && baseTags.deduplicatePrompt; basePromptProvider = RimAIPortraitMod.Settings.Provider; LoadBasePrompt(); doCloseX = true; absorbInputAroundWindow = true; RefreshFiles(); hadBaseImage = HasBaseImage(); }
 
         /// <summary>Describes the behavior of this type or member.</summary>
         public override void DoWindowContents(Rect rect)
@@ -115,20 +116,21 @@ namespace RimAIPortrait
                     SaveRequestFields();
                     PortraitRuntime.EnsureCreated();
                     string referencePath = selected.First();
+                    PortraitState regenerateState = targetState;
                     AiProvider provider = RimAIPortraitMod.Settings.RegenerateProvider;
                     if (provider == AiProvider.OpenAI || provider == AiProvider.Google)
                         Find.WindowStack.Add(new Dialog_PortraitRegenerate(referencePath, prompt =>
                         {
                             PortraitRuntime.StartGenerationButtonCooldown();
                             status = Localization.T("RimAIPortrait.Status.RegeneratingSelected");
-                            PortraitRuntime.Instance.GenerateNormalFromReference(pawn, referencePath, prompt,
+                            PortraitRuntime.Instance.GenerateNormalFromReference(pawn, regenerateState, referencePath, prompt,
                                 x => { status = x; RefreshFiles(); });
                         }));
                     else
                     {
                         PortraitRuntime.StartGenerationButtonCooldown();
                         status = Localization.T("RimAIPortrait.Status.RegeneratingSelected");
-                        PortraitRuntime.Instance.GenerateNormalFromReference(pawn, referencePath, null,
+                        PortraitRuntime.Instance.GenerateNormalFromReference(pawn, regenerateState, referencePath, null,
                             x => { status = x; RefreshFiles(); });
                     }
                 }
@@ -246,6 +248,19 @@ namespace RimAIPortrait
             {
                 Widgets.Label(new Rect(0f, 257f, 150f, 28f),
                     Localization.T("RimAIPortrait.Gallery.TagExtractorLabel"));
+                bool previousDeduplication = deduplicatePrompt;
+                string deduplicationLabel = Localization.T("RimAIPortrait.Gallery.DeduplicatePrompt");
+                Rect deduplicationCheckbox = new Rect(155f, 252f,
+                    Mathf.Min(rect.width - 370f, Text.CalcSize(deduplicationLabel).x + 34f), 32f);
+                Widgets.CheckboxLabeled(deduplicationCheckbox, deduplicationLabel, ref deduplicatePrompt);
+                TooltipHandler.TipRegion(deduplicationCheckbox,
+                    Localization.T("RimAIPortrait.Gallery.DeduplicatePromptTip"));
+                if (deduplicatePrompt != previousDeduplication)
+                {
+                    tagEdited = true;
+                    status = Localization.T(SaveBaseTags()
+                        ? "RimAIPortrait.Gallery.TagSaved" : "RimAIPortrait.Gallery.TagSaveFailed");
+                }
                 Rect editTagButton = new Rect(rect.width - 205f, 252f, 80f, 32f);
                 if (Widgets.ButtonText(editTagButton,
                     Localization.T("RimAIPortrait.Gallery.EditTagExtractorPrompt")))
@@ -527,7 +542,8 @@ namespace RimAIPortrait
             var tags = new ExtractedTags
             {
                 positive = SplitTags(positiveTagText),
-                negative = SplitTags(negativeTagText)
+                negative = SplitTags(negativeTagText),
+                deduplicatePrompt = deduplicatePrompt
             };
             if (!PortraitData.SaveBaseTags(pawn, tags)) return false;
             baseTags = tags;
@@ -565,6 +581,7 @@ namespace RimAIPortrait
                 }
                 positiveTagText = tags.PositiveText;
                 negativeTagText = tags.NegativeText;
+                deduplicatePrompt = true;
                 tagEdited = true;
                 status = Localization.T(SaveBaseTags()
                     ? "RimAIPortrait.Gallery.TagSaved" : "RimAIPortrait.Gallery.TagSaveFailed");

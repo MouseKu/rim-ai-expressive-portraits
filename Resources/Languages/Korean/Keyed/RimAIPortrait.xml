@@ -6,7 +6,7 @@
   <RimAIPortrait.Gallery.Tip.OpenFolder>이 정착민의 초상화 저장 폴더를 엽니다.</RimAIPortrait.Gallery.Tip.OpenFolder>
   <RimAIPortrait.Gallery.Tip.Refresh>게임 밖에서 추가하거나 수정한 이미지를 목록에 반영합니다.</RimAIPortrait.Gallery.Tip.Refresh>
   <RimAIPortrait.Gallery.Tip.GenerateBase>선택한 갤러리 이미지를 사용하지 않고 새 Base 초상화를 생성합니다.</RimAIPortrait.Gallery.Tip.GenerateBase>
-  <RimAIPortrait.Gallery.Tip.RegenerateSelected>선택한 이미지 한 장으로 새 Base 초상화를 생성합니다. NovelAI와 Local은 인페인트 영역 선택이 필요합니다.</RimAIPortrait.Gallery.Tip.RegenerateSelected>
+  <RimAIPortrait.Gallery.Tip.RegenerateSelected>선택한 이미지 한 장으로 현재 표시 중인 감정의 초상화를 생성합니다. NovelAI와 Local은 인페인트 영역 선택이 필요합니다.</RimAIPortrait.Gallery.Tip.RegenerateSelected>
   <RimAIPortrait.Gallery.Tip.GenerateEmotions>지정된 Base 초상화로 생성할 감정을 선택합니다.</RimAIPortrait.Gallery.Tip.GenerateEmotions>
   <RimAIPortrait.Gallery.Tip.RemoveBackground>갤러리에서 선택한 이미지를 편집합니다. 선택한 이미지가 없으면 왼쪽에 표시된 초상화를 편집합니다.</RimAIPortrait.Gallery.Tip.RemoveBackground>
   <RimAIPortrait.Gallery.Tip.Confirm>선택한 이미지 한 장을 왼쪽에 표시된 감정에 지정합니다. 이미지를 더블클릭해도 됩니다.</RimAIPortrait.Gallery.Tip.Confirm>
@@ -78,6 +78,9 @@
   <RimAIPortrait.Settings.Category>Rim AI Expressive Portraits</RimAIPortrait.Settings.Category><RimAIPortrait.Settings.RestoreDefaults>기본값으로 되돌리기</RimAIPortrait.Settings.RestoreDefaults><RimAIPortrait.Settings.ConfirmRestoreDefaults>모든 옵션을 기본값으로 되돌릴까요? API 키, 제공자 설정, 프롬프트, 로컬 경로도 함께 지워지거나 초기화됩니다.</RimAIPortrait.Settings.ConfirmRestoreDefaults><RimAIPortrait.Settings.DefaultsRestored>모든 옵션을 기본값으로 되돌렸습니다.</RimAIPortrait.Settings.DefaultsRestored>
   <RimAIPortrait.Settings.ResetPortraitHelp>초상화 도움말 초기화</RimAIPortrait.Settings.ResetPortraitHelp>
   <RimAIPortrait.Settings.Advanced>고급 설정</RimAIPortrait.Settings.Advanced>
+  <RimAIPortrait.Settings.PortraitCacheLimit>초상화 캐시 수: {0}</RimAIPortrait.Settings.PortraitCacheLimit>
+  <RimAIPortrait.Settings.PortraitCacheLimitTip>빠르게 다시 표시할 수 있도록 보관하는 초상화의 최대 개수입니다. 0은 현재 표시 중인 초상화만 유지합니다. 값을 낮추면 메모리 사용량은 줄지만 다시 열 때 잠시 멈출 수 있습니다.</RimAIPortrait.Settings.PortraitCacheLimitTip>
+  <RimAIPortrait.Debug.PortraitCacheEvicted>초상화 캐시: 이미지 {0}개 퇴출 ({1}/{2}개 보관).</RimAIPortrait.Debug.PortraitCacheEvicted>
   <RimAIPortrait.Settings.EnableDeprecatedFeatures>기존 ComfyUI 제공자 숨기기</RimAIPortrait.Settings.EnableDeprecatedFeatures>
   <RimAIPortrait.Settings.HiddenProvider>숨겨진 제공자</RimAIPortrait.Settings.HiddenProvider>
   <RimAIPortrait.Settings.DeprecatedProviderHidden>기존에 선택한 제공자를 숨겼습니다. 여기서 다른 제공자를 선택하거나 숨김 옵션을 끄면 다시 편집할 수 있습니다.</RimAIPortrait.Settings.DeprecatedProviderHidden>
@@ -249,6 +252,8 @@
   <RimAIPortrait.DebugRequest.Copy>표시 내용 복사</RimAIPortrait.DebugRequest.Copy><RimAIPortrait.DebugRequest.Waiting>응답을 기다리는 중...</RimAIPortrait.DebugRequest.Waiting><RimAIPortrait.DebugRequest.Binary>바이너리 응답: {0}바이트 (전체 내용에서 base64 확인 가능)</RimAIPortrait.DebugRequest.Binary><RimAIPortrait.DebugRequest.DisplayLimit>화면에는 최대 100,000자만 표시합니다. 전체 내용 모드에서 표시 내용 복사를 누르면 요청과 응답 전체가 복사됩니다.</RimAIPortrait.DebugRequest.DisplayLimit>
   <RimAIPortrait.Gallery.TagLabel>태그:</RimAIPortrait.Gallery.TagLabel>
   <RimAIPortrait.Gallery.TagExtractorLabel>Tag Extractor:</RimAIPortrait.Gallery.TagExtractorLabel>
+  <RimAIPortrait.Gallery.DeduplicatePrompt>프롬프트 중복 제거</RimAIPortrait.Gallery.DeduplicatePrompt>
+  <RimAIPortrait.Gallery.DeduplicatePromptTip>이 정착민의 Positive 태그가 있으면 태그와 내용이 반복되지 않도록 Base 프롬프트에서 추가 특징, 성별, 종족, 나이, 의류 등 정보 섹션을 생략합니다. 기본 지침과 개인 프롬프트는 유지되며 태그와 이미지 전달 방식은 바뀌지 않습니다. 기본값은 해제이며 태그 추출에 성공하면 자동으로 켜집니다.</RimAIPortrait.Gallery.DeduplicatePromptTip>
   <RimAIPortrait.Gallery.EditTagExtractorPrompt>편집</RimAIPortrait.Gallery.EditTagExtractorPrompt>
   <RimAIPortrait.Gallery.TagExtractorPromptTitle>Tag Extractor 프롬프트</RimAIPortrait.Gallery.TagExtractorPromptTitle>
   <RimAIPortrait.Gallery.TagExtractorPromptScope>이 Base 태그 추출 프롬프트는 모든 정착민에게 적용됩니다. 저장하면 다음 추출부터 사용됩니다.</RimAIPortrait.Gallery.TagExtractorPromptScope>

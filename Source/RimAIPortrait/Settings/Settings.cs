@@ -120,6 +120,7 @@ namespace RimAIPortrait
         public float OffsetX;
         public float OffsetY;
         public float SwapSeconds;
+        public int PortraitCacheLimit;
         public float LowMoodThreshold;
         public float HighMoodThreshold;
         public bool GenerateStates;
@@ -323,6 +324,7 @@ namespace RimAIPortrait
             Scribe_Values.Look(ref Width, "width", defaults.Width); Scribe_Values.Look(ref Height, "height", defaults.Height);
             Scribe_Values.Look(ref Scale, "scale", defaults.Scale); Scribe_Values.Look(ref OffsetX, "offsetX", defaults.OffsetX);
             Scribe_Values.Look(ref OffsetY, "offsetY", defaults.OffsetY); Scribe_Values.Look(ref SwapSeconds, "swapSeconds", defaults.SwapSeconds);
+            Scribe_Values.Look(ref PortraitCacheLimit, "portraitCacheLimit", defaults.PortraitCacheLimit);
             Scribe_Values.Look(ref LowMoodThreshold, "lowMoodThreshold", defaults.LowMoodThreshold);
             Scribe_Values.Look(ref HighMoodThreshold, "highMoodThreshold", defaults.HighMoodThreshold);
             Scribe_Values.Look(ref GenerateStates, "generateStates", defaults.GenerateStates);

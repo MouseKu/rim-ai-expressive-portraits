@@ -5,7 +5,7 @@ param(
 
     [string]$RimWorldDir = "D:\SteamLibrary\steamapps\common\RimWorld",
 
-    [string]$HarmonyDll = "D:\SteamLibrary\steamapps\workshop\content\294100\2009463077\Current\Assemblies\0Harmony.dll",
+    [string]$HarmonyDll,
 
     [string]$OutputDirectory
 )
@@ -36,13 +36,39 @@ if (-not (Test-Path -LiteralPath (Join-Path $RimWorldDir "RimWorldWin64_Data\Man
 }
 
 if ([string]::IsNullOrWhiteSpace($HarmonyDll)) {
-    $HarmonyDll = Join-Path $RimWorldDir "Mods\Harmony\Current\Assemblies\0Harmony.dll"
+    $versionFile = Join-Path $RimWorldDir "Version.txt"
+    $rimWorldVersion = $null
+    if (Test-Path -LiteralPath $versionFile -PathType Leaf) {
+        $versionText = Get-Content -LiteralPath $versionFile -TotalCount 1
+        if ($versionText -match '^(\d+\.\d+)') {
+            $rimWorldVersion = $Matches[1]
+        }
+    }
+
+    $steamAppsRoot = Split-Path (Split-Path $RimWorldDir -Parent) -Parent
+    $harmonyRoots = @(
+        (Join-Path $RimWorldDir "Mods\Harmony"),
+        (Join-Path $steamAppsRoot "workshop\content\294100\2009463077")
+    )
+    $harmonyVersions = @($rimWorldVersion, "Current") | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    foreach ($harmonyRoot in $harmonyRoots) {
+        foreach ($harmonyVersion in $harmonyVersions) {
+            $candidate = Join-Path $harmonyRoot "$harmonyVersion\Assemblies\0Harmony.dll"
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                $HarmonyDll = $candidate
+                break
+            }
+        }
+        if ($HarmonyDll) {
+            break
+        }
+    }
 }
 
-$HarmonyDll = [System.IO.Path]::GetFullPath($HarmonyDll)
-if (-not (Test-Path -LiteralPath $HarmonyDll -PathType Leaf)) {
-    throw "Harmony DLL was not found. Install Harmony or pass -HarmonyDll: $HarmonyDll"
+if ([string]::IsNullOrWhiteSpace($HarmonyDll) -or -not (Test-Path -LiteralPath $HarmonyDll -PathType Leaf)) {
+    throw "Harmony DLL was not found. Install Harmony for this RimWorld version or pass -HarmonyDll: $HarmonyDll"
 }
+$HarmonyDll = [System.IO.Path]::GetFullPath($HarmonyDll)
 
 $buildArguments = @(
     "build",

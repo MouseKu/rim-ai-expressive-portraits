@@ -73,6 +73,7 @@
   "OffsetX": 15.0,
   "OffsetY": 214.0,
   "SwapSeconds": 3.0,
+  "PortraitCacheLimit": 100,
   "LowMoodThreshold": 0.2,
   "HighMoodThreshold": 0.65,
   "GenerateStates": true,
